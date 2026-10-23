@@ -1,0 +1,64 @@
+# Build the standalone studio, run checks, and publish it with GitHub Pages.
+# The site is served at https://chamomilegrey.github.io/SONORI/
+# One-time repo setting: Settings → Pages → Build and deployment → Source: GitHub Actions.
+
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Finish the deployment that is already running. Do not cancel a production publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build standalone HTML
+        run: npm run build
+
+      - name: Check composition, briefs, and bundle
+        run: npm run check
+
+      - name: Stage index.html
+        run: |
+          mkdir -p _site
+          cp release/SONORI.html _site/index.html
+
+      # The standalone page uses relative URLs, so it does not need a Pages base-path rewrite.
+      # Enabling the site itself is a one-time repository setting (Source: GitHub Actions).
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
