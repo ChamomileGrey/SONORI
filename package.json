@@ -1,0 +1,11 @@
+{
+  "name": "sonori-studio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build-standalone.mjs",
+    "check": "node checks/audio-check.mjs && node checks/brief-check.mjs && node checks/standalone-check.mjs"
+  },
+  "author": "ChamomileGrey",
+  "license": "UNLICENSED"
+}
