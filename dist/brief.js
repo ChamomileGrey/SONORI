@@ -136,38 +136,106 @@ function normalize(settings = {}) {
   };
 }
 
-function makeStructure(bars, genreId) {
-  const sections = [
-    { name: '인트로', weight: 1, description: '음색과 공간감을 먼저 소개합니다.' },
-    { name: '벌스', weight: 2, description: '절제된 반주 위에 짧은 멜로디를 놓습니다.' },
-    { name: '후렴', weight: 4, description: '같은 모티프를 조금 더 넓게 펼쳐 중심을 만듭니다.' },
-    { name: '아웃트로', weight: 1, description: '여운을 남기며 자연스럽게 마무리합니다.' },
-  ];
-  if (genreId === 'ambient') {
-    sections[1].description = '성긴 모티프와 긴 잔향으로 공간을 넓힙니다.';
-    sections[2].description = '질감의 밀도를 높이며 중심 장면을 만듭니다.';
+const SECTION_META = {
+  intro: ['인트로', '음색과 공간감을 먼저 소개합니다.'],
+  verse: ['벌스', '절제된 반주 위에 모티프를 놓습니다.'],
+  pre: ['프리', '후렴으로 올라가기 전 숨을 모읍니다.'],
+  chorus: ['후렴', '같은 모티프를 더 넓고 높게 펼칩니다.'],
+  bridge: ['브리지', '색채와 리듬을 잠시 돌려 대비를 만듭니다.'],
+  outro: ['아웃트로', '여운을 남기며 으뜸화음으로 닫습니다.'],
+  motif: ['핵심 모티프', '짧은 아이디어를 확인하는 단일 구간입니다.'],
+};
+const STRUCTURES = [
+  ['intro', 'verse', 'chorus', 'outro'],
+  ['verse', 'pre', 'chorus', 'outro'],
+  ['intro', 'verse', 'chorus', 'bridge', 'outro'],
+  ['verse', 'chorus', 'verse', 'chorus', 'outro'],
+  ['intro', 'verse', 'pre', 'chorus', 'outro'],
+  ['intro', 'verse', 'chorus', 'bridge', 'chorus', 'outro'],
+  ['verse', 'pre', 'chorus', 'bridge', 'chorus', 'outro'],
+  ['intro', 'verse', 'pre', 'chorus', 'bridge', 'chorus', 'outro'],
+];
+
+function mix(seed, salt) {
+  let hash = Math.imul((seed >>> 0) ^ Math.imul((salt >>> 0) || 1, 0x9E3779B1), 0x85EBCA77);
+  hash ^= hash >>> 13;
+  hash = Math.imul(hash, 0xC2B2AE3D);
+  hash ^= hash >>> 16;
+  return hash >>> 0;
+}
+
+function audioSeed(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number >>> 0 : 20261017;
+}
+
+function textCode(value) {
+  let hash = 2166136261;
+  for (const char of String(value || '')) hash = Math.imul(hash ^ char.codePointAt(0), 16777619);
+  return hash >>> 0;
+}
+
+function arrangementCues(input = {}) {
+  const text = `${input.topic || ''} ${input.notes || ''} ${input.title || ''}`;
+  return {
+    wantChorus: /후렴|코러스|chorus|훅|hook|쉽게 부를/i.test(text),
+    wantSpace: /여백|잔잔|고요|느린|공간|sparse|조용/i.test(text),
+    wantBridge: /브리지|bridge|전환|전개/i.test(text),
+    wantLift: /밝|에너지|신나|dance|희망|경쾌|uplift/i.test(text),
+  };
+}
+
+/** Keep this allocation identical to planStructure in audio.js. */
+function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cues = {}) {
+  const count = Math.max(1, Math.round(Number(bars) || 1));
+  if (count < 4) {
+    const [name, description] = SECTION_META.motif;
+    return [{ role: 'motif', name, bars: count, description }];
   }
-  if (bars < 4) return [{ name: '핵심 모티프', bars, description: '짧은 아이디어를 확인하는 단일 구간입니다.' }];
-  const counts = sections.map(section => Math.floor(bars * section.weight / 8));
-  const remainders = sections.map((section, index) => ({ index, remainder: bars * section.weight / 8 - counts[index] })).sort((a, b) => b.remainder - a.remainder || a.index - b.index);
-  let remaining = bars - counts.reduce((sum, count) => sum + count, 0);
-  for (const item of remainders) if (remaining-- > 0) counts[item.index]++;
-  // Keep all four sections visible even in very short sketches.
-  for (let i = 0; i < counts.length; i++) {
-    if (counts[i] > 0) continue;
-    const largest = counts.indexOf(Math.max(...counts));
-    counts[largest]--;
-    counts[i]++;
+  let choices = STRUCTURES.filter(template => template.length <= count);
+  if (!choices.length) choices = [STRUCTURES[0]];
+  if (cues.wantBridge) {
+    const bridged = choices.filter(template => template.includes('bridge'));
+    if (bridged.length) choices = bridged;
+  } else if (cues.wantSpace) {
+    const spacious = choices.filter(template => template[0] === 'intro' && template.filter(role => role === 'chorus').length <= 1);
+    if (spacious.length) choices = spacious;
+  } else if (cues.wantChorus || cues.wantLift || mood === 'bright') {
+    const hooks = choices.filter(template => template.includes('pre') || template.filter(role => role === 'chorus').length >= 2);
+    if (hooks.length) choices = hooks;
+  } else if (genre === 'ambient' || genre === 'cinematic' || mood === 'melancholy') {
+    const spacious = choices.filter(template => template[0] === 'intro');
+    if (spacious.length) choices = spacious;
   }
-  return sections.map((section, index) => ({ name: section.name, bars: counts[index], description: section.description }));
+  const template = choices[mix(seed, 0x517) % choices.length];
+  const weight = { intro: 1, verse: 2, pre: 1, chorus: 3, bridge: 2, outro: 1, motif: 1 };
+  if (genre === 'ambient' || genre === 'cinematic' || cues.wantSpace) { weight.intro = 2; weight.verse = 2; weight.chorus = 2; }
+  if (genre === 'edm' || genre === 'pop' || cues.wantLift) weight.chorus = 4;
+  const totalWeight = template.reduce((sum, role) => sum + weight[role], 0);
+  const left = count - template.length;
+  const fractions = template.map(role => left * weight[role] / totalWeight);
+  const extras = fractions.map(value => Math.floor(value));
+  let used = extras.reduce((sum, value) => sum + value, 0);
+  const order = fractions.map((value, index) => ({ index, frac: value - Math.floor(value) })).sort((a, b) => b.frac - a.frac || a.index - b.index);
+  for (const item of order) {
+    if (used >= left) break;
+    extras[item.index] += 1;
+    used += 1;
+  }
+  return template.map((role, index) => {
+    const [name, description] = SECTION_META[role];
+    const ambient = genre === 'ambient' && role === 'verse' ? '성긴 모티프와 긴 잔향으로 공간을 넓힙니다.' : genre === 'ambient' && role === 'chorus' ? '질감의 밀도를 높이며 중심 장면을 만듭니다.' : description;
+    return { role, name, bars: 1 + extras[index], description: ambient };
+  });
 }
 
 function makeLyrics(input) {
   const sections = [
     ['Verse', input.mood.verses], ['Pre-Chorus', input.mood.pres], ['Chorus', input.mood.hooks], ['Outro', input.mood.outros],
   ];
+  const topicSalt = mix(audioSeed(input.topic ? textCode(input.topic) : input.seed), 0x71C);
   const stanzas = sections.map(([name, bank], index) => {
-    const lines = [...bank[(input.seed >>> (index * 3)) % bank.length]];
+    const lines = [...bank[Math.abs((input.seed + topicSalt + index * 13) % bank.length)]];
     if (index === 0 && input.topic) lines[0] = `머릿속 한 장면, ${oneLine(input.topic, 32)}`;
     return `[${name}]\n${lines.join('\n')}`;
   });
@@ -181,7 +249,8 @@ function makeLyrics(input) {
 export function createBrief(settings = {}) {
   const input = normalize(settings);
   const title = input.title || input.mood.titles[input.seed % input.mood.titles.length];
-  const structure = makeStructure(input.bars, input.genreId);
+  const rawSeed = audioSeed(settings && typeof settings === 'object' ? settings.seed : undefined);
+  const structure = planStructure(input.bars, input.genreId, input.moodId, rawSeed, arrangementCues(settings || {}));
   const seconds = Math.round(input.bars * 4 * 60 / input.bpm);
   const scaleSentence = input.scale ? ` 추천 스케일 색채: ${SCALE_KO[input.scale]}.` : '';
   const summary = `${input.mood.ko} ${input.genre.ko} · ${input.bpm} BPM · ${input.key} · 4/4 · ${input.bars}마디(약 ${seconds}초). ${input.instruments.ko.length ? input.instruments.ko.join(' · ') : '선택한 악기 없음'}. 목표 보컬: ${input.vocal.ko}.${scaleSentence} 구조는 데모용 구성 제안이며, 가사는 템플릿 기반 초안입니다.`;
@@ -191,7 +260,8 @@ export function createBrief(settings = {}) {
     `Tempo: ${input.bpm} BPM. Key: ${input.key}. Meter: 4/4. Length: ${input.bars} bars (approximately ${seconds} seconds).`,
     ...(input.scale ? [`Pitch color: ${SCALE_NAMES[input.scale]}. Keep the pitched instruments inside that collection.`] : []),
     `Arrangement: ${input.instruments.en.length ? input.instruments.en.join(', ') : 'no instruments selected; clarify instrumentation before rendering'}. Include only the selected instrument parts.`,
-    `Feel: ${input.genre.feel}. Keep the melody singable and leave breathing room between phrases.`,
+    `Feel: ${input.genre.feel}. Keep the melody singable, develop one motif across sections, and leave breathing room between phrases.`,
+    'Let the seed vary the chord bank, motif contour, drum groove, swing, and synth color inside this style. Repeat the same seed for the same sketch.',
     `Vocal direction for the future generated song: ${input.vocal.en}.`,
     `Suggested sketch structure: ${structure.map(section => `${section.name} ${section.bars} bars`).join(' → ')}.`,
     'Use an original melody and original lyrics. Avoid references to named artists or existing songs. Keep the mix balanced, with a gentle ending and no clipping.',

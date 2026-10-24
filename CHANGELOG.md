@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.2.0 — 2026-10-24
+
+같은 설정에서도 스케치가 서로 다르게 들리도록 작곡을 넓힘.
+
+### 추가
+
+- 스케치마다 시드로 고정되는 코드 진행 뱅크. 분위기별 여섯 가지 다이아토닉 진행과, 일부 시드의 빌린 코드
+- 인트로·벌스·프리·후렴·브리지·아웃트로 길이. 주제와 메모의 후렴·여백·브리지·상승 표현이 구성을 바꿈
+- 윤곽(아치·상승·하강·물결·인접)과 리듬 세포를 반복하고 변주하는 멜로디. 섹션마다 음역과 에너지가 달라짐
+- 장르별 드럼 그루브 네 가지와 섹션 끝 필. 스윙은 장르의 범위 안에서 시드마다 움직임
+- 코드 텍스처(지속음·스타브·분산·스트럼), 베이스 패턴, 필터·어택·넓은 보이싱
+- 재생 줄의 **변주** 버튼. 같은 이야기에서 시드를 다시 뽑고, 조성과 템포를 장르 범위 안에서 조금 옮김
+- `npm run check`의 다양성 검사. 같은 시드는 같은 스케치를 다시 만듦
+
+### 유지
+
+- 저장한 프로젝트 JSON(`sonori-project` 버전 1)과 기존 스케치 불러오기
+- 고른 템포·조성으로 데모를 만들면 그 값이 유지됨. 변주 버튼만 장르 범위 안에서 조성과 템포를 옮김
+- 단일 HTML, 엄격한 CSP, 외부 의존성 없음
+
+## English
+
+Sketches with the same genre and mood now pick different progressions, forms, motifs, grooves, swing, and synth color from the seed. A labeled re-roll button generates another variation. The same seed still repeats the same sketch, and saved projects still open.
+
 ## 1.1.0 — 2026-10-23
 
 라이브러리, 하단 재생 바, 장르·무드 프리셋.
