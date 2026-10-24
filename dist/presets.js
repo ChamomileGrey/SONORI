@@ -1,0 +1,64 @@
+/** Original genre/mood presets. No samples, logos, or external audio. */
+
+export const LAYER_HINTS = {
+  lofi: { melody: 'Soft lead', chords: 'Warm keys', bass: 'Round bass', drums: 'Soft groove' },
+  pop: { melody: 'Soft synth', chords: 'Bright keys', bass: 'Melodic bass', drums: 'Pop groove' },
+  rnb: { melody: 'Smooth lead', chords: 'Soul keys', bass: 'Syncopated bass', drums: 'Laid-back kit' },
+  ambient: { melody: 'Air lead', chords: 'Slow keys', bass: 'Soft foundation', drums: 'Minimal pulse' },
+  ballad: { melody: 'Warm lead', chords: 'Long pads', bass: 'Slow bass', drums: 'Half-time' },
+  edm: { melody: 'Saw lead', chords: 'Chord stabs', bass: 'Pulse bass', drums: 'Four-on-floor' },
+  acoustic: { melody: 'Pluck lead', chords: 'Strum keys', bass: 'Upright feel', drums: 'Brush kit' },
+  cinematic: { melody: 'Wide lead', chords: 'Wide pads', bass: 'Low drone', drums: 'Sparse hits' },
+};
+
+export const GENRE_PRESETS = [
+  {
+    id: 'lofi', label: 'Lo-fi', ko: '로파이', genre: 'lofi', mood: 'warm', bpm: 84, key: 'C', scale: 'major', scaleLabel: '메이저',
+    drums: '스윙 킥과 부드러운 하이햇', voice: '둥근 벨 리드 · 따뜻한 일렉트릭 피아노', blurb: '느긋한 오후, 가까운 공간',
+  },
+  {
+    id: 'ballad', label: 'Ballad', ko: '발라드', genre: 'ballad', mood: 'melancholy', bpm: 72, key: 'D', scale: 'dorian', scaleLabel: '도리안',
+    drums: '하프타임 킥 · 여린 스네어', voice: '긴 패드 · 부드러운 리드', blurb: '천천히 말하는 마음',
+  },
+  {
+    id: 'edm', label: 'EDM', ko: 'EDM', genre: 'edm', mood: 'bright', bpm: 128, key: 'A', scale: 'minor', scaleLabel: '마이너',
+    drums: '포 온 더 플로어 · 오프비트 햇', voice: '소우 리드 · 펄스 베이스', blurb: '밝은 에너지의 댄스 스케치',
+  },
+  {
+    id: 'acoustic', label: 'Acoustic', ko: '어쿠스틱', genre: 'acoustic', mood: 'warm', bpm: 96, key: 'G', scale: 'pentatonic', scaleLabel: '펜타토닉',
+    drums: '브러시 킥과 성긴 햇', voice: '플럭 톤 · 기타 같은 코드', blurb: '가까이서 듣는 어쿠스틱',
+  },
+  {
+    id: 'cinematic', label: 'Cinematic', ko: '시네마틱', genre: 'cinematic', mood: 'dreamy', bpm: 80, key: 'F', scale: 'minor', scaleLabel: '마이너',
+    drums: '넓게 띄운 타격과 여백', voice: '와이드 패드 · 공기감 있는 리드', blurb: '장면이 열리는 넓은 공간',
+  },
+];
+
+const DETAILS = {
+  pop: { ko: '팝', scale: 'major', scaleLabel: '메이저', drums: '고른 킥과 깔끔한 스네어', voice: '맑은 신스 리드 · 밝은 건반' },
+  rnb: { ko: 'R&B', scale: 'major', scaleLabel: '메이저', drums: '뒤로 기대는 그루브', voice: '부드러운 리드 · 소울 건반' },
+  ambient: { ko: '앰비언트', scale: 'major', scaleLabel: '메이저', drums: '아주 성긴 펄스', voice: '공기감 있는 리드 · 느린 코드' },
+};
+const FALLBACK = { ko: '스케치', scale: 'major', scaleLabel: '메이저', drums: '기본 그루브', voice: '신스 스케치' };
+
+export function presetById(id) {
+  return GENRE_PRESETS.find(preset => preset.id === id) || null;
+}
+
+export function detailForGenre(genre) {
+  return GENRE_PRESETS.find(preset => preset.genre === genre) || DETAILS[genre] || FALLBACK;
+}
+
+export function applyPresetToSettings(settings = {}, presetId) {
+  const preset = presetById(presetId);
+  if (!preset) return { ...settings };
+  return {
+    ...settings,
+    genre: preset.genre,
+    mood: preset.mood,
+    bpm: preset.bpm,
+    key: preset.key,
+    scale: preset.scale,
+    instruments: { melody: true, chords: true, bass: true, drums: true },
+  };
+}
