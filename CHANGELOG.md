@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.4.1 — 2026-10-24
+
+장르를 고르는 곳이 하나.
+
+### 변경
+
+- 장르 · 무드 프리셋 카드와 아래의 예전 장르 목록을 하나의 장르 · 무드 선택으로 합침
+- 한 번 고르면 새 스케치의 장르와 함께 템포, 조성, 스케일, 보이싱, 음색이 맞춰짐
+- 예전 목록에만 있던 Pop, R&B, Ambient를 같은 선택에 프리셋으로 넣음. 저장값의 장르 이름은 그대로
+- 분위기는 고른 장르 안에서만 조정
+
+### 유지
+
+- 저장 키 `sonori.studio.v1`, 프로젝트 JSON 버전 1. 예전 장르 값도 불러옴
+- 같은 시드와 같은 설정은 같은 스케치. 작곡 방식은 바꾸지 않음
+- 단일 HTML, 엄격한 CSP, 외부 의존성과 네트워크 없음
+- 브랜드 캐모마일그레이 (ChamomileGrey), Ko-fi, 라이선스
+
+## English
+
+The studio had two genre lists. There is now one genre and mood choice. Picking it sets the next sketch and that preset’s tempo, key, voicing, and timbre. Pop, R&B, and Ambient stay available. Saved projects still open as JSON version 1.
+
 ## 1.4.0 — 2026-10-24
 
 따뜻하고 아련한 분위기, 더 넓은 공간, 가사 없는 허밍.

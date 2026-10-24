@@ -1,6 +1,6 @@
 # 공개 전 확인 · Launch checklist
 
-버전 1.4.0. 공개 주소는 <https://chamomilegrey.github.io/SONORI/> 입니다.
+버전 1.4.1. 공개 주소는 <https://chamomilegrey.github.io/SONORI/> 입니다.
 
 ## 저장소에서 끝난 일
 
@@ -9,10 +9,11 @@
 - [x] 같은 시드는 같은 스케치. 이전 장르의 시드 결과와 저장한 `sonori.studio.v1` / `sonori-project` 버전 1은 유지
 - [x] 제목, 한국어·영어 설명, Open Graph, Twitter 카드, 캐노니컬 주소, `theme-color`
 - [x] 저장소 안에서 만든 `og.png`, 파비콘, iOS 홈 화면용 `apple-touch-icon.png`
-- [x] 매니페스트와 캐시 이름 `sonori-v1.4.0`인 서비스 워커. 단일 HTML은 서비스 워커를 등록하지 않음
+- [x] 매니페스트와 캐시 이름 `sonori-v1.4.1`인 서비스 워커. 단일 HTML은 서비스 워커를 등록하지 않음
 - [x] `404.html`, `robots.txt`, `sitemap.xml`
 - [x] 전역 오류 안내, AudioContext 미지원 안내, 저장 공간·개인정보 보호 모드 안내, 삭제 전 확인
-- [x] 바닥글의 개인정보 안내, v1.4.0, 새로운 점. 데이터는 브라우저 안에만 있고 분석 도구·쿠키·네트워크 호출은 없음
+- [x] 바닥글의 개인정보 안내, v1.4.1, 새로운 점. 데이터는 브라우저 안에만 있고 분석 도구·쿠키·네트워크 호출은 없음
+- [x] 장르 · 무드 선택 하나. Pop, R&B, Ambient를 포함한 예전 장르 값은 `sonori.studio.v1`과 프로젝트 JSON 버전 1에서 그대로 열림
 - [x] 대비, 포커스, 접근 이름, `prefers-reduced-motion`
 - [x] `SECURITY.md`와 문의 메일 chamomilegrey.official@gmail.com
 - [x] 후원 링크 https://ko-fi.com/chamomilegrey. 바닥글과 README의 일반 링크이며, 위젯과 외부 스크립트는 없음. `.github/FUNDING.yml`의 `ko_fi`는 chamomilegrey

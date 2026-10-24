@@ -1,6 +1,6 @@
 import { compose, createPlayer, renderWav, createMidi } from './audio.js';
 import { createBrief, formatBrief } from './brief.js';
-import { GENRE_PRESETS, LAYER_HINTS, applyPresetToSettings, detailForGenre, presetById } from './presets.js';
+import { LAYER_HINTS, applyPresetToSettings, detailForGenre, presetById } from './presets.js';
 import { migrateStorage, sortSketches, filterSketches, reorderIds, uniqueAppend, removeId, stepQueue, shuffleIds, nextRepeatMode, cleanName, normalizePlaylists } from './library.js';
 
 const $ = id => document.getElementById(id);
@@ -62,7 +62,6 @@ let take = Math.max(1,Math.min(999,Number(stored?.take)||1));
 let song, brief, progress = 0, toastTimer, persistTimer;
 let currentProjectId = null;
 let playContext = 'studio';
-let chosenPresetId = '';
 let libraryQuery = '';
 let shuffleSeed = 1;
 let shuffleOrder = [];
@@ -101,17 +100,16 @@ function persist() {
 function scheduleSave() {clearTimeout(persistTimer);persistTimer=setTimeout(persist,300);}
 function formatTime(seconds) {const s=Math.max(0,Math.floor(Number(seconds)||0));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
 function updatePending() {$('pendingBadge').hidden=JSON.stringify(settings)===JSON.stringify(applied);}
-function matchingPresetId() {return GENRE_PRESETS.find(preset=>preset.genre===settings.genre&&preset.mood===settings.mood&&preset.bpm===Number(settings.bpm)&&preset.key===settings.key&&preset.scale===settings.scale)?.id||'';}
 function updatePresetHint() {
   const detail=detailForGenre(settings.genre);
-  $('presetHint').textContent=`${detail.ko} · 추천 스케일 ${settings.key} ${SCALES[settings.scale]||'메이저'} · ${settings.bpm} BPM · ${detail.drums} · ${detail.voice}`;
+  const mood=MOODS[settings.mood]||'';
+  $('presetHint').textContent=`${detail.ko} · ${mood} · ${settings.key} ${SCALES[settings.scale]||'메이저'} · ${settings.bpm} BPM · ${detail.drums} · ${detail.voice}`;
 }
 function fillForm() {
   for(const id of ['title','topic','bpm','key','bars','vocal','notes']) $(id).value=settings[id];
   $('bpmOutput').innerHTML=`${settings.bpm} <span>BPM</span>`;
-  for(const type of ['genre','mood']) document.querySelectorAll(`[data-${type}]`).forEach(button=>{const selected=button.dataset[type]===settings[type];button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
-  const matched=matchingPresetId();
-  document.querySelectorAll('[data-genre-preset]').forEach(button=>{const selected=button.dataset.genrePreset===matched;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
+  document.querySelectorAll('[data-mood]').forEach(button=>{const selected=button.dataset.mood===settings.mood;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
+  document.querySelectorAll('[data-genre-preset]').forEach(button=>{const preset=presetById(button.dataset.genrePreset);const selected=preset?.genre===settings.genre;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
   updatePresetHint();
   updatePending();
 }
@@ -367,7 +365,6 @@ function saveProject() {
 function loadData(data,options={}) {
   player.stop();settings=normalize(data.settings);applied=normalize(data.applied||data.settings);customLyrics=typeof data.customLyrics==='string'?data.customLyrics.slice(0,16000):null;take=Math.max(1,Math.min(999,Number(data.take)||1));example=false;
   if('projectId' in options) currentProjectId=options.projectId;
-  chosenPresetId=matchingPresetId();
   fillForm();renderSong();persist();
 }
 function sketchGenreLabel(project) {return detailForGenre(project?.applied?.genre||project?.settings?.genre).ko||'';}
@@ -548,9 +545,8 @@ function showGuide() {
 
 $('settingsForm').addEventListener('submit',event=>{event.preventDefault();generate();});
 for(const id of ['title','topic','bpm','key','bars','vocal','notes']) $(id).addEventListener('input',()=>{settings[id]=['bpm','bars'].includes(id)?Number($(id).value):$(id).value;if(id==='bpm'||id==='key'){settings.feelAnchor=null;updatePresetHint();}if(id==='bpm')$('bpmOutput').innerHTML=`${settings.bpm} <span>BPM</span>`;updatePending();scheduleSave();});
-for(const type of ['genre','mood']) document.querySelectorAll(`[data-${type}]`).forEach(button=>button.onclick=()=>{settings[type]=button.dataset[type];if(type==='genre'){const detail=detailForGenre(settings.genre);if(detail.scale) settings.scale=detail.scale;}fillForm();scheduleSave();});
-document.querySelectorAll('[data-genre-preset]').forEach(button=>button.onclick=()=>{const preset=presetById(button.dataset.genrePreset);if(!preset) return;chosenPresetId=preset.id;settings=normalize(applyPresetToSettings(settings,preset.id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};fillForm();scheduleSave();toast(`${preset.ko} 프리셋을 넣었어요. 데모 만들기를 누르거나, 현재 데모에 적용하세요.`);});
-$('applyPresetBtn').onclick=()=>{const id=chosenPresetId||matchingPresetId()||'lofi';const preset=presetById(id);if(!preset) return;chosenPresetId=id;settings=normalize(applyPresetToSettings(settings,id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};fillForm();generate({message:`${preset.ko} 프리셋을 현재 곡에 적용했어요.`});};
+document.querySelectorAll('[data-mood]').forEach(button=>button.onclick=()=>{settings.mood=button.dataset.mood;fillForm();scheduleSave();});
+document.querySelectorAll('[data-genre-preset]').forEach(button=>button.onclick=()=>{const preset=presetById(button.dataset.genrePreset);if(!preset) return;settings=normalize(applyPresetToSettings(settings,preset.id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};fillForm();scheduleSave();});
 $('playBtn').onclick=play;
 $('barPlayBtn').onclick=play;
 $('prevBtn').onclick=()=>{previousTrack();};
@@ -602,7 +598,7 @@ $('importJson').onchange=async event=>{
   const file=event.target.files?.[0];event.target.value='';if(!file)return;
   try {if(file.size>150000)throw new Error('파일이 너무 큽니다. 150 KB 이하의 프로젝트를 선택해 주세요.');const data=JSON.parse(await file.text());if(data?.format!=='sonori-project'||data.version!==1||!data.settings||typeof data.settings!=='object'||Array.isArray(data.settings))throw new Error('SONORI에서 내보낸 프로젝트 JSON을 선택해 주세요.');playContext='studio';loadData(data,{projectId:null});showView('studio');toast('프로젝트 파일을 불러왔어요.');} catch(error){toast(error?.message||'프로젝트를 불러오지 못했어요.');}
 };
-document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>{settings=normalize({...PRESETS[button.dataset.preset],instruments:{melody:true,chords:true,bass:true,drums:true}});chosenPresetId=matchingPresetId();fillForm();scheduleSave();toast('예시 설정을 넣었어요. 데모 만들기를 눌러 들어보세요.');scrollToElement(document.querySelector('.workspace-heading'));});
+document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>{settings=normalize({...PRESETS[button.dataset.preset]});fillForm();scheduleSave();toast('예시 설정을 넣었어요. 데모 만들기를 눌러 들어보세요.');scrollToElement(document.querySelector('.workspace-heading'));});
 window.addEventListener('error', reportAppError);
 window.addEventListener('unhandledrejection', reportAppError);
 window.addEventListener('pagehide',()=>{persist();player.stop();});
@@ -617,7 +613,6 @@ if (location.hash === '#privacy' && privacyNote) privacyNote.open = true;
 const reloadApp = $('reloadApp');
 if (reloadApp) reloadApp.onclick = () => location.reload();
 try {
-  chosenPresetId=matchingPresetId();
   $('librarySort').value=librarySort;
   fillForm();renderSong();persist();
   if (document.querySelector('meta[name="sonori-sw"]') && navigator.serviceWorker) {

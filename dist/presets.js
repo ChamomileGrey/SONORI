@@ -25,6 +25,18 @@ export const GENRE_PRESETS = [
     drums: '스윙 킥과 부드러운 하이햇', voice: '둥근 벨 리드 · 따뜻한 일렉트릭 피아노', blurb: '느긋한 오후, 가까운 공간',
   },
   {
+    id: 'pop', label: 'Pop', ko: '팝', genre: 'pop', mood: 'bright', bpm: 112, key: 'G', scale: 'major', scaleLabel: '메이저',
+    drums: '고른 킥과 깔끔한 스네어', voice: '맑은 신스 리드 · 밝은 건반', blurb: '경쾌한 첫 후렴',
+  },
+  {
+    id: 'rnb', label: 'R&B', ko: 'R&B', genre: 'rnb', mood: 'dreamy', bpm: 76, key: 'F', scale: 'major', scaleLabel: '메이저',
+    drums: '뒤로 기대는 그루브', voice: '부드러운 리드 · 소울 건반', blurb: '늦은 밤의 부드러운 그루브',
+  },
+  {
+    id: 'ambient', label: 'Ambient', ko: '앰비언트', genre: 'ambient', mood: 'dreamy', bpm: 72, key: 'C', scale: 'major', scaleLabel: '메이저',
+    drums: '아주 성긴 펄스', voice: '공기감 있는 리드 · 느린 코드', blurb: '넓고 잔잔한 공간',
+  },
+  {
     id: 'ballad', label: 'Ballad', ko: '발라드', genre: 'ballad', mood: 'melancholy', bpm: 72, key: 'D', scale: 'dorian', scaleLabel: '도리안',
     drums: '하프타임 킥 · 여린 스네어', voice: '긴 패드 · 부드러운 리드', blurb: '천천히 말하는 마음',
   },
@@ -74,19 +86,15 @@ export const GENRE_PRESETS = [
   },
 ];
 
-const DETAILS = {
-  pop: { ko: '팝', scale: 'major', scaleLabel: '메이저', drums: '고른 킥과 깔끔한 스네어', voice: '맑은 신스 리드 · 밝은 건반' },
-  rnb: { ko: 'R&B', scale: 'major', scaleLabel: '메이저', drums: '뒤로 기대는 그루브', voice: '부드러운 리드 · 소울 건반' },
-  ambient: { ko: '앰비언트', scale: 'major', scaleLabel: '메이저', drums: '아주 성긴 펄스', voice: '공기감 있는 리드 · 느린 코드' },
-};
 const FALLBACK = { ko: '스케치', scale: 'major', scaleLabel: '메이저', drums: '기본 그루브', voice: '신스 스케치' };
 
 export function presetById(id) {
   return GENRE_PRESETS.find(preset => preset.id === id) || null;
 }
 
+/** One preset per sketch genre. Pop, R&B, and Ambient keep the ids saved projects already use. */
 export function detailForGenre(genre) {
-  return GENRE_PRESETS.find(preset => preset.genre === genre) || DETAILS[genre] || FALLBACK;
+  return GENRE_PRESETS.find(preset => preset.genre === genre) || FALLBACK;
 }
 
 export function applyPresetToSettings(settings = {}, presetId) {

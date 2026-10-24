@@ -34,14 +34,15 @@
 body:not(.view-library) #libraryView{display:none}
 body.view-library .studio-only{display:none}
 body{padding-bottom:calc(118px + env(safe-area-inset-bottom))}
-.preset-picks{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.preset-pick{border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-align:left;background:#fff;color:#6d627c}
-.preset-pick b{display:block;font-size:12px;font-weight:650}
-.preset-pick small{display:block;margin-top:3px;color:#867b93;font-size:10px}
+.preset-picks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.preset-pick{min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-align:left;background:#fff;color:#6d627c}
+.preset-pick b{display:block;font-size:12px;font-weight:650;line-height:1.25;overflow-wrap:break-word}
+.preset-pick small{display:block;margin-top:3px;color:#867b93;font-size:10px;line-height:1.45;overflow-wrap:break-word}
 .preset-pick.selected,.preset-pick[aria-pressed="true"]{background:#f3eefb;border-color:#c9bddc;color:#4f4464}
-.preset-hint{margin:8px 0 10px;color:#786d82;font-size:11px;line-height:1.7}
-.apply-preset{width:100%;margin-top:2px}
-fieldset legend span{float:right;color:#9a90a4;font-size:9px;font-weight:400}
+.preset-hint{margin:8px 0 0;color:#786d82;font-size:11px;line-height:1.7}
+fieldset legend{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 10px;width:100%}
+fieldset legend span{float:none}
+fieldset legend span{color:#9a90a4;font-size:9px;font-weight:400}
 .library-view{padding:28px 0 8px}
 .library-head{display:flex;justify-content:space-between;gap:12px;align-items:end;margin-bottom:14px}
 .library-head p{color:#786d82;font-size:12px}
@@ -127,8 +128,10 @@ input::placeholder,textarea::placeholder{color:#5c5666}
 .privacy-note p{margin:8px 0 0;line-height:1.7;color:#3a3444;font-size:13px}
 .header nav button,.local-status,.section-index,.tiny-label,.sample-badge{color:#4a4456}
 .header nav button.nav-active{color:var(--ink)}
-@media(min-width:901px){.choice-grid,.preset-picks{grid-template-columns:1fr 1fr 1fr}}
-@media(max-width:620px){.choice-grid{grid-template-columns:1fr 1fr}.choice{font-size:12px;padding:10px 8px}}
+@media(min-width:901px){.choice-grid{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:620px){.preset-picks{grid-template-columns:repeat(2,minmax(0,1fr))}.preset-pick{min-height:48px;padding:10px 12px}.preset-pick b{font-size:13px}.preset-pick small{font-size:11px}.choice-grid{grid-template-columns:1fr 1fr}.choice{font-size:12px;padding:10px 8px}}
+@media(min-width:480px) and (max-width:620px){.preset-picks{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:380px){.preset-pick{padding:10px 8px}.preset-pick b{font-size:12px}.preset-pick small{font-size:10px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.waveform.playing .wave-bar{animation:none!important}}
 </style>
 </head>
@@ -157,8 +160,8 @@ input::placeholder,textarea::placeholder{color:#5c5666}
       <form id="settingsForm">
         <label class="field-label" for="title">프로젝트 이름</label><input id="title" name="title" maxlength="70" value="오후의 작은 쉼표" placeholder="곡의 이름을 지어 주세요">
         <label class="field-label" for="topic">담고 싶은 이야기 <span>선택</span></label><textarea id="topic" name="topic" rows="2" maxlength="600" placeholder="예: 바쁜 하루 끝에 나에게 건네는 위로">창가에 앉아 잠시 쉬어 가는 오후</textarea>
-        <fieldset><legend>장르 · 무드 프리셋 <span>템포 · 조성 · 보이싱</span></legend><div class="preset-picks" id="genrePresets"><button type="button" class="preset-pick" data-genre-preset="lofi" aria-pressed="false"><b>Lo-fi</b><small>로파이 · 84 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="ballad" aria-pressed="false"><b>Ballad</b><small>발라드 · 72 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="edm" aria-pressed="false"><b>EDM</b><small>128 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="acoustic" aria-pressed="false"><b>Acoustic</b><small>어쿠스틱 · 96</small></button><button type="button" class="preset-pick" data-genre-preset="cinematic" aria-pressed="false"><b>Cinematic</b><small>시네마틱 · 80</small></button><button type="button" class="preset-pick" data-genre-preset="modernrock" aria-pressed="false"><b>Modern Rock</b><small>감성 록 · 78</small></button><button type="button" class="preset-pick" data-genre-preset="dawn" aria-pressed="false"><b>Dawn</b><small>새벽 감성 · 74</small></button><button type="button" class="preset-pick" data-genre-preset="nitelofi" aria-pressed="false"><b>Night</b><small>심야 로파이 · 80</small></button><button type="button" class="preset-pick" data-genre-preset="citypop" aria-pressed="false"><b>City Pop</b><small>시티팝 · 104</small></button><button type="button" class="preset-pick" data-genre-preset="trap" aria-pressed="false"><b>Trap</b><small>트랩 · 140</small></button><button type="button" class="preset-pick" data-genre-preset="house" aria-pressed="false"><b>House</b><small>하우스 · 124</small></button><button type="button" class="preset-pick" data-genre-preset="bossa" aria-pressed="false"><b>Bossa Nova</b><small>보사노바 · 130</small></button><button type="button" class="preset-pick" data-genre-preset="reggaeton" aria-pressed="false"><b>Reggaeton</b><small>레게톤 · 96</small></button></div><p id="presetHint" class="preset-hint"></p><button type="button" class="button small ghost apply-preset" id="applyPresetBtn">현재 데모에 이 프리셋 적용</button></fieldset>
-        <fieldset><legend>장르</legend><div class="choice-grid" id="genreChoices"><button type="button" class="choice selected" data-genre="lofi" aria-pressed="true"><span>◌</span> Lo-fi</button><button type="button" class="choice" data-genre="pop" aria-pressed="false"><span>✴</span> Pop</button><button type="button" class="choice" data-genre="rnb" aria-pressed="false"><span>≈</span> R&B</button><button type="button" class="choice" data-genre="ambient" aria-pressed="false"><span>☁</span> Ambient</button><button type="button" class="choice" data-genre="ballad" aria-pressed="false"><span>♩</span> Ballad</button><button type="button" class="choice" data-genre="edm" aria-pressed="false"><span>▲</span> EDM</button><button type="button" class="choice" data-genre="acoustic" aria-pressed="false"><span>✿</span> Acoustic</button><button type="button" class="choice" data-genre="cinematic" aria-pressed="false"><span>◇</span> Cinematic</button><button type="button" class="choice" data-genre="modernrock" aria-pressed="false"><span>♬</span> Modern Rock</button><button type="button" class="choice" data-genre="dawn" aria-pressed="false"><span>☾</span> Dawn</button><button type="button" class="choice" data-genre="nitelofi" aria-pressed="false"><span>·</span> Night</button><button type="button" class="choice" data-genre="citypop" aria-pressed="false"><span>✶</span> City Pop</button><button type="button" class="choice" data-genre="trap" aria-pressed="false"><span>▾</span> Trap</button><button type="button" class="choice" data-genre="house" aria-pressed="false"><span>■</span> House</button><button type="button" class="choice" data-genre="bossa" aria-pressed="false"><span>♪</span> Bossa Nova</button><button type="button" class="choice" data-genre="reggaeton" aria-pressed="false"><span>▰</span> Reggaeton</button></div></fieldset>        <fieldset><legend>분위기</legend><div class="mood-choices" id="moodChoices"><button type="button" data-mood="warm" class="mood selected" aria-pressed="true"><i class="warm"></i>따뜻한</button><button type="button" data-mood="dreamy" class="mood" aria-pressed="false"><i class="dreamy"></i>몽환적인</button><button type="button" data-mood="bright" class="mood" aria-pressed="false"><i class="bright"></i>경쾌한</button><button type="button" data-mood="melancholy" class="mood" aria-pressed="false"><i class="melancholy"></i>아련한</button></div></fieldset>
+        <fieldset><legend>장르 · 무드 <span>템포 · 조성 · 보이싱</span></legend><div class="preset-picks" id="genrePresets" role="group" aria-label="장르 · 무드"><button type="button" class="preset-pick selected" data-genre-preset="lofi" aria-pressed="true"><b>Lo-fi</b><small>로파이 · 따뜻한 · 84 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="pop" aria-pressed="false"><b>Pop</b><small>팝 · 경쾌한 · 112 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="rnb" aria-pressed="false"><b>R&B</b><small>R&B · 몽환 · 76 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="ambient" aria-pressed="false"><b>Ambient</b><small>앰비언트 · 몽환 · 72 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="ballad" aria-pressed="false"><b>Ballad</b><small>발라드 · 아련한 · 72 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="edm" aria-pressed="false"><b>EDM</b><small>경쾌한 · 128 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="acoustic" aria-pressed="false"><b>Acoustic</b><small>어쿠스틱 · 따뜻한 · 96 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="cinematic" aria-pressed="false"><b>Cinematic</b><small>시네마틱 · 몽환 · 80 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="modernrock" aria-pressed="false"><b>Modern Rock</b><small>감성 록 · 아련한 · 78 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="dawn" aria-pressed="false"><b>Dawn</b><small>새벽 감성 · 몽환 · 74 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="nitelofi" aria-pressed="false"><b>Night</b><small>심야 로파이 · 아련한 · 80 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="citypop" aria-pressed="false"><b>City Pop</b><small>시티팝 · 따뜻한 · 104 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="trap" aria-pressed="false"><b>Trap</b><small>트랩 · 아련한 · 140 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="house" aria-pressed="false"><b>House</b><small>하우스 · 경쾌한 · 124 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="bossa" aria-pressed="false"><b>Bossa Nova</b><small>보사노바 · 따뜻한 · 130 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="reggaeton" aria-pressed="false"><b>Reggaeton</b><small>레게톤 · 경쾌한 · 96 BPM</small></button></div><p id="presetHint" class="preset-hint"></p></fieldset>
+        <fieldset><legend>분위기 <span>고른 장르 안에서</span></legend><div class="mood-choices" id="moodChoices"><button type="button" data-mood="warm" class="mood selected" aria-pressed="true"><i class="warm"></i>따뜻한</button><button type="button" data-mood="dreamy" class="mood" aria-pressed="false"><i class="dreamy"></i>몽환적인</button><button type="button" data-mood="bright" class="mood" aria-pressed="false"><i class="bright"></i>경쾌한</button><button type="button" data-mood="melancholy" class="mood" aria-pressed="false"><i class="melancholy"></i>아련한</button></div></fieldset>
         <div class="tempo-label"><label class="field-label" for="bpm">템포</label><output for="bpm" id="bpmOutput">84 <span>BPM</span></output></div><input id="bpm" type="range" min="72" max="140" value="84"><div class="range-labels"><span>느긋하게</span><span>리듬감 있게</span></div>
         <div class="field-row"><div><label class="field-label" for="key">조성 · Key</label><select id="key"><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="A">A</option></select></div><div><label class="field-label" for="bars">데모 길이</label><select id="bars"><option value="8">8마디</option><option value="16" selected>16마디</option><option value="32">32마디</option></select></div></div>
         <details class="more-settings"><summary>보컬 방향과 세부 메모 <span>＋</span></summary><label class="field-label" for="vocal">보컬 방향 <span>프롬프트에 반영</span></label><select id="vocal"><option value="female">여성 보컬</option><option value="male">남성 보컬</option><option value="duet">듀엣</option><option value="instrumental">연주곡</option></select><label class="field-label" for="notes">함께 정한 내용</label><textarea id="notes" rows="3" maxlength="2000" placeholder="대화에서 정한 악기, 가사, 피하고 싶은 요소를 남겨 주세요."></textarea></details>
@@ -195,7 +198,7 @@ input::placeholder,textarea::placeholder{color:#5c5666}
       </div>
     </div>
   </section>
-  <footer class="page-footer"><span class="footer-brand">sonori.</span><span>작은 아이디어가, 하나의 노래가 되는 곳.</span><span id="appVersion">v1.4.0</span><span id="whatsNew">새로운 점: 감성 모던 록, 새벽 감성, 심야 로파이, 가사 없는 허밍. 시티팝·트랩·하우스·보사노바·레게톤. 오프라인으로도 열 수 있어요.</span><a href="#privacy" id="privacyLink">개인정보</a><a href="https://ko-fi.com/chamomilegrey" target="_blank" rel="noopener noreferrer">Support / 후원<span class="sr-only">, 새 탭</span></a><a href="mailto:chamomilegrey.official@gmail.com">문의</a><span class="footer-copyright">© 2026 캐모마일그레이 (ChamomileGrey)</span><span class="footer-end">MADE TO MAKE MUSIC ♬</span><details class="privacy-note" id="privacy"><summary>개인정보 · Privacy</summary><p>모든 데이터는 이 브라우저 안에만 있습니다. 분석 도구, 쿠키, 네트워크 호출은 없습니다.</p><p lang="en">All data stays in this browser. There are no analytics, cookies, or network calls.</p><p>공개 사이트에서는 같은 주소의 앱 파일만 기기에 저장해 오프라인으로 다시 열 수 있습니다. 곡과 설정은 전송되지 않습니다.</p><p lang="en">On the public site, only this site's own files may be saved on the device for offline use. Songs and settings are never sent.</p><p>바닥글의 Support / 후원 링크는 이 앱 밖의 사이트로 새 탭을 엽니다. 곡과 설정은 그곳으로 전송되지 않습니다.</p><p lang="en">The Support link in the footer opens an external site in a new tab. Songs and settings are not sent there.</p></details></footer></main>
+  <footer class="page-footer"><span class="footer-brand">sonori.</span><span>작은 아이디어가, 하나의 노래가 되는 곳.</span><span id="appVersion">v1.4.1</span><span id="whatsNew">새로운 점: 장르와 무드를 한곳에서 고르면 템포, 조성, 보이싱이 함께 바뀌어요.</span><a href="#privacy" id="privacyLink">개인정보</a><a href="https://ko-fi.com/chamomilegrey" target="_blank" rel="noopener noreferrer">Support / 후원<span class="sr-only">, 새 탭</span></a><a href="mailto:chamomilegrey.official@gmail.com">문의</a><span class="footer-copyright">© 2026 캐모마일그레이 (ChamomileGrey)</span><span class="footer-end">MADE TO MAKE MUSIC ♬</span><details class="privacy-note" id="privacy"><summary>개인정보 · Privacy</summary><p>모든 데이터는 이 브라우저 안에만 있습니다. 분석 도구, 쿠키, 네트워크 호출은 없습니다.</p><p lang="en">All data stays in this browser. There are no analytics, cookies, or network calls.</p><p>공개 사이트에서는 같은 주소의 앱 파일만 기기에 저장해 오프라인으로 다시 열 수 있습니다. 곡과 설정은 전송되지 않습니다.</p><p lang="en">On the public site, only this site's own files may be saved on the device for offline use. Songs and settings are never sent.</p><p>바닥글의 Support / 후원 링크는 이 앱 밖의 사이트로 새 탭을 엽니다. 곡과 설정은 그곳으로 전송되지 않습니다.</p><p lang="en">The Support link in the footer opens an external site in a new tab. Songs and settings are not sent there.</p></details></footer></main>
 <div class="player-bar" id="playerBar" role="region" aria-label="재생 바">
   <div class="player-meta"><button type="button" id="playerTitleBtn" class="player-title">SONORI</button><button type="button" id="playerContext" class="player-context">전체 스케치</button></div>
   <div class="player-center">
@@ -2045,6 +2048,18 @@ const GENRE_PRESETS = [
     drums: '스윙 킥과 부드러운 하이햇', voice: '둥근 벨 리드 · 따뜻한 일렉트릭 피아노', blurb: '느긋한 오후, 가까운 공간',
   },
   {
+    id: 'pop', label: 'Pop', ko: '팝', genre: 'pop', mood: 'bright', bpm: 112, key: 'G', scale: 'major', scaleLabel: '메이저',
+    drums: '고른 킥과 깔끔한 스네어', voice: '맑은 신스 리드 · 밝은 건반', blurb: '경쾌한 첫 후렴',
+  },
+  {
+    id: 'rnb', label: 'R&B', ko: 'R&B', genre: 'rnb', mood: 'dreamy', bpm: 76, key: 'F', scale: 'major', scaleLabel: '메이저',
+    drums: '뒤로 기대는 그루브', voice: '부드러운 리드 · 소울 건반', blurb: '늦은 밤의 부드러운 그루브',
+  },
+  {
+    id: 'ambient', label: 'Ambient', ko: '앰비언트', genre: 'ambient', mood: 'dreamy', bpm: 72, key: 'C', scale: 'major', scaleLabel: '메이저',
+    drums: '아주 성긴 펄스', voice: '공기감 있는 리드 · 느린 코드', blurb: '넓고 잔잔한 공간',
+  },
+  {
     id: 'ballad', label: 'Ballad', ko: '발라드', genre: 'ballad', mood: 'melancholy', bpm: 72, key: 'D', scale: 'dorian', scaleLabel: '도리안',
     drums: '하프타임 킥 · 여린 스네어', voice: '긴 패드 · 부드러운 리드', blurb: '천천히 말하는 마음',
   },
@@ -2094,19 +2109,15 @@ const GENRE_PRESETS = [
   },
 ];
 
-const DETAILS = {
-  pop: { ko: '팝', scale: 'major', scaleLabel: '메이저', drums: '고른 킥과 깔끔한 스네어', voice: '맑은 신스 리드 · 밝은 건반' },
-  rnb: { ko: 'R&B', scale: 'major', scaleLabel: '메이저', drums: '뒤로 기대는 그루브', voice: '부드러운 리드 · 소울 건반' },
-  ambient: { ko: '앰비언트', scale: 'major', scaleLabel: '메이저', drums: '아주 성긴 펄스', voice: '공기감 있는 리드 · 느린 코드' },
-};
 const FALLBACK = { ko: '스케치', scale: 'major', scaleLabel: '메이저', drums: '기본 그루브', voice: '신스 스케치' };
 
 function presetById(id) {
   return GENRE_PRESETS.find(preset => preset.id === id) || null;
 }
 
+/** One preset per sketch genre. Pop, R&B, and Ambient keep the ids saved projects already use. */
 function detailForGenre(genre) {
-  return GENRE_PRESETS.find(preset => preset.genre === genre) || DETAILS[genre] || FALLBACK;
+  return GENRE_PRESETS.find(preset => preset.genre === genre) || FALLBACK;
 }
 
 function applyPresetToSettings(settings = {}, presetId) {
@@ -2309,7 +2320,6 @@ let take = Math.max(1,Math.min(999,Number(stored?.take)||1));
 let song, brief, progress = 0, toastTimer, persistTimer;
 let currentProjectId = null;
 let playContext = 'studio';
-let chosenPresetId = '';
 let libraryQuery = '';
 let shuffleSeed = 1;
 let shuffleOrder = [];
@@ -2348,17 +2358,16 @@ function persist() {
 function scheduleSave() {clearTimeout(persistTimer);persistTimer=setTimeout(persist,300);}
 function formatTime(seconds) {const s=Math.max(0,Math.floor(Number(seconds)||0));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;}
 function updatePending() {$('pendingBadge').hidden=JSON.stringify(settings)===JSON.stringify(applied);}
-function matchingPresetId() {return GENRE_PRESETS.find(preset=>preset.genre===settings.genre&&preset.mood===settings.mood&&preset.bpm===Number(settings.bpm)&&preset.key===settings.key&&preset.scale===settings.scale)?.id||'';}
 function updatePresetHint() {
   const detail=detailForGenre(settings.genre);
-  $('presetHint').textContent=`${detail.ko} · 추천 스케일 ${settings.key} ${SCALES[settings.scale]||'메이저'} · ${settings.bpm} BPM · ${detail.drums} · ${detail.voice}`;
+  const mood=MOODS[settings.mood]||'';
+  $('presetHint').textContent=`${detail.ko} · ${mood} · ${settings.key} ${SCALES[settings.scale]||'메이저'} · ${settings.bpm} BPM · ${detail.drums} · ${detail.voice}`;
 }
 function fillForm() {
   for(const id of ['title','topic','bpm','key','bars','vocal','notes']) $(id).value=settings[id];
   $('bpmOutput').innerHTML=`${settings.bpm} <span>BPM</span>`;
-  for(const type of ['genre','mood']) document.querySelectorAll(`[data-${type}]`).forEach(button=>{const selected=button.dataset[type]===settings[type];button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
-  const matched=matchingPresetId();
-  document.querySelectorAll('[data-genre-preset]').forEach(button=>{const selected=button.dataset.genrePreset===matched;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
+  document.querySelectorAll('[data-mood]').forEach(button=>{const selected=button.dataset.mood===settings.mood;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
+  document.querySelectorAll('[data-genre-preset]').forEach(button=>{const preset=presetById(button.dataset.genrePreset);const selected=preset?.genre===settings.genre;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
   updatePresetHint();
   updatePending();
 }
@@ -2614,7 +2623,6 @@ function saveProject() {
 function loadData(data,options={}) {
   player.stop();settings=normalize(data.settings);applied=normalize(data.applied||data.settings);customLyrics=typeof data.customLyrics==='string'?data.customLyrics.slice(0,16000):null;take=Math.max(1,Math.min(999,Number(data.take)||1));example=false;
   if('projectId' in options) currentProjectId=options.projectId;
-  chosenPresetId=matchingPresetId();
   fillForm();renderSong();persist();
 }
 function sketchGenreLabel(project) {return detailForGenre(project?.applied?.genre||project?.settings?.genre).ko||'';}
@@ -2795,9 +2803,8 @@ function showGuide() {
 
 $('settingsForm').addEventListener('submit',event=>{event.preventDefault();generate();});
 for(const id of ['title','topic','bpm','key','bars','vocal','notes']) $(id).addEventListener('input',()=>{settings[id]=['bpm','bars'].includes(id)?Number($(id).value):$(id).value;if(id==='bpm'||id==='key'){settings.feelAnchor=null;updatePresetHint();}if(id==='bpm')$('bpmOutput').innerHTML=`${settings.bpm} <span>BPM</span>`;updatePending();scheduleSave();});
-for(const type of ['genre','mood']) document.querySelectorAll(`[data-${type}]`).forEach(button=>button.onclick=()=>{settings[type]=button.dataset[type];if(type==='genre'){const detail=detailForGenre(settings.genre);if(detail.scale) settings.scale=detail.scale;}fillForm();scheduleSave();});
-document.querySelectorAll('[data-genre-preset]').forEach(button=>button.onclick=()=>{const preset=presetById(button.dataset.genrePreset);if(!preset) return;chosenPresetId=preset.id;settings=normalize(applyPresetToSettings(settings,preset.id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};fillForm();scheduleSave();toast(`${preset.ko} 프리셋을 넣었어요. 데모 만들기를 누르거나, 현재 데모에 적용하세요.`);});
-$('applyPresetBtn').onclick=()=>{const id=chosenPresetId||matchingPresetId()||'lofi';const preset=presetById(id);if(!preset) return;chosenPresetId=id;settings=normalize(applyPresetToSettings(settings,id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};fillForm();generate({message:`${preset.ko} 프리셋을 현재 곡에 적용했어요.`});};
+document.querySelectorAll('[data-mood]').forEach(button=>button.onclick=()=>{settings.mood=button.dataset.mood;fillForm();scheduleSave();});
+document.querySelectorAll('[data-genre-preset]').forEach(button=>button.onclick=()=>{const preset=presetById(button.dataset.genrePreset);if(!preset) return;settings=normalize(applyPresetToSettings(settings,preset.id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};fillForm();scheduleSave();});
 $('playBtn').onclick=play;
 $('barPlayBtn').onclick=play;
 $('prevBtn').onclick=()=>{previousTrack();};
@@ -2849,7 +2856,7 @@ $('importJson').onchange=async event=>{
   const file=event.target.files?.[0];event.target.value='';if(!file)return;
   try {if(file.size>150000)throw new Error('파일이 너무 큽니다. 150 KB 이하의 프로젝트를 선택해 주세요.');const data=JSON.parse(await file.text());if(data?.format!=='sonori-project'||data.version!==1||!data.settings||typeof data.settings!=='object'||Array.isArray(data.settings))throw new Error('SONORI에서 내보낸 프로젝트 JSON을 선택해 주세요.');playContext='studio';loadData(data,{projectId:null});showView('studio');toast('프로젝트 파일을 불러왔어요.');} catch(error){toast(error?.message||'프로젝트를 불러오지 못했어요.');}
 };
-document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>{settings=normalize({...PRESETS[button.dataset.preset],instruments:{melody:true,chords:true,bass:true,drums:true}});chosenPresetId=matchingPresetId();fillForm();scheduleSave();toast('예시 설정을 넣었어요. 데모 만들기를 눌러 들어보세요.');scrollToElement(document.querySelector('.workspace-heading'));});
+document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>{settings=normalize({...PRESETS[button.dataset.preset]});fillForm();scheduleSave();toast('예시 설정을 넣었어요. 데모 만들기를 눌러 들어보세요.');scrollToElement(document.querySelector('.workspace-heading'));});
 window.addEventListener('error', reportAppError);
 window.addEventListener('unhandledrejection', reportAppError);
 window.addEventListener('pagehide',()=>{persist();player.stop();});
@@ -2864,7 +2871,6 @@ if (location.hash === '#privacy' && privacyNote) privacyNote.open = true;
 const reloadApp = $('reloadApp');
 if (reloadApp) reloadApp.onclick = () => location.reload();
 try {
-  chosenPresetId=matchingPresetId();
   $('librarySort').value=librarySort;
   fillForm();renderSong();persist();
   if (document.querySelector('meta[name="sonori-sw"]') && navigator.serviceWorker) {
