@@ -14,6 +14,7 @@
 - 오류 안내, 오디오를 지원하지 않는 브라우저 안내, 저장 공간이 가득 찼거나 개인정보 보호 모드일 때의 안내, 삭제 전 확인
 - 한국어·영어 개인정보 안내. 데이터는 브라우저 안에만 있고 분석 도구, 쿠키, 네트워크 호출은 없음
 - 바닥글의 v1.3.0과 새로운 점
+- 확인된 후원 주소 https://ko-fi.com/chamomilegrey. 바닥글의 Support / 후원은 새 탭의 일반 링크이고, 위젯이나 외부 스크립트는 없음
 - SECURITY.md, 실행 전 확인할 일을 적은 docs/LAUNCH_CHECKLIST.md
 
 ### 유지
@@ -24,7 +25,7 @@
 
 ## English
 
-Five genre presets — City Pop, Trap, House, Bossa Nova, and Reggaeton — each with its own progressions, groove variants, swing range, and synth voice. The public site now has share metadata, an offline app shell, a privacy note, and clearer failure messages. Saved projects and older seeds are unchanged. The downloadable HTML file still makes no network requests.
+Five genre presets — City Pop, Trap, House, Bossa Nova, and Reggaeton — each with its own progressions, groove variants, swing range, and synth voice. The public site now has share metadata, an offline app shell, a privacy note, and clearer failure messages. The footer Support / 후원 link opens https://ko-fi.com/chamomilegrey in a new tab. It is a plain link, with no widget or script. Saved projects and older seeds are unchanged. The downloadable HTML file still makes no network requests.
 
 ## 1.2.0 — 2026-10-24
 

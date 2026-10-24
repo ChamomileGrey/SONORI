@@ -53,7 +53,17 @@ const apple = await fs.readFile(new URL('release/site/apple-touch-icon.png', roo
 assert.deepEqual(pngSize(og), [1200, 630]);
 assert.deepEqual(pngSize(apple), [180, 180]);
 
-const appSurface = [index, standalone, readme, security, await read('dist/app.js'), await read('dist/index.html')].join('\n');
-assert.doesNotMatch(appSurface, /ko-fi\.com|knighft/i);
+const appSurface = [index, standalone, readme, security, await read('dist/app.js'), await read('dist/index.html'), privacy].join('\n');
+const funding = await read('.github/FUNDING.yml');
+assert.match(funding, /^ko_fi: chamomilegrey\s*$/m);
+assert.match(index, /href="https:\/\/ko-fi\.com\/chamomilegrey" target="_blank" rel="noopener noreferrer"/);
+assert.match(index, /Support \/ 후원/);
+assert.match(index, /이 앱 밖의 사이트/);
+assert.match(index, /opens an external site/);
+assert.match(privacy, /opens an external site/);
+assert.match(readme, /https:\/\/ko-fi\.com\/chamomilegrey/);
+assert.doesNotMatch(appSurface + funding, /knighft/i);
+assert.doesNotMatch(appSurface, /ko-fi\.com\/(?!chamomilegrey\b)/i);
+assert.doesNotMatch(appSurface, /<(?:script|iframe)\b[^>]*ko-fi/i);
 assert.match(index, /mailto:chamomilegrey\.official@gmail\.com/);
 console.log(`launch-check: pages shell, privacy, icons, and ${Buffer.byteLength(standalone).toLocaleString()} byte standalone passed`);

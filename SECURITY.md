@@ -12,7 +12,7 @@ SONORI는 브라우저 안에서만 동작합니다. 서버, 계정, 분석 도�
 - 내려받는 단일 HTML(`release/SONORI.html`)의 CSP는 `connect-src 'none'`입니다. 스크립트와 스타일은 그 파일 안에만 있습니다.
 - 공개 페이지의 CSP는 같은 출처의 앱 파일만 허용합니다. 서비스 워커는 그 파일만 기기에 저장합니다.
 - 곡, 가사, 플레이리스트는 이 브라우저의 `localStorage`(`sonori.studio.v1`)에만 있습니다. 프로젝트 JSON 형식은 `sonori-project` 버전 1입니다.
-- 외부 스크립트, 글꼴, 분석 도구를 넣지 않습니다. 후원 링크도 넣지 않습니다.
+- 외부 스크립트, 글꼴, 분석 도구, 후원 위젯을 넣지 않습니다. 후원은 `https://ko-fi.com/chamomilegrey`로 가는 일반 링크뿐입니다.
 
 ## 범위 밖
 
@@ -25,4 +25,4 @@ SONORI runs only in the browser. There is no server, account, analytics, or cook
 
 Report a vulnerability to chamomilegrey.official@gmail.com before posting a public reproduction. Include the browser and the steps. Song files and private notes are not required.
 
-The downloadable HTML uses `connect-src 'none'`. The public site allows only same-origin app files, and its service worker caches only those files. Songs and settings stay in `localStorage`. Third-party scripts, fonts, analytics, and donation links are out of scope for this app.
+The downloadable HTML uses `connect-src 'none'`. The public site allows only same-origin app files, and its service worker caches only those files. Songs and settings stay in `localStorage`. Third-party scripts, fonts, analytics, and donation widgets are out of scope. The only support link is a plain anchor to https://ko-fi.com/chamomilegrey.

@@ -15,6 +15,7 @@
 - [x] 바닥글의 개인정보 안내, v1.3.0, 새로운 점. 데이터는 브라우저 안에만 있고 분석 도구·쿠키·네트워크 호출은 없음
 - [x] 대비, 포커스, 접근 이름, `prefers-reduced-motion`
 - [x] `SECURITY.md`와 문의 메일 chamomilegrey.official@gmail.com
+- [x] 후원 링크 https://ko-fi.com/chamomilegrey. 바닥글과 README의 일반 링크이며, 위젯과 외부 스크립트는 없음. `.github/FUNDING.yml`의 `ko_fi`는 chamomilegrey
 - [x] `npm run check`
 
 ## 사람이 확인해야 하는 일
@@ -23,7 +24,6 @@
 - [ ] 실제 Android에서 설치하고, 오프라인으로 다시 연 뒤, 데모가 재생되는지
 - [ ] ‘SONORI’ 상표 검색. 앱 이름과 충돌하는 등록이 있는지는 이 저장소에서 판단하지 않음
 - [ ] [LICENSE](../LICENSE)의 사용·재배포 문구를 법률 검토
-- [ ] Ko-fi 주소. 확인되기 전에는 후원 링크를 넣지 않음
 
 ## 배포 스위치
 

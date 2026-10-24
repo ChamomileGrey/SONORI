@@ -70,6 +70,12 @@ npm run check   # 작곡, 제작안, 라이브러리, 프리셋, 다양성, 단�
 
 사이트가 열리려면 저장소에서 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 한 번 지정해야 합니다.
 
+## 후원 · Support
+
+SONORI를 응원하고 싶다면 [Support ChamomileGrey](https://ko-fi.com/chamomilegrey)에서 후원할 수 있습니다. 바닥글의 Support / 후원도 같은 주소입니다. 이 링크는 앱 밖의 사이트를 새 탭으로 여는 일반 링크이며, Ko-fi 위젯이나 외부 스크립트는 없습니다. 곡과 설정은 전송되지 않습니다.
+
+To support the project, use [Support ChamomileGrey](https://ko-fi.com/chamomilegrey). The footer link opens that external site in a new tab. There is no embedded widget or script, and songs and settings are not sent.
+
 ## 라이선스
 
 Copyright © 2026 캐모마일그레이 (ChamomileGrey). All rights reserved.
@@ -84,7 +90,7 @@ SONORI is a single-file browser studio for sketching a song from a mood. Open th
 
 Choose a genre, mood, tempo, key, and topic, or start from a Lo-fi, Ballad, EDM, Acoustic, Cinematic, City Pop, Trap, House, Bossa Nova, or Reggaeton preset. Each preset suggests a tempo, key, scale color, synth voicing, and drum pattern, and can be applied to the sketch you are already editing. Trap is a half-time 808 at 140 BPM with hi-hat rolls, House is 4/4 near 124 with offbeat open hats, Bossa Nova is a light syncopated nylon voice with ii–V color near 130, and Reggaeton uses a dembow. Generate an instrumental demo, then use the bottom player for play/pause, previous/next, seek, repeat, and shuffle. Press **변주** to re-roll the seed: harmony, motif, groove, form, swing, and synth color change, and tempo and key move a little inside that genre’s range. The same seed always rebuilds the same sketch, including seeds from earlier genres. Words such as chorus, space, or bridge in the topic and notes steer the form. Toggle melody, chords, bass, and drums, edit the lyric draft, copy an English production prompt, and export WAV, MIDI, text, or project JSON. Audio is synthesized in the browser. Nothing is streamed, and the app does not call an AI or music-generation API.
 
-All data stays in this browser. There are no analytics, cookies, or network calls. On the public site, only this site’s own files may be saved on the device so the app can open offline. Songs and settings are never sent. The downloadable HTML file does not register a service worker. The footer shows v1.3.0, a short what’s-new line, and the privacy note.
+All data stays in this browser. There are no analytics, cookies, or network calls. On the public site, only this site’s own files may be saved on the device so the app can open offline. Songs and settings are never sent. The downloadable HTML file does not register a service worker. The footer shows v1.3.0, a short what’s-new line, the privacy note, and a Support / 후원 link to the external Ko-fi page.
 
 Projects and playlists are stored in this browser’s localStorage (up to 30 sketch versions). Sketches saved by version 1.0 stay in the library. Export JSON for any version you want to keep. A full storage quota or private mode shows a notice instead of failing silently, and destructive deletes ask for confirmation.
 
