@@ -9,6 +9,11 @@ export const LAYER_HINTS = {
   edm: { melody: 'Saw lead', chords: 'Chord stabs', bass: 'Pulse bass', drums: 'Four-on-floor' },
   acoustic: { melody: 'Pluck lead', chords: 'Strum keys', bass: 'Upright feel', drums: 'Brush kit' },
   cinematic: { melody: 'Wide lead', chords: 'Wide pads', bass: 'Low drone', drums: 'Sparse hits' },
+  citypop: { melody: 'Keys lead', chords: 'Electric piano', bass: 'Octave bass', drums: 'Light swing kit' },
+  trap: { melody: 'Sparse lead', chords: 'Dark stabs', bass: '808 bass', drums: 'Half-time hats' },
+  house: { melody: 'Dance lead', chords: 'Offbeat stabs', bass: 'Pulse bass', drums: 'Four-on-the-floor' },
+  bossa: { melody: 'Nylon lead', chords: 'Syncopated comps', bass: 'Bossa bass', drums: 'Soft rim pattern' },
+  reggaeton: { melody: 'Hook lead', chords: 'Minor stabs', bass: 'Dembow bass', drums: 'Dembow kit' },
 };
 
 export const GENRE_PRESETS = [
@@ -31,6 +36,26 @@ export const GENRE_PRESETS = [
   {
     id: 'cinematic', label: 'Cinematic', ko: '시네마틱', genre: 'cinematic', mood: 'dreamy', bpm: 80, key: 'F', scale: 'minor', scaleLabel: '마이너',
     drums: '넓게 띄운 타격과 여백', voice: '와이드 패드 · 공기감 있는 리드', blurb: '장면이 열리는 넓은 공간',
+  },
+  {
+    id: 'citypop', label: 'City Pop', ko: '시티팝', genre: 'citypop', mood: 'warm', bpm: 104, key: 'F', scale: 'major', scaleLabel: '메이저',
+    drums: '가벼운 스윙의 디스코 킥과 햇', voice: '일렉트릭 피아노 · 옥타브 베이스', blurb: '저녁 불빛의 드라이브',
+  },
+  {
+    id: 'trap', label: 'Trap', ko: '트랩', genre: 'trap', mood: 'melancholy', bpm: 140, key: 'A', scale: 'minor', scaleLabel: '마이너',
+    drums: '하프타임 808 · 하이햇 롤', voice: '서브 808 · 짧은 리드', blurb: '140 BPM의 느린 그루브',
+  },
+  {
+    id: 'house', label: 'House', ko: '하우스', genre: 'house', mood: 'bright', bpm: 124, key: 'A', scale: 'minor', scaleLabel: '마이너',
+    drums: '포 온 더 플로어 · 오프비트 오픈햇', voice: '짧은 스탭 · 펄스 베이스', blurb: '124 BPM의 곧은 4/4',
+  },
+  {
+    id: 'bossa', label: 'Bossa Nova', ko: '보사노바', genre: 'bossa', mood: 'warm', bpm: 130, key: 'C', scale: 'major', scaleLabel: '메이저',
+    drums: '성긴 림 클릭과 싱코페이션', voice: '나일론풍 신스 · ii–V', blurb: '가벼운 130 전후의 보사',
+  },
+  {
+    id: 'reggaeton', label: 'Reggaeton', ko: '레게톤', genre: 'reggaeton', mood: 'bright', bpm: 96, key: 'D', scale: 'minor', scaleLabel: '마이너',
+    drums: '뎀보우 킥과 스네어', voice: '짧은 신스 베이스', blurb: '뎀보우 리듬의 훅',
   },
 ];
 

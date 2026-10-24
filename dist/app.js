@@ -5,7 +5,7 @@ import { migrateStorage, sortSketches, filterSketches, reorderIds, uniqueAppend,
 
 const $ = id => document.getElementById(id);
 const STORAGE = 'sonori.studio.v1';
-const GENRES = {lofi:'Lo-fi',pop:'Pop',rnb:'R&B',ambient:'Ambient',ballad:'Ballad',edm:'EDM',acoustic:'Acoustic',cinematic:'Cinematic'};
+const GENRES = {lofi:'Lo-fi',pop:'Pop',rnb:'R&B',ambient:'Ambient',ballad:'Ballad',edm:'EDM',acoustic:'Acoustic',cinematic:'Cinematic',citypop:'City Pop',trap:'Trap',house:'House',bossa:'Bossa Nova',reggaeton:'Reggaeton'};
 const MOODS = {warm:'따뜻한',dreamy:'몽환적인',bright:'경쾌한',melancholy:'아련한'};
 const SCALES = {major:'메이저',minor:'마이너',dorian:'도리안',pentatonic:'펜타토닉'};
 const DEFAULTS = {title:'오후의 작은 쉼표',topic:'창가에 앉아 잠시 쉬어 가는 오후',genre:'lofi',mood:'warm',bpm:84,key:'C',scale:'major',bars:16,seed:20261017,vocal:'female',notes:'',instruments:{melody:true,chords:true,bass:true,drums:true}};
@@ -16,7 +16,7 @@ const PRESETS = {
 };
 const clone = value => JSON.parse(JSON.stringify(value));
 const cleanString = (value, max) => typeof value === 'string' ? value.slice(0,max) : '';
-const FEEL = {lofi:[76,98],pop:[96,126],rnb:[72,100],ambient:[72,92],ballad:[72,88],edm:[118,140],acoustic:[84,112],cinematic:[72,98]};
+const FEEL = {lofi:[76,98],pop:[96,126],rnb:[72,100],ambient:[72,92],ballad:[72,88],edm:[118,140],acoustic:[84,112],cinematic:[72,98],citypop:[96,116],trap:[132,140],house:[118,128],bossa:[116,136],reggaeton:[88,104]};
 const KEYS = ['C','D','E','F','G','A'];
 const CONTOUR_KO = {arch:'아치',rise:'상승',fall:'하강',wave:'물결',neighbor:'인접'};
 const TEXTURE_KO = {pad:'지속음',stab:'스타브',arp:'분산',strum:'스트럼'};
@@ -72,11 +72,27 @@ const dialog = $('appDialog');
 const playIcon='<svg viewBox="0 0 24 24"><path d="m9 5 11 7-11 7z"/></svg>';
 const pauseIcon='<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg>';
 function toast(message) {$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3600);}
+function storageFailureMessage(error) {
+  const quota = error?.name === 'QuotaExceededError' || error?.code === 22;
+  return quota
+    ? '저장 공간이 가득 찼어요. 오래된 스케치를 지우거나 내보내기에서 프로젝트 JSON으로 보관해 주세요.'
+    : '개인정보 보호 모드이거나 이 브라우저가 저장을 막았어요. 내보내기 → 프로젝트 JSON으로 작업을 보관해 주세요.';
+}
+function reportAppError() {
+  const node = $('appError');
+  if (!node || !node.hidden) return;
+  node.hidden = false;
+}
+function scrollToElement(node) {
+  if (!node) return;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  node.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+}
 function persist() {
   clearTimeout(persistTimer);
   playlists=normalizePlaylists(playlists,projects.map(project=>project.id));
   if(activePlaylistId&&!playlists.some(playlist=>playlist.id===activePlaylistId)) activePlaylistId=null;
-  try {localStorage.setItem(STORAGE,JSON.stringify({settings,applied,customLyrics,example,take,projects,playlists,librarySort,player:{repeat:repeatMode,shuffle:shuffleOn,queuePlaylistId:activePlaylistId}}));storageWorks=true;} catch (error) {storageWorks=false;if(!storageNotified){storageNotified=true;toast(error?.name==='QuotaExceededError'?'브라우저 저장 공간이 가득 찼어요. 오래된 버전을 정리하거나 JSON으로 내보내 주세요.':'이 브라우저(개인정보 보호 모드 등)에서는 자동 저장을 쓸 수 없어요. JSON으로 보관해 주세요.');}}
+  try {localStorage.setItem(STORAGE,JSON.stringify({settings,applied,customLyrics,example,take,projects,playlists,librarySort,player:{repeat:repeatMode,shuffle:shuffleOn,queuePlaylistId:activePlaylistId}}));storageWorks=true;} catch (error) {storageWorks=false;const message=storageFailureMessage(error);if($('storageWarning')) $('storageWarning').textContent=message;if(!storageNotified){storageNotified=true;toast(message);}}
   $('saveStatus').textContent=storageWorks?'이 브라우저에 자동 저장':'저장 불가 · JSON으로 보관해 주세요';
   $('storageWarning').hidden=storageWorks;
   $('projectCount').textContent=String(projects.length);
@@ -389,6 +405,7 @@ function addSketchTo(playlistId,sketchId) {
 function removeSketchFrom(playlistId,sketchId) {
   const playlist=playlists.find(item=>item.id===playlistId);
   if(!playlist) return;
+  if(!confirm(`“${playlist.name}”에서 이 스케치를 뺄까요? 라이브러리의 원본은 남아요.`)) return;
   playlist.sketchIds=removeId(playlist.sketchIds,sketchId);
   playlist.updatedAt=new Date().toISOString();
   shuffleOrder=[];
@@ -565,8 +582,8 @@ $('saveHere').onclick=saveProject;
 $('exportBtn').onclick=exportDialog;
 $('closeDialog').onclick=closeDialog;
 dialog.addEventListener('click',event=>{if(event.target===dialog){const rect=dialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)closeDialog();}});
-$('studioNav').onclick=()=>{showView('studio');document.querySelector('.workspace-heading').scrollIntoView({behavior:'smooth'});};
-$('playerTitleBtn').onclick=()=>{showView('studio');document.querySelector('.studio').scrollIntoView({behavior:'smooth'});};
+$('studioNav').onclick=()=>{showView('studio');scrollToElement(document.querySelector('.workspace-heading'));};
+$('playerTitleBtn').onclick=()=>{showView('studio');scrollToElement(document.querySelector('.studio'));};
 $('playerContext').onclick=()=>showView('library');
 function startNewProject() {if(!confirm('현재 작업은 JSON으로 내보내거나 프로젝트에 저장했나요? 새 작업을 시작하면 현재 작업 중인 내용이 바뀝니다.'))return;showView('studio');playContext='studio';loadData({settings:{...DEFAULTS,title:'새로운 나의 노래',topic:'',notes:'',seed:Date.now()>>>0},customLyrics:null},{projectId:null});if(dialog.open)closeDialog();$('title').focus();toast('새 작업실을 준비했어요. 함께 곡의 방향을 정해 보세요.');}
 $('newBtn').onclick=startNewProject;
@@ -582,8 +599,27 @@ $('importJson').onchange=async event=>{
   const file=event.target.files?.[0];event.target.value='';if(!file)return;
   try {if(file.size>150000)throw new Error('파일이 너무 큽니다. 150 KB 이하의 프로젝트를 선택해 주세요.');const data=JSON.parse(await file.text());if(data?.format!=='sonori-project'||data.version!==1||!data.settings||typeof data.settings!=='object'||Array.isArray(data.settings))throw new Error('SONORI에서 내보낸 프로젝트 JSON을 선택해 주세요.');playContext='studio';loadData(data,{projectId:null});showView('studio');toast('프로젝트 파일을 불러왔어요.');} catch(error){toast(error?.message||'프로젝트를 불러오지 못했어요.');}
 };
-document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>{settings=normalize({...PRESETS[button.dataset.preset],instruments:{melody:true,chords:true,bass:true,drums:true}});chosenPresetId=matchingPresetId();fillForm();scheduleSave();toast('예시 설정을 넣었어요. 데모 만들기를 눌러 들어보세요.');document.querySelector('.workspace-heading').scrollIntoView({behavior:'smooth'});});
+document.querySelectorAll('[data-preset]').forEach(button=>button.onclick=()=>{settings=normalize({...PRESETS[button.dataset.preset],instruments:{melody:true,chords:true,bass:true,drums:true}});chosenPresetId=matchingPresetId();fillForm();scheduleSave();toast('예시 설정을 넣었어요. 데모 만들기를 눌러 들어보세요.');scrollToElement(document.querySelector('.workspace-heading'));});
+window.addEventListener('error', reportAppError);
+window.addEventListener('unhandledrejection', reportAppError);
 window.addEventListener('pagehide',()=>{persist();player.stop();});
-chosenPresetId=matchingPresetId();
-$('librarySort').value=librarySort;
-fillForm();renderSong();persist();
+if (!(globalThis.AudioContext || globalThis.webkitAudioContext)) {
+  const note = $('audioFallback');
+  if (note) note.hidden = false;
+}
+const privacyLink = $('privacyLink');
+const privacyNote = $('privacy');
+if (privacyLink && privacyNote) privacyLink.addEventListener('click', () => { privacyNote.open = true; });
+if (location.hash === '#privacy' && privacyNote) privacyNote.open = true;
+const reloadApp = $('reloadApp');
+if (reloadApp) reloadApp.onclick = () => location.reload();
+try {
+  chosenPresetId=matchingPresetId();
+  $('librarySort').value=librarySort;
+  fillForm();renderSong();persist();
+  if (document.querySelector('meta[name="sonori-sw"]') && navigator.serviceWorker) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+} catch (error) {
+  reportAppError();
+}

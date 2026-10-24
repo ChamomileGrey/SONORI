@@ -39,10 +39,10 @@ jobs:
       - name: Check composition, briefs, and bundle
         run: npm run check
 
-      - name: Stage index.html
+      - name: Stage site
         run: |
           mkdir -p _site
-          cp release/SONORI.html _site/index.html
+          cp -R release/site/. _site/
 
       # The standalone page uses relative URLs, so it does not need a Pages base-path rewrite.
       # Enabling the site itself is a one-time repository setting (Source: GitHub Actions).
