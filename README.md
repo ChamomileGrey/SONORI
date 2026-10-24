@@ -23,8 +23,9 @@
 
 ## 지원 기능
 
-- Lo-fi, Pop, R&B, Ambient, Ballad, EDM, Acoustic, Cinematic
-- 장르·무드 프리셋 다섯 가지: Lo-fi, Ballad, EDM, Acoustic, Cinematic. 각각 템포, 조성, 스케일 색채, 신스 보이싱, 드럼 패턴을 제안하고 새 스케치나 현재 곡에 적용할 수 있음
+- Lo-fi, Pop, R&B, Ambient, Ballad, EDM, Acoustic, Cinematic, City Pop, Trap, House, Bossa Nova, Reggaeton
+- 장르·무드 프리셋 열 가지: Lo-fi, Ballad, EDM, Acoustic, Cinematic, City Pop, Trap, House, Bossa Nova, Reggaeton. 각각 템포, 조성, 스케일 색채, 신스 보이싱, 드럼 패턴을 제안하고 새 스케치나 현재 곡에 적용할 수 있음
+- 트랩은 140 BPM의 하프타임 808과 하이햇 롤, 하우스는 124 BPM의 4/4와 오프비트 오픈햇, 보사노바는 싱코페이션과 ii–V, 레게톤은 뎀보우, 시티팝은 스윙 범위 안의 코드 텍스처
 - 72~140 BPM, 6개 조성, 메이저·마이너·도리안·펜타토닉 색채, 8/16/32마디 데모
 - 재생·일시정지·처음부터·변주 다시 뽑기·음량·악기별 켜기/끄기
 - 시드로 고정되는 코드 진행, 곡 구성, 모티프 변주, 드럼 그루브, 스윙, 신스 색. 같은 시드는 항상 같은 스케치
@@ -47,22 +48,25 @@
 프로젝트와 플레이리스트는 브라우저의 localStorage에 저장됩니다. 파일 주소, 브라우저, 기기가 바뀌면 보이지 않을 수 있습니다.
 중요한 버전은 항상 JSON으로 보관하세요. 브라우저 데이터를 지우면 로컬 저장도 지워집니다.
 브라우저가 로컬 파일 저장 또는 클립보드를 차단하면 JSON 내보내기와 수동 복사를 사용하세요.
-단일 HTML 파일에는 외부 네트워크 요청이 없습니다.
+모든 데이터는 이 브라우저 안에만 있습니다. 분석 도구, 쿠키, 네트워크 호출은 없습니다.
+공개 사이트는 같은 주소의 앱 파일만 기기에 저장해 오프라인으로 다시 열 수 있습니다. 곡과 설정은 전송되지 않습니다.
+단일 HTML 파일에는 외부 네트워크 요청이 없고, 서비스 워커도 등록하지 않습니다.
+바닥글에 버전과 개인정보 안내가 있습니다. 없는 주소는 `404.html`로 안내합니다.
 
 ## 개발
 
 `dist/`에는 모듈 형태의 HTML, CSS, JavaScript 소스가 있습니다.
 
 ```bash
-npm run build   # node build-standalone.mjs — release/SONORI.html 재생성
-npm run check   # 작곡 이벤트, MIDI/WAV, 제작안·가사, 라이브러리·프리셋, 스케치 다양성, 단독 번들 검사
+npm run build   # release/SONORI.html 과 release/site 재생성
+npm run check   # 작곡, 제작안, 라이브러리, 프리셋, 다양성, 단독 번들, 공개 페이지 검사
 ```
 
 개발 중 `dist/index.html`을 볼 때는 정적 HTTP 서버로 제공하세요. 단독 HTML로 묶을 때 외부 글꼴 불러오기는 제거됩니다.
 
 ## 배포
 
-`main`에 반영되면 GitHub Actions가 `npm run build`와 `npm run check`를 실행한 뒤, `release/SONORI.html`을 `index.html`로 GitHub Pages에 배포합니다.
+`main`에 반영되면 GitHub Actions가 `npm run build`와 `npm run check`를 실행한 뒤, `release/site`를 GitHub Pages에 배포합니다. 그 폴더에 앱, 매니페스트, 서비스 워커, 아이콘, `404.html`, `robots.txt`, `sitemap.xml`이 있습니다. `release/SONORI.html`은 네트워크를 열지 않는 단일 파일입니다.
 
 사이트가 열리려면 저장소에서 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 한 번 지정해야 합니다.
 
@@ -78,8 +82,10 @@ Copyright © 2026 캐모마일그레이 (ChamomileGrey). All rights reserved.
 
 SONORI is a single-file browser studio for sketching a song from a mood. Open the [live site](https://chamomilegrey.github.io/SONORI/) or `release/SONORI.html` in a current desktop browser. There is no install, account, API key, or server.
 
-Choose a genre, mood, tempo, key, and topic, or start from a Lo-fi, Ballad, EDM, Acoustic, or Cinematic preset. Each preset suggests a tempo, key, scale color, synth voicing, and drum pattern, and can be applied to the sketch you are already editing. Generate an instrumental demo, then use the bottom player for play/pause, previous/next, seek, repeat, and shuffle. Press **변주** to re-roll the seed: harmony, motif, groove, form, swing, and synth color change, and tempo and key move a little inside that genre’s range. The same seed always rebuilds the same sketch. Words such as chorus, space, or bridge in the topic and notes steer the form. Toggle melody, chords, bass, and drums, edit the lyric draft, copy an English production prompt, and export WAV, MIDI, text, or project JSON. Audio is synthesized in the browser. Nothing is streamed, and the app does not call an AI or music-generation API.
+Choose a genre, mood, tempo, key, and topic, or start from a Lo-fi, Ballad, EDM, Acoustic, Cinematic, City Pop, Trap, House, Bossa Nova, or Reggaeton preset. Each preset suggests a tempo, key, scale color, synth voicing, and drum pattern, and can be applied to the sketch you are already editing. Trap is a half-time 808 at 140 BPM with hi-hat rolls, House is 4/4 near 124 with offbeat open hats, Bossa Nova is a light syncopated nylon voice with ii–V color near 130, and Reggaeton uses a dembow. Generate an instrumental demo, then use the bottom player for play/pause, previous/next, seek, repeat, and shuffle. Press **변주** to re-roll the seed: harmony, motif, groove, form, swing, and synth color change, and tempo and key move a little inside that genre’s range. The same seed always rebuilds the same sketch, including seeds from earlier genres. Words such as chorus, space, or bridge in the topic and notes steer the form. Toggle melody, chords, bass, and drums, edit the lyric draft, copy an English production prompt, and export WAV, MIDI, text, or project JSON. Audio is synthesized in the browser. Nothing is streamed, and the app does not call an AI or music-generation API.
 
-Projects and playlists are stored in this browser’s localStorage (up to 30 sketch versions). Sketches saved by version 1.0 stay in the library. Export JSON for any version you want to keep.
+All data stays in this browser. There are no analytics, cookies, or network calls. On the public site, only this site’s own files may be saved on the device so the app can open offline. Songs and settings are never sent. The downloadable HTML file does not register a service worker. The footer shows v1.3.0, a short what’s-new line, and the privacy note.
+
+Projects and playlists are stored in this browser’s localStorage (up to 30 sketch versions). Sketches saved by version 1.0 stay in the library. Export JSON for any version you want to keep. A full storage quota or private mode shows a notice instead of failing silently, and destructive deletes ask for confirmation.
 
 Copyright © 2026 ChamomileGrey. See [LICENSE](LICENSE). Permission requests: chamomilegrey.official@gmail.com.

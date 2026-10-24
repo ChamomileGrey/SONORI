@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.3.0 — 2026-10-24
+
+다섯 장르와, 공개 사이트를 열 때 필요한 안내를 더함.
+
+### 추가
+
+- 시티팝, 트랩, 하우스, 보사노바, 레게톤 프리셋. 각각 코드 진행, 그루브 변주, 스윙 범위, 신스 음색을 가짐
+- 트랩은 140 BPM의 하프타임 808과 하이햇 롤, 하우스는 124 BPM의 4/4와 오프비트 오픈햇, 보사노바는 싱코페이션과 ii–V, 레게톤은 뎀보우
+- 공개 페이지의 제목, 한국어·영어 설명, Open Graph, Twitter 카드, 캐노니컬 주소, 파비콘, 홈 화면 아이콘
+- 같은 출처만 허용하는 매니페스트와 버전 있는 서비스 워커. 단일 HTML은 이전과 같이 네트워크를 열지 않음
+- 없는 주소의 404, robots.txt, sitemap.xml
+- 오류 안내, 오디오를 지원하지 않는 브라우저 안내, 저장 공간이 가득 찼거나 개인정보 보호 모드일 때의 안내, 삭제 전 확인
+- 한국어·영어 개인정보 안내. 데이터는 브라우저 안에만 있고 분석 도구, 쿠키, 네트워크 호출은 없음
+- 바닥글의 v1.3.0과 새로운 점
+- SECURITY.md, 실행 전 확인할 일을 적은 docs/LAUNCH_CHECKLIST.md
+
+### 유지
+
+- 저장한 프로젝트 JSON(`sonori-project` 버전 1)과 기존 스케치
+- 같은 시드는 같은 스케치. 이전 장르의 시드 결과도 그대로
+- 단일 HTML의 엄격한 CSP. 공개 페이지의 CSP는 같은 출처의 앱 파일만 허용
+
+## English
+
+Five genre presets — City Pop, Trap, House, Bossa Nova, and Reggaeton — each with its own progressions, groove variants, swing range, and synth voice. The public site now has share metadata, an offline app shell, a privacy note, and clearer failure messages. Saved projects and older seeds are unchanged. The downloadable HTML file still makes no network requests.
+
 ## 1.2.0 — 2026-10-24
 
 같은 설정에서도 스케치가 서로 다르게 들리도록 작곡을 넓힘.

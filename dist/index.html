@@ -3,9 +3,36 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f4f3ee">
+  <meta name="color-scheme" content="light">
   <title>SONORI — 취향을 노래로</title>
-  <meta name="description" content="함께 정한 취향을 멜로디로. 연주 데모, 가사 초안, 제작 프롬프트를 한곳에서 만드는 음악 작업실.">
-  <link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css">
+  <meta name="description" content="SONORI는 설치 없이 브라우저에서 여는 곡 스케치 작업실입니다. 장르와 분위기를 고르면 멜로디, 코드, 베이스, 드럼 데모를 만듭니다. SONORI is a browser song-sketch studio: no install, account, or uploads.">
+  <meta name="author" content="ChamomileGrey">
+  <link rel="canonical" href="https://chamomilegrey.github.io/SONORI/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SONORI">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:title" content="SONORI — 취향을 노래로">
+  <meta property="og:description" content="설치 없이 브라우저에서 곡 스케치를 만듭니다. A browser song-sketch studio with no install or account.">
+  <meta property="og:url" content="https://chamomilegrey.github.io/SONORI/">
+  <meta property="og:image" content="https://chamomilegrey.github.io/SONORI/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="SONORI. 크림색 카드 위의 막대 표시와 이름.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SONORI — 취향을 노래로">
+  <meta name="twitter:description" content="설치 없이 브라우저에서 곡 스케치를 만듭니다. A browser song-sketch studio with no install or account.">
+  <meta name="twitter:image" content="https://chamomilegrey.github.io/SONORI/og.png">
+  <meta name="twitter:image:alt" content="SONORI. 크림색 카드 위의 막대 표시와 이름.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="SONORI">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" data-pages="1">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" data-pages="1">
+  <link rel="manifest" href="manifest.webmanifest" data-pages="1">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="view-studio">
 <header class="header">
@@ -19,15 +46,21 @@
     <div class="hero-art" aria-hidden="true"><div class="art-note">A LITTLE IDEA.<br>A NEW MELODY.</div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="record"><div class="record-label"><span>sonori</span><b>side A</b><i></i></div></div><span class="floating-tag tag-one">♬ &nbsp; made for your mood</span><span class="floating-tag tag-two">PLAY YOUR IDEA ↗</span><div class="spark spark-one">✳</div><div class="spark spark-two">✧</div><span class="art-bottom">LISTEN. FEEL. CREATE.</span></div>
   </section>
   <div class="workspace-heading studio-only"><div><span class="section-index">01 /</span><h2>나의 음악 작업실</h2><span class="sample-badge" id="exampleBadge">예시 프로젝트</span></div><button class="text-link" id="guideBtn">어떻게 사용하나요? <span>↗</span></button></div>
-  <p id="storageWarning" class="storage-warning" role="status" hidden>이 브라우저에서 자동 저장을 사용할 수 없어요. 내보내기 → 프로젝트 JSON으로 작업을 보관해 주세요.</p>
+  <div id="appError" class="app-error" role="alert" hidden>
+    <p><b>화면을 만드는 중 문제가 생겼어요.</b> 새로고침한 뒤에도 같으면, 작업은 내보내기의 프로젝트 JSON으로 보관해 주세요.</p>
+    <p lang="en">Something went wrong while drawing this page. Reload, and export project JSON if you need to keep the sketch.</p>
+    <button type="button" id="reloadApp">새로고침</button>
+  </div>
+  <p id="audioFallback" class="storage-warning" role="status" hidden>이 브라우저는 소리 재생(AudioContext)을 지원하지 않아요. 최신 Chrome, Edge, Firefox 또는 Safari에서 열어 주세요. 가사와 프로젝트 JSON은 계속 쓸 수 있어요.</p>
+  <p id="storageWarning" class="storage-warning" role="status" hidden>이 브라우저에서 자동 저장을 사용할 수 없어요. 저장 공간이 가득 찼거나 개인정보 보호 모드일 수 있어요. 내보내기 → 프로젝트 JSON으로 작업을 보관해 주세요.</p>
   <div class="workspace studio-only">
     <aside class="settings card">
       <div class="panel-title"><h3>어떤 곡을 만들까요?</h3><span class="tiny-label">THE BRIEF</span></div>
       <form id="settingsForm">
         <label class="field-label" for="title">프로젝트 이름</label><input id="title" name="title" maxlength="70" value="오후의 작은 쉼표" placeholder="곡의 이름을 지어 주세요">
         <label class="field-label" for="topic">담고 싶은 이야기 <span>선택</span></label><textarea id="topic" name="topic" rows="2" maxlength="600" placeholder="예: 바쁜 하루 끝에 나에게 건네는 위로">창가에 앉아 잠시 쉬어 가는 오후</textarea>
-        <fieldset><legend>장르 · 무드 프리셋 <span>템포 · 조성 · 보이싱</span></legend><div class="preset-picks" id="genrePresets"><button type="button" class="preset-pick" data-genre-preset="lofi" aria-pressed="false"><b>Lo-fi</b><small>로파이 · 84 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="ballad" aria-pressed="false"><b>Ballad</b><small>발라드 · 72 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="edm" aria-pressed="false"><b>EDM</b><small>128 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="acoustic" aria-pressed="false"><b>Acoustic</b><small>어쿠스틱 · 96</small></button><button type="button" class="preset-pick" data-genre-preset="cinematic" aria-pressed="false"><b>Cinematic</b><small>시네마틱 · 80</small></button></div><p id="presetHint" class="preset-hint"></p><button type="button" class="button small ghost apply-preset" id="applyPresetBtn">현재 데모에 이 프리셋 적용</button></fieldset>
-        <fieldset><legend>장르</legend><div class="choice-grid" id="genreChoices"><button type="button" class="choice selected" data-genre="lofi" aria-pressed="true"><span>◌</span> Lo-fi</button><button type="button" class="choice" data-genre="pop" aria-pressed="false"><span>✴</span> Pop</button><button type="button" class="choice" data-genre="rnb" aria-pressed="false"><span>≈</span> R&B</button><button type="button" class="choice" data-genre="ambient" aria-pressed="false"><span>☁</span> Ambient</button><button type="button" class="choice" data-genre="ballad" aria-pressed="false"><span>♩</span> Ballad</button><button type="button" class="choice" data-genre="edm" aria-pressed="false"><span>▲</span> EDM</button><button type="button" class="choice" data-genre="acoustic" aria-pressed="false"><span>✿</span> Acoustic</button><button type="button" class="choice" data-genre="cinematic" aria-pressed="false"><span>◇</span> Cinematic</button></div></fieldset>
+        <fieldset><legend>장르 · 무드 프리셋 <span>템포 · 조성 · 보이싱</span></legend><div class="preset-picks" id="genrePresets"><button type="button" class="preset-pick" data-genre-preset="lofi" aria-pressed="false"><b>Lo-fi</b><small>로파이 · 84 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="ballad" aria-pressed="false"><b>Ballad</b><small>발라드 · 72 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="edm" aria-pressed="false"><b>EDM</b><small>128 BPM</small></button><button type="button" class="preset-pick" data-genre-preset="acoustic" aria-pressed="false"><b>Acoustic</b><small>어쿠스틱 · 96</small></button><button type="button" class="preset-pick" data-genre-preset="cinematic" aria-pressed="false"><b>Cinematic</b><small>시네마틱 · 80</small></button><button type="button" class="preset-pick" data-genre-preset="citypop" aria-pressed="false"><b>City Pop</b><small>시티팝 · 104</small></button><button type="button" class="preset-pick" data-genre-preset="trap" aria-pressed="false"><b>Trap</b><small>트랩 · 140</small></button><button type="button" class="preset-pick" data-genre-preset="house" aria-pressed="false"><b>House</b><small>하우스 · 124</small></button><button type="button" class="preset-pick" data-genre-preset="bossa" aria-pressed="false"><b>Bossa Nova</b><small>보사노바 · 130</small></button><button type="button" class="preset-pick" data-genre-preset="reggaeton" aria-pressed="false"><b>Reggaeton</b><small>레게톤 · 96</small></button></div><p id="presetHint" class="preset-hint"></p><button type="button" class="button small ghost apply-preset" id="applyPresetBtn">현재 데모에 이 프리셋 적용</button></fieldset>
+        <fieldset><legend>장르</legend><div class="choice-grid" id="genreChoices"><button type="button" class="choice selected" data-genre="lofi" aria-pressed="true"><span>◌</span> Lo-fi</button><button type="button" class="choice" data-genre="pop" aria-pressed="false"><span>✴</span> Pop</button><button type="button" class="choice" data-genre="rnb" aria-pressed="false"><span>≈</span> R&B</button><button type="button" class="choice" data-genre="ambient" aria-pressed="false"><span>☁</span> Ambient</button><button type="button" class="choice" data-genre="ballad" aria-pressed="false"><span>♩</span> Ballad</button><button type="button" class="choice" data-genre="edm" aria-pressed="false"><span>▲</span> EDM</button><button type="button" class="choice" data-genre="acoustic" aria-pressed="false"><span>✿</span> Acoustic</button><button type="button" class="choice" data-genre="cinematic" aria-pressed="false"><span>◇</span> Cinematic</button><button type="button" class="choice" data-genre="citypop" aria-pressed="false"><span>✶</span> City Pop</button><button type="button" class="choice" data-genre="trap" aria-pressed="false"><span>▾</span> Trap</button><button type="button" class="choice" data-genre="house" aria-pressed="false"><span>■</span> House</button><button type="button" class="choice" data-genre="bossa" aria-pressed="false"><span>♪</span> Bossa Nova</button><button type="button" class="choice" data-genre="reggaeton" aria-pressed="false"><span>▰</span> Reggaeton</button></div></fieldset>
         <fieldset><legend>분위기</legend><div class="mood-choices" id="moodChoices"><button type="button" data-mood="warm" class="mood selected" aria-pressed="true"><i class="warm"></i>따뜻한</button><button type="button" data-mood="dreamy" class="mood" aria-pressed="false"><i class="dreamy"></i>몽환적인</button><button type="button" data-mood="bright" class="mood" aria-pressed="false"><i class="bright"></i>경쾌한</button><button type="button" data-mood="melancholy" class="mood" aria-pressed="false"><i class="melancholy"></i>아련한</button></div></fieldset>
         <div class="tempo-label"><label class="field-label" for="bpm">템포</label><output for="bpm" id="bpmOutput">84 <span>BPM</span></output></div><input id="bpm" type="range" min="72" max="140" value="84"><div class="range-labels"><span>느긋하게</span><span>리듬감 있게</span></div>
         <div class="field-row"><div><label class="field-label" for="key">조성 · Key</label><select id="key"><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="A">A</option></select></div><div><label class="field-label" for="bars">데모 길이</label><select id="bars"><option value="8">8마디</option><option value="16" selected>16마디</option><option value="32">32마디</option></select></div></div>
@@ -65,7 +98,7 @@
       </div>
     </div>
   </section>
-  <footer class="page-footer"><span class="footer-brand">sonori.</span><span>작은 아이디어가, 하나의 노래가 되는 곳.</span><span class="footer-copyright">© 2026 캐모마일그레이 (ChamomileGrey)</span><span>MADE TO MAKE MUSIC ♬</span></footer>
+  <footer class="page-footer"><span class="footer-brand">sonori.</span><span>작은 아이디어가, 하나의 노래가 되는 곳.</span><span id="appVersion">v1.3.0</span><span id="whatsNew">새로운 점: 시티팝, 트랩, 하우스, 보사노바, 레게톤. 오프라인으로도 열 수 있어요.</span><a href="#privacy" id="privacyLink">개인정보</a><a href="mailto:chamomilegrey.official@gmail.com">문의</a><span class="footer-copyright">© 2026 캐모마일그레이 (ChamomileGrey)</span><span class="footer-end">MADE TO MAKE MUSIC ♬</span><details class="privacy-note" id="privacy"><summary>개인정보 · Privacy</summary><p>모든 데이터는 이 브라우저 안에만 있습니다. 분석 도구, 쿠키, 네트워크 호출은 없습니다.</p><p lang="en">All data stays in this browser. There are no analytics, cookies, or network calls.</p><p>공개 사이트에서는 같은 주소의 앱 파일만 기기에 저장해 오프라인으로 다시 열 수 있습니다. 곡과 설정은 전송되지 않습니다.</p><p lang="en">On the public site, only this site's own files may be saved on the device for offline use. Songs and settings are never sent.</p></details></footer>
 </main>
 <div class="player-bar" id="playerBar" role="region" aria-label="재생 바">
   <div class="player-meta"><button type="button" id="playerTitleBtn" class="player-title">SONORI</button><button type="button" id="playerContext" class="player-context">전체 스케치</button></div>

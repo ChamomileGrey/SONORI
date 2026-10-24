@@ -9,6 +9,11 @@ const GENRES = {
   edm: { ko: 'EDM', en: 'melodic electronic dance', lead: 'a bright saw-style synth lead', chords: 'rhythmic chord stabs', bass: 'a pulsing synth bass', drums: 'a four-on-the-floor dance beat', feel: 'forward motion, a clear downbeat, and energetic lifts' },
   acoustic: { ko: '어쿠스틱', en: 'warm acoustic sketch', lead: 'a soft plucked lead', chords: 'gentle strummed harmonic beds', bass: 'a rounded upright-style bass', drums: 'brushed sparse drums', feel: 'close-mic intimacy, natural space, and an easy singable line' },
   cinematic: { ko: '시네마틱', en: 'wide cinematic score sketch', lead: 'an airy distant lead', chords: 'wide sustained pads', bass: 'a low foundation', drums: 'sparse wide percussion hits', feel: 'slow-building space, broad harmony, and a restrained pulse' },
+  citypop: { ko: '시티팝', en: 'original city-pop sketch', lead: 'a soft electric-piano lead', chords: 'major-seventh electric piano', bass: 'a melodic octave bass', drums: 'a light swung disco kit', feel: 'evening-drive warmth, major-seventh color, and a gentle shuffle' },
+  trap: { ko: '트랩', en: 'half-time trap sketch', lead: 'a short sparse lead', chords: 'dark sustained stabs', bass: 'a long 808-style sub bass', drums: 'half-time drums with hi-hat rolls', feel: 'a 140 BPM half-time pocket, wide space, and accelerating hats' },
+  house: { ko: '하우스', en: 'four-on-the-floor house sketch', lead: 'a bright dance lead', chords: 'offbeat chord stabs', bass: 'a pulsing synth bass', drums: 'a four-on-the-floor kick with offbeat open hats', feel: 'straight 4/4 motion around 124 BPM and an open offbeat' },
+  bossa: { ko: '보사노바', en: 'light bossa nova sketch', lead: 'a soft nylon-style plucked lead', chords: 'syncopated ii-V comps', bass: 'a light root-and-fifth bass', drums: 'soft syncopated rim clicks', feel: 'an easy tempo near 130, syncopation, and jazz ii-V harmony' },
+  reggaeton: { ko: '레게톤', en: 'reggaeton sketch', lead: 'a short hook lead', chords: 'minor chord stabs', bass: 'a syncopated synth bass', drums: 'a dembow kick and snare pattern', feel: 'a dembow pocket, minor harmony, and a forward hook' },
 };
 
 const MOODS = {
@@ -210,7 +215,7 @@ function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cues = {})
   const template = choices[mix(seed, 0x517) % choices.length];
   const weight = { intro: 1, verse: 2, pre: 1, chorus: 3, bridge: 2, outro: 1, motif: 1 };
   if (genre === 'ambient' || genre === 'cinematic' || cues.wantSpace) { weight.intro = 2; weight.verse = 2; weight.chorus = 2; }
-  if (genre === 'edm' || genre === 'pop' || cues.wantLift) weight.chorus = 4;
+  if (genre === 'edm' || genre === 'pop' || genre === 'house' || genre === 'citypop' || genre === 'reggaeton' || cues.wantLift) weight.chorus = 4;
   const totalWeight = template.reduce((sum, role) => sum + weight[role], 0);
   const left = count - template.length;
   const fractions = template.map(role => left * weight[role] / totalWeight);
