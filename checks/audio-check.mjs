@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const source = await readFile(new URL('../dist/audio.js', import.meta.url), 'utf8');
-const { compose, normalizeSettings, createMidi, encodeWav, createPlayer } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const { compose, normalizeSettings, createMidi, encodeWav, createPlayer, vowelFormants, createImpulseChannels, SPACE } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 const settings = { genre: 'lofi', mood: 'warm', key: 'C', bpm: 86, bars: 16, seed: 42 };
 const song = compose(settings);
 assert.deepEqual(song, compose(settings), 'The same brief and seed reproduce the same music.');
@@ -21,7 +21,7 @@ assert.equal(compose({ ...settings, instruments: { melody: false, chords: false,
 
 const keys = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9 };
 let arrangements = 0;
-for (const genre of ['lofi', 'pop', 'ambient', 'rnb']) {
+for (const genre of ['lofi', 'pop', 'ambient', 'rnb', 'modernrock', 'dawn', 'nitelofi']) {
   for (const mood of ['warm', 'dreamy', 'bright', 'melancholy']) {
     for (const key of Object.keys(keys)) {
       for (const bars of [8, 16, 32]) {
@@ -60,12 +60,12 @@ const midi = Buffer.from(await createMidi(song).arrayBuffer());
 assert.equal(midi.toString('ascii', 0, 4), 'MThd');
 assert.equal(midi.readUInt32BE(4), 6);
 assert.equal(midi.readUInt16BE(8), 1);
-assert.equal(midi.readUInt16BE(10), 5);
+assert.equal(midi.readUInt16BE(10), 6);
 assert.equal(midi.readUInt16BE(12), 480);
 let offset = 14;
 let noteCount = 0;
 let tempoFound = false;
-for (let track = 0; track < 5; track++) {
+for (let track = 0; track < 6; track++) {
   assert.equal(midi.toString('ascii', offset, offset + 4), 'MTrk');
   const length = midi.readUInt32BE(offset + 4);
   offset += 8;
@@ -127,4 +127,47 @@ player.stop();
 assert.equal(player.getState().status, 'stopped');
 await assert.rejects(player.play({ events: [] }), /악기/);
 await player.destroy();
-console.log(`PASS: ${arrangements} arrangements, deterministic composition, independent layers, scale / voice leading, MIDI round-trip (${noteCount} notes), WAV header / normalization, player guards.`);
+
+assert.deepEqual(vowelFormants(0), [310, 820, 2300]);
+assert.deepEqual(vowelFormants(1), [760, 1180, 2550]);
+const midVowels = vowelFormants(0.5);
+assert.deepEqual(midVowels, [535, 1000, 2425]);
+assert.ok(midVowels[0] > vowelFormants(0)[0] && midVowels[0] < vowelFormants(1)[0]);
+assert.ok(SPACE.limiter.ratio > SPACE.compressor.ratio);
+assert.ok(SPACE.limiter.threshold > SPACE.compressor.threshold);
+const impulse = createImpulseChannels(44100, 1.8, 2, 9);
+const sameImpulse = createImpulseChannels(44100, 1.8, 2, 9);
+const otherImpulse = createImpulseChannels(44100, 1.8, 2, 10);
+assert.equal(impulse[0].length, Math.floor(44100 * 1.8));
+assert.equal(impulse[0][80], sameImpulse[0][80]);
+assert.equal(impulse[1][80], sameImpulse[1][80]);
+assert.notEqual(impulse[0][80], otherImpulse[0][80]);
+assert.notEqual(impulse[0][120], impulse[1][120]);
+const impulseEnergy = (data, from, to) => {
+  let sum = 0;
+  for (let index = from; index < to; index++) sum += data[index] * data[index];
+  return sum / (to - from);
+};
+assert.ok(impulseEnergy(impulse[0], 0, Math.floor(impulse[0].length * 0.25)) > impulseEnergy(impulse[0], Math.floor(impulse[0].length * 0.75), impulse[0].length));
+assert.ok([...impulse[0], ...impulse[1]].every(Number.isFinite));
+const beat = song.beatSeconds;
+assert.ok(song.events.some(event => event.instrument === 'melody' && Math.abs(event.time / beat - Math.round(event.time / beat * 4) / 4) > 0.001), 'melody timing is humanized off the grid');
+
+const humOn = { melody: true, chords: true, bass: true, drums: true, hum: true };
+const humOff = { melody: true, chords: true, bass: true, drums: true, hum: false };
+const withHum = compose({ ...settings, instruments: humOn });
+const withoutHum = compose({ ...settings, instruments: { melody: true, chords: true, bass: true, drums: true, hum: false } });
+assert.deepEqual(withHum.events.filter(event => event.instrument !== 'hum'), withoutHum.events, 'The hum toggle must leave the other layers unchanged.');
+const hums = withHum.events.filter(event => event.instrument === 'hum');
+assert.ok(hums.length >= withHum.bars);
+for (const event of hums) {
+  assert.ok(event.vowelFrom >= 0 && event.vowelFrom <= 1 && event.vowelTo >= 0 && event.vowelTo <= 1);
+  assert.ok([0, 2, 4, 5, 7, 9, 11].includes(event.midi % 12));
+  assert.ok(event.duration > beat * 0.5);
+}
+assert.equal(compose({ ...settings, instruments: { melody: false, chords: false, bass: false, drums: false, hum: true } }).events.every(event => event.instrument === 'hum'), true);
+assert.equal(compose({ ...settings, instruments: humOff }).events.some(event => event.instrument === 'hum'), false);
+const humMidi = Buffer.from(await createMidi(withHum).arrayBuffer());
+assert.equal(humMidi.readUInt16BE(10), 6);
+assert.match(humMidi.toString('latin1'), /Hum/);
+console.log(`PASS: ${arrangements} arrangements, deterministic composition, independent layers, scale / voice leading, MIDI round-trip (${noteCount} notes), impulse / formant hum, WAV header / normalization, player guards.`);

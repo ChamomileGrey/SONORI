@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.4.0 — 2026-10-24
+
+따뜻하고 아련한 분위기, 더 넓은 공간, 가사 없는 허밍.
+
+### 추가
+
+- 감성 모던 록 프리셋. 78 BPM, I–V–vi–IV와 vi–IV–I–V 계열, sus4·add9 색채, 피아노와 클린 기타풍 아르페지오, 조용한 벌스에서 넓어지는 후렴, 여린 드럼
+- 새벽 감성과 심야 로파이 프리셋
+- 가사 없는 oo/ah 허밍 레이어. 포먼트 합성과 비브라토, 모음 글라이드. 레이어에서 켜고 끌 수 있음
+- 생성된 임펄스를 쓰는 컨볼루션 리버브, 부드러운 컴프레서와 리미터, 더 따뜻한 신스
+- 체크에 프리셋 진행·다이내믹, 허밍, 임펄스, 포먼트 검사
+
+### 유지
+
+- 템포 범위 72–140. 감성 모던 록은 그 안의 78 BPM
+- 저장 키 `sonori.studio.v1`, 프로젝트 JSON 버전 1
+- 같은 시드는 같은 스케치. 허밍을 꺼 두면 다른 레이어의 음은 그대로
+- 단일 HTML, 엄격한 CSP, 외부 음원·네트워크 없음
+- 브랜드 캐모마일그레이 (ChamomileGrey), Ko-fi, 라이선스
+
+## English
+
+Atmospheric sketches: an original emotional modern-rock preset, two quieter night moods, a wordless formant hum, and a generated-impulse reverb with gentler dynamics. Saved projects stay on JSON version 1.
+
 ## 1.2.0 — 2026-10-24
 
 같은 설정에서도 스케치가 서로 다르게 들리도록 작곡을 넓힘.

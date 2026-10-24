@@ -80,4 +80,7 @@ assert.match(app, /catch \(error\)/);
 assert.match(app, /migrateStorage/);
 assert.match(app, /repeatMode/);
 assert.match(app, /shuffleOn/);
+assert.match(app, /sonori\.studio\.v1/);
+assert.match(app, /version:1/);
+assert.match(app, /data-layer="hum"|hum:value\.instruments\?\.hum===true/);
 console.log('library-check: migration, order, search, queue, and storage guards passed');

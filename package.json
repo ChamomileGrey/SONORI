@@ -1,5 +1,6 @@
 {
   "name": "sonori-studio",
+  "version": "1.4.0",
   "private": true,
   "type": "module",
   "scripts": {

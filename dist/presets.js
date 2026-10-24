@@ -9,6 +9,9 @@ export const LAYER_HINTS = {
   edm: { melody: 'Saw lead', chords: 'Chord stabs', bass: 'Pulse bass', drums: 'Four-on-floor' },
   acoustic: { melody: 'Pluck lead', chords: 'Strum keys', bass: 'Upright feel', drums: 'Brush kit' },
   cinematic: { melody: 'Wide lead', chords: 'Wide pads', bass: 'Low drone', drums: 'Sparse hits' },
+  modernrock: { melody: 'Soft lead', chords: 'Piano · arp', bass: 'Warm bass', drums: 'Soft kit', hum: 'Oo · Ah' },
+  dawn: { melody: 'Air lead', chords: 'Dawn piano', bass: 'Soft foundation', drums: 'Quiet pulse', hum: 'Oo · Ah' },
+  nitelofi: { melody: 'Hushed lead', chords: 'Night keys', bass: 'Round bass', drums: 'Slow pocket', hum: 'Oo · Ah' },
 };
 
 export const GENRE_PRESETS = [
@@ -31,6 +34,18 @@ export const GENRE_PRESETS = [
   {
     id: 'cinematic', label: 'Cinematic', ko: '시네마틱', genre: 'cinematic', mood: 'dreamy', bpm: 80, key: 'F', scale: 'minor', scaleLabel: '마이너',
     drums: '넓게 띄운 타격과 여백', voice: '와이드 패드 · 공기감 있는 리드', blurb: '장면이 열리는 넓은 공간',
+  },
+  {
+    id: 'modernrock', label: 'Modern Rock', ko: '감성 모던 록', genre: 'modernrock', mood: 'melancholy', bpm: 78, key: 'A', scale: 'major', scaleLabel: '메이저', hum: true,
+    drums: '여린 킥 · 부드러운 스네어', voice: '피아노 · 클린 기타 아르페지오 · 따뜻한 패드', blurb: '조용한 벌스에서 넓어지는 후렴',
+  },
+  {
+    id: 'dawn', label: 'Dawn', ko: '새벽 감성', genre: 'dawn', mood: 'dreamy', bpm: 74, key: 'F', scale: 'minor', scaleLabel: '마이너', hum: true,
+    drums: '아주 성긴 펄스', voice: '새벽 피아노 · 먼 패드', blurb: '해가 뜨기 전의 여백',
+  },
+  {
+    id: 'nitelofi', label: 'Night', ko: '심야 로파이', genre: 'nitelofi', mood: 'melancholy', bpm: 80, key: 'D', scale: 'minor', scaleLabel: '마이너', hum: true,
+    drums: '느린 스윙 킥과 여린 햇', voice: '낮은 건반 · 둥근 베이스', blurb: '잠들기 전 작은 방',
   },
 ];
 
@@ -59,6 +74,6 @@ export function applyPresetToSettings(settings = {}, presetId) {
     bpm: preset.bpm,
     key: preset.key,
     scale: preset.scale,
-    instruments: { melody: true, chords: true, bass: true, drums: true },
+    instruments: { melody: true, chords: true, bass: true, drums: true, hum: preset.hum === true },
   };
 }

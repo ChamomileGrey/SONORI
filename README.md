@@ -3,7 +3,7 @@
 설치·가입·API 키·서버 없이 브라우저에서 열리는 독립형 음악 작업실입니다.
 장르와 분위기를 고르면 연주 데모, 가사 초안, 제작 프롬프트를 한곳에서 만듭니다.
 
-만든 이: **캐모마일그레이 (ChamomileGrey)**
+만든 이: **캐모마일그레이 (ChamomileGrey)** · [Ko-fi](https://ko-fi.com/chamomilegrey)
 
 ## 시작하기
 
@@ -23,8 +23,10 @@
 
 ## 지원 기능
 
-- Lo-fi, Pop, R&B, Ambient, Ballad, EDM, Acoustic, Cinematic
-- 장르·무드 프리셋 다섯 가지: Lo-fi, Ballad, EDM, Acoustic, Cinematic. 각각 템포, 조성, 스케일 색채, 신스 보이싱, 드럼 패턴을 제안하고 새 스케치나 현재 곡에 적용할 수 있음
+- Lo-fi, Pop, R&B, Ambient, Ballad, EDM, Acoustic, Cinematic, Modern Rock, Dawn, Night
+- 장르·무드 프리셋 여덟 가지: Lo-fi, Ballad, EDM, Acoustic, Cinematic, 감성 모던 록, 새벽 감성, 심야 로파이. 각각 템포, 조성, 스케일 색채, 신스 보이싱, 드럼 패턴을 제안하고 새 스케치나 현재 곡에 적용할 수 있음
+- 감성 모던 록은 78 BPM 근처에서 피아노, 클린 기타풍 아르페지오, 따뜻한 패드, 여린 드럼으로 벌스에서 후렴으로 넓어짐
+- 선택 레이어인 허밍은 가사 없는 oo/ah 포먼트 패드. 단어 보컬은 만들지 않음
 - 72~140 BPM, 6개 조성, 메이저·마이너·도리안·펜타토닉 색채, 8/16/32마디 데모
 - 재생·일시정지·처음부터·변주 다시 뽑기·음량·악기별 켜기/끄기
 - 시드로 고정되는 코드 진행, 곡 구성, 모티프 변주, 드럼 그루브, 스윙, 신스 색. 같은 시드는 항상 같은 스케치
@@ -40,6 +42,8 @@
 ## 범위와 보관
 
 음악은 브라우저 합성 악기로 만든 작곡 스케치입니다. 샘플 기반 실제 악기나 보컬 음원은 아닙니다.
+허밍을 켜면 단어 없이 oo/ah로 움직이는 합성 패드가 깔립니다. 가사 보컬은 포함되지 않습니다.
+공간감은 녹음된 룸이 아니라, 시드로 만든 임펄스를 컨볼루션한 리버브입니다.
 가사는 로컬 템플릿 초안이며, AI API를 호출하지 않습니다.
 보컬 및 완성 음원을 만들려면 프롬프트와 가사를 별도의 음악 제작 서비스로 가져가세요.
 이 도구 자체에는 ChatGPT 채팅이나 외부 음악 생성 서비스가 연결되어 있지 않습니다.
@@ -78,8 +82,8 @@ Copyright © 2026 캐모마일그레이 (ChamomileGrey). All rights reserved.
 
 SONORI is a single-file browser studio for sketching a song from a mood. Open the [live site](https://chamomilegrey.github.io/SONORI/) or `release/SONORI.html` in a current desktop browser. There is no install, account, API key, or server.
 
-Choose a genre, mood, tempo, key, and topic, or start from a Lo-fi, Ballad, EDM, Acoustic, or Cinematic preset. Each preset suggests a tempo, key, scale color, synth voicing, and drum pattern, and can be applied to the sketch you are already editing. Generate an instrumental demo, then use the bottom player for play/pause, previous/next, seek, repeat, and shuffle. Press **변주** to re-roll the seed: harmony, motif, groove, form, swing, and synth color change, and tempo and key move a little inside that genre’s range. The same seed always rebuilds the same sketch. Words such as chorus, space, or bridge in the topic and notes steer the form. Toggle melody, chords, bass, and drums, edit the lyric draft, copy an English production prompt, and export WAV, MIDI, text, or project JSON. Audio is synthesized in the browser. Nothing is streamed, and the app does not call an AI or music-generation API.
+Choose a genre, mood, tempo, key, and topic, or start from a Lo-fi, Ballad, EDM, Acoustic, Cinematic, Modern Rock, Dawn, or Night preset. Modern Rock sits near 78 BPM, with piano, clean-guitar-style arpeggios, warm pads, and a quiet verse that opens into a fuller chorus. Each preset suggests a tempo, key, scale color, synth voicing, and drum pattern, and can be applied to the sketch you are already editing. Generate an instrumental demo, then use the bottom player for play/pause, previous/next, seek, repeat, and shuffle. Press **변주** to re-roll the seed: harmony, motif, groove, form, swing, and synth color change, and tempo and key move a little inside that genre’s range. The same seed always rebuilds the same sketch. Words such as chorus, space, or bridge in the topic and notes steer the form. Toggle melody, chords, bass, drums, and an optional wordless oo/ah hum. The hum is formant synthesis, not sung lyrics. Edit the lyric draft, copy an English production prompt, and export WAV, MIDI, text, or project JSON. Audio is synthesized in the browser, including a convolution reverb from a generated impulse. Nothing is streamed, and the app does not call an AI or music-generation API.
 
 Projects and playlists are stored in this browser’s localStorage (up to 30 sketch versions). Sketches saved by version 1.0 stay in the library. Export JSON for any version you want to keep.
 
-Copyright © 2026 ChamomileGrey. See [LICENSE](LICENSE). Permission requests: chamomilegrey.official@gmail.com.
+Copyright © 2026 ChamomileGrey. See [LICENSE](LICENSE). Permission requests: chamomilegrey.official@gmail.com. Support: [ko-fi.com/chamomilegrey](https://ko-fi.com/chamomilegrey).
