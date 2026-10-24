@@ -1,10 +1,24 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { compose, createPlayer, genreProfile, SCALE_SETS } from '../dist/audio.js';
 import { createBrief } from '../dist/brief.js';
 import { GENRE_PRESETS, applyPresetToSettings, presetById } from '../dist/presets.js';
 
 const ids = GENRE_PRESETS.map(preset => preset.id);
-assert.deepEqual(ids, ['lofi', 'ballad', 'edm', 'acoustic', 'cinematic', 'modernrock', 'dawn', 'nitelofi', 'citypop', 'trap', 'house', 'bossa', 'reggaeton']);
+assert.deepEqual(ids, ['lofi', 'pop', 'rnb', 'ambient', 'ballad', 'edm', 'acoustic', 'cinematic', 'modernrock', 'dawn', 'nitelofi', 'citypop', 'trap', 'house', 'bossa', 'reggaeton']);
+const legacyGenres = ['lofi', 'pop', 'rnb', 'ambient', 'ballad', 'edm', 'acoustic', 'cinematic', 'modernrock', 'dawn', 'nitelofi', 'citypop', 'trap', 'house', 'bossa', 'reggaeton'];
+for (const genre of legacyGenres) {
+  assert.equal(presetById(genre)?.genre, genre, `${genre} remains its own sketch genre`);
+  assert.equal(genreProfile(genre)?.cutoff > 0, true, genre);
+}
+const studio = await readFile(new URL('../dist/index.html', import.meta.url), 'utf8');
+const app = await readFile(new URL('../dist/app.js', import.meta.url), 'utf8');
+assert.deepEqual([...studio.matchAll(/data-genre-preset="([^"]+)"/g)].map(match => match[1]), ids);
+assert.doesNotMatch(studio, /id="genreChoices"|id="applyPresetBtn"|data-genre="/);
+assert.match(app, /sonori\.studio\.v1/);
+assert.match(app, /version:1/);
+assert.match(app, /pop:'Pop',rnb:'R&B',ambient:'Ambient'/);
+assert.doesNotMatch(app, /applyPresetBtn|matchingPresetId|genreChoices/);
 const base = { title: '창가', topic: '비 오는 골목', notes: '여백', bars: 16, seed: 11, vocal: 'female' };
 
 for (const preset of GENRE_PRESETS) {
@@ -160,4 +174,4 @@ assert.equal(player.seek(0.4), false);
 assert.equal(player.getState().status, 'stopped');
 player.stop();
 await player.destroy();
-console.log('preset-check: thirteen presets, modern-rock color, hum pad, launch genres, scales, drum patterns, briefs, and seek guard passed');
+console.log('preset-check: sixteen presets, legacy genre ids, modern-rock color, hum pad, launch genres, scales, drum patterns, briefs, and seek guard passed');
