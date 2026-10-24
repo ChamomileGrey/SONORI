@@ -5,6 +5,10 @@ const GENRES = {
   pop: { ko: '팝', en: 'melodic indie pop', lead: 'a clear, soft synth lead', chords: 'bright electric piano', bass: 'a steady melodic bass', drums: 'a clean pop drum groove', feel: 'a memorable melodic motif, clear phrasing, and light dynamic contrast' },
   ambient: { ko: '앰비언트', en: 'melodic ambient', lead: 'a sparse, airy lead', chords: 'slow, spacious electric-piano chords', bass: 'a soft low bass foundation', drums: 'minimal, soft percussion', feel: 'long decays, generous space, and slowly evolving texture' },
   rnb: { ko: 'R&B', en: 'contemporary mellow R&B', lead: 'a smooth, understated lead', chords: 'soulful electric-piano chords', bass: 'a rounded syncopated bass', drums: 'a restrained R&B drum groove', feel: 'a laid-back pocket, flowing phrases, and subtle syncopation' },
+  ballad: { ko: '발라드', en: 'intimate piano ballad', lead: 'a warm, close lead', chords: 'slow sustained pads and piano', bass: 'a soft sparse bass', drums: 'a gentle half-time drum pulse', feel: 'long phrases, quiet space, and a tender dynamic arc' },
+  edm: { ko: 'EDM', en: 'melodic electronic dance', lead: 'a bright saw-style synth lead', chords: 'rhythmic chord stabs', bass: 'a pulsing synth bass', drums: 'a four-on-the-floor dance beat', feel: 'forward motion, a clear downbeat, and energetic lifts' },
+  acoustic: { ko: '어쿠스틱', en: 'warm acoustic sketch', lead: 'a soft plucked lead', chords: 'gentle strummed harmonic beds', bass: 'a rounded upright-style bass', drums: 'brushed sparse drums', feel: 'close-mic intimacy, natural space, and an easy singable line' },
+  cinematic: { ko: '시네마틱', en: 'wide cinematic score sketch', lead: 'an airy distant lead', chords: 'wide sustained pads', bass: 'a low foundation', drums: 'sparse wide percussion hits', feel: 'slow-building space, broad harmony, and a restrained pulse' },
 };
 
 const MOODS = {
@@ -109,6 +113,9 @@ function getInstruments(value, genre) {
   return { ids: selected, en: selected.map(name => aliases[name]), ko: selected.map(name => names[name]) };
 }
 
+const SCALE_NAMES = { minor: 'natural minor', dorian: 'dorian', pentatonic: 'major pentatonic' };
+const SCALE_KO = { minor: '내추럴 마이너', dorian: '도리안', pentatonic: '펜타토닉' };
+
 function normalize(settings = {}) {
   const input = settings && typeof settings === 'object' ? settings : {};
   const genreId = Object.hasOwn(GENRES, input.genre) ? input.genre : 'lofi';
@@ -125,6 +132,7 @@ function normalize(settings = {}) {
     topic: cleanText(input.topic, 600),
     notes: cleanText(input.notes, 2000),
     instruments: getInstruments(input.instruments, GENRES[genreId]),
+    scale: Object.hasOwn(SCALE_NAMES, input.scale) ? input.scale : '',
   };
 }
 
@@ -175,11 +183,13 @@ export function createBrief(settings = {}) {
   const title = input.title || input.mood.titles[input.seed % input.mood.titles.length];
   const structure = makeStructure(input.bars, input.genreId);
   const seconds = Math.round(input.bars * 4 * 60 / input.bpm);
-  const summary = `${input.mood.ko} ${input.genre.ko} · ${input.bpm} BPM · ${input.key} · 4/4 · ${input.bars}마디(약 ${seconds}초). ${input.instruments.ko.length ? input.instruments.ko.join(' · ') : '선택한 악기 없음'}. 목표 보컬: ${input.vocal.ko}. 구조는 데모용 구성 제안이며, 가사는 템플릿 기반 초안입니다.`;
+  const scaleSentence = input.scale ? ` 추천 스케일 색채: ${SCALE_KO[input.scale]}.` : '';
+  const summary = `${input.mood.ko} ${input.genre.ko} · ${input.bpm} BPM · ${input.key} · 4/4 · ${input.bars}마디(약 ${seconds}초). ${input.instruments.ko.length ? input.instruments.ko.join(' · ') : '선택한 악기 없음'}. 목표 보컬: ${input.vocal.ko}.${scaleSentence} 구조는 데모용 구성 제안이며, 가사는 템플릿 기반 초안입니다.`;
   const prompt = [
     'Create an original music sketch using the following creative brief.',
     `Style: ${input.genre.en}. Mood: ${input.mood.en}.`,
     `Tempo: ${input.bpm} BPM. Key: ${input.key}. Meter: 4/4. Length: ${input.bars} bars (approximately ${seconds} seconds).`,
+    ...(input.scale ? [`Pitch color: ${SCALE_NAMES[input.scale]}. Keep the pitched instruments inside that collection.`] : []),
     `Arrangement: ${input.instruments.en.length ? input.instruments.en.join(', ') : 'no instruments selected; clarify instrumentation before rendering'}. Include only the selected instrument parts.`,
     `Feel: ${input.genre.feel}. Keep the melody singable and leave breathing room between phrases.`,
     `Vocal direction for the future generated song: ${input.vocal.en}.`,
@@ -198,7 +208,7 @@ export function createBrief(settings = {}) {
   const discussion = [
     '이 설정을 바탕으로 저와 노래의 방향을 함께 다듬어 주세요.',
     `작업 제목: ${title}`,
-    `현재 설정: ${input.genre.ko}, ${input.mood.ko}, ${input.bpm} BPM, ${input.key}, ${input.bars}마디, ${input.vocal.ko}`,
+    `현재 설정: ${input.genre.ko}, ${input.mood.ko}, ${input.bpm} BPM, ${input.key}, ${input.bars}마디, ${input.vocal.ko}${input.scale ? `, ${SCALE_KO[input.scale]} 색채` : ''}`,
     `악기: ${input.instruments.ko.join(', ') || '미선택'}`,
     `소재: ${input.topic || '아직 정하지 않음'}`,
     `메모: ${input.notes || '아직 정하지 않음'}`,

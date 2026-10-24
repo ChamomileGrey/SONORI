@@ -19,4 +19,12 @@ assert.equal(staticIds.length, new Set(staticIds).size, 'static IDs must be uniq
 for (const [, ref] of staticHtml.matchAll(/\b(?:for|aria-controls|aria-labelledby)="([^"]+)"/g)) {
   for (const target of ref.split(' ')) assert(ids.includes(target), `reference ${target} exists`);
 }
+assert.match(html, /default-src 'none'/);
+assert.match(html, /connect-src 'none'/);
+assert.match(html, /id="playerBar"/);
+assert.match(html, /id="libraryView"/);
+assert.match(html, /data-genre-preset="cinematic"/);
+assert.match(scripts[0][1], /migrateStorage/);
+assert.match(scripts[0][1], /applyPresetToSettings/);
+assert.doesNotMatch(html, /fonts\.googleapis|youtube|googlevideo|cdn\./i);
 console.log('PASS: standalone bundle syntax, root styles, offline assets, static IDs, labels and ARIA references.');
