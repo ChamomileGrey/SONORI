@@ -93,6 +93,18 @@ for (const genre of ['lofi', 'pop', 'rnb', 'ballad', 'edm', 'acoustic']) {
 assert.ok(progressionTotal / 6 >= 4, 'each genre should offer more than one progression');
 assert.ok(grooveTotal / 6 >= 4, 'each genre should offer more than one groove');
 
+let moodProgressions = 0;
+let moodGrooves = 0;
+for (const genre of ['modernrock', 'dawn', 'nitelofi']) {
+  const scale = genre === 'modernrock' ? 'major' : 'minor';
+  const set = seeds.map(seed => compose({ ...base, genre, scale, seed, instruments: { melody: true, chords: true, bass: true, drums: true, hum: true } }));
+  moodProgressions += new Set(set.map(song => song.chordNames.join('-'))).size;
+  moodGrooves += new Set(set.map(groove)).size;
+  assert.equal(set[0].events.some(event => event.instrument === 'hum'), true);
+  assert.deepEqual(set[0], compose({ ...base, genre, scale, seed: seeds[0], instruments: { melody: true, chords: true, bass: true, drums: true, hum: true } }));
+}
+assert.ok(moodProgressions / 3 >= 2, `new moods need more than one progression (${moodProgressions})`);
+assert.ok(moodGrooves / 3 >= 2, `new moods need more than one groove (${moodGrooves})`);
 for (const genre of ['citypop', 'trap', 'house', 'bossa', 'reggaeton']) {
   const set = seeds.map(seed => compose({ ...base, genre, seed }));
   const genreProgressions = new Set(set.map(song => song.chordNames.join('-')));
@@ -104,7 +116,6 @@ for (const genre of ['citypop', 'trap', 'house', 'bossa', 'reggaeton']) {
   const profileSwing = genre === 'house' ? [0, 0] : null;
   if (profileSwing) assert.ok(set.every(song => song.swing === 0), 'house stays straight');
 }
-
 const space = compose({ ...base, seed: 5, notes: '여백을 많이 두고 고요하게' });
 const lift = compose({ ...base, seed: 5, notes: '후렴을 크게, 브리지에서 전환' });
 assert.notEqual(structureKey(space.structure), structureKey(lift.structure), 'The brief should change the form.');

@@ -52,6 +52,9 @@ const GENRE_PROGRESSIONS = {
   house: [[0, 5, 3, 6], [0, 3, 4, 5], [0, 5, 6, 3], [5, 3, 0, 4], [0, 4, 5, 3], [0, 6, 5, 4]],
   bossa: [[1, 4, 0, 0], [1, 4, 0, 5], [5, 1, 4, 0], [2, 5, 1, 4], [0, 1, 4, 3], [1, 4, 3, 0]],
   reggaeton: [[0, 6, 5, 6], [0, 5, 3, 4], [0, 3, 6, 5], [5, 6, 0, 3], [0, 5, 6, 4], [0, 4, 5, 3]],
+  modernrock: [[0, 4, 5, 3], [5, 3, 0, 4], [0, 5, 3, 4], [5, 3, 4, 0]],
+  dawn: [[0, 4, 5, 3], [5, 3, 0, 4], [0, 5, 3, 4], [3, 0, 5, 4]],
+  nitelofi: [[0, 5, 3, 4], [5, 3, 0, 4], [0, 3, 4, 5], [5, 1, 4, 0]],
 };
 const SECTION_META = {
   intro: ['인트로', '음색과 공간감을 먼저 소개합니다.'],
@@ -89,12 +92,13 @@ const RHYTHMS = {
   edm: [[0, 0.5, 1, 1.5, 2.5, 3.25], [0, 0.75, 1.5, 2, 2.5, 3.5], [0.5, 1, 1.5, 2.5, 3, 3.5], [0, 1, 2, 2.5, 3, 3.5]],
   acoustic: [[0, 0.75, 1.5, 2.5, 3.25], [0, 1, 2, 3], [0.5, 1.5, 2.5, 3.5], [0, 0.5, 1.5, 2.75]],
   cinematic: [[0, 2], [0, 1.5, 3], [0.5, 2.5], [0, 3]],
-  citypop: [[0, 0.5, 1.5, 2, 3, 3.5], [0, 0.75, 1.5, 2.5, 3.25], [0.5, 1, 2, 2.75, 3.5], [0, 1, 1.75, 2.5, 3.5]],
+  modernrock: [[0, 1, 2.25, 3.25], [0, 0.75, 2, 3], [0.5, 1.5, 2.5, 3.5], [0, 1.5, 3]],
+  dawn: [[0, 1.5, 3], [0, 2], [0.5, 2.5], [0, 1, 3]],
+  nitelofi: [[0, 1, 2.25, 3.25], [0, 0.75, 1.75, 3], [0.5, 1.5, 2.75], [0, 2, 3.25]],  citypop: [[0, 0.5, 1.5, 2, 3, 3.5], [0, 0.75, 1.5, 2.5, 3.25], [0.5, 1, 2, 2.75, 3.5], [0, 1, 1.75, 2.5, 3.5]],
   trap: [[0, 1.5, 3], [0, 2, 3.25, 3.5], [0.5, 2.5, 3.75], [0, 0.75, 2, 3.5]],
   house: [[0, 0.5, 1.5, 2, 3, 3.5], [0, 1, 1.5, 2.5, 3], [0.5, 1, 2, 2.5, 3.5], [0, 0.75, 1.5, 2.5, 3.25]],
   bossa: [[0, 0.75, 1.5, 2.5, 3.25], [0.5, 1.5, 2, 3, 3.5], [0, 1, 1.75, 2.75, 3.5], [0.75, 1.5, 2.5, 3.25]],
-  reggaeton: [[0, 0.75, 1.5, 2.75, 3.5], [0, 1, 1.75, 2.5, 3.25], [0.5, 1.5, 2.75, 3.5], [0, 0.75, 2, 2.75, 3.5]],
-};
+  reggaeton: [[0, 0.75, 1.5, 2.75, 3.5], [0, 1, 1.75, 2.5, 3.25], [0.5, 1.5, 2.75, 3.5], [0, 0.75, 2, 2.75, 3.5]],};
 const GROOVES = {
   lofi: [
     { kick: [0, 2], snare: [1, 3], hat: [0.5, 1.5, 2.5, 3.5] },
@@ -136,6 +140,21 @@ const GROOVES = {
     { kick: [0], snare: [3], hat: [2] },
     { kick: [0, 3], snare: [1.5], hat: [0, 2.5] },
   ],
+  modernrock: [
+    { kick: [0, 2], snare: [2], hat: [0, 1, 2, 3] },
+    { kick: [0], snare: [2, 3.5], hat: [0.5, 1.5, 2.5, 3.5] },
+    { kick: [0, 2.5], snare: [2], hat: [0, 1, 2, 3], open: [2] },
+  ],
+  dawn: [
+    { kick: [0], snare: [], hat: [2] },
+    { kick: [0, 3], snare: [2], hat: [1, 3] },
+    { kick: [0], snare: [3], hat: [2, 3.5] },
+  ],
+  nitelofi: [
+    { kick: [0, 2.25], snare: [1, 3], hat: [0.5, 1.5, 2.5, 3.5] },
+    { kick: [0, 1.5, 2.75], snare: [3], hat: [0, 1, 2, 3] },
+    { kick: [0, 2.5], snare: [1, 2.75], hat: [0.5, 1.5, 2.5, 3.5], open: [1] },
+  ],
   citypop: [
     { kick: [0, 2], snare: [1, 3], hat: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5], open: [1.5, 3.5] },
     { kick: [0, 0.75, 2, 2.75], snare: [1, 3], hat: [0.5, 1.5, 2.5, 3.5] },
@@ -162,7 +181,7 @@ const GROOVES = {
     { kick: [0, 0.75, 1.5, 2.5], snare: [0.75, 1.75, 2.75, 3.5], hat: [0, 1, 2, 3] },
   ],
 };
-const ROLE_ENERGY = { intro: 0.66, verse: 0.82, pre: 0.9, chorus: 1, bridge: 0.74, outro: 0.58, motif: 0.84 };
+const ROLE_ENERGY = { intro: 0.56, verse: 0.74, pre: 0.88, chorus: 1, bridge: 0.68, outro: 0.5, motif: 0.84 };
 const ROLE_CENTER = { intro: 69, verse: 73, pre: 76, chorus: 79, bridge: 72, outro: 67, motif: 74 };
 const TIMBRES = [
   { id: 'warm', cutoffMul: 0.84, attackMul: 1.28, wide: false, melodyProgram: 11, chordProgram: 5 },
@@ -201,12 +220,29 @@ const PROFILES = {
   edm: { swing: 0, melody: [0, 0.5, 1, 1.5, 2.5, 3.25], length: 0.32, cutoff: 7600, voice: 'saw' },
   acoustic: { swing: 0.02, melody: [0, 0.75, 1.5, 2.5, 3.25], length: 0.5, cutoff: 5000, voice: 'pluck' },
   cinematic: { swing: 0, melody: [0, 2], length: 1.6, cutoff: 2400, voice: 'wide' },
+  modernrock: { swing: 0.03, melody: [0, 1, 2.25, 3.25], length: 0.78, cutoff: 4300, voice: 'band' },
+  dawn: { swing: 0.02, melody: [0, 1.5, 3], length: 1.35, cutoff: 2500, voice: 'pad' },
+  nitelofi: { swing: 0.12, melody: [0, 1, 2.25, 3.25], length: 0.84, cutoff: 3000, voice: 'pad' },
   citypop: { swing: 0.06, swingRange: [0.04, 0.1], melody: [0, 0.5, 1.5, 2, 3, 3.5], length: 0.48, cutoff: 4600, voice: 'keys', harmony: 'city' },
   trap: { swing: 0, swingRange: [0, 0.02], melody: [0, 1.5, 3], length: 0.34, cutoff: 5400, voice: '808' },
   house: { swing: 0, swingRange: [0, 0], melody: [0, 0.5, 1.5, 2, 3, 3.5], length: 0.3, cutoff: 7400, voice: 'house' },
   bossa: { swing: 0.03, swingRange: [0.01, 0.05], melody: [0, 0.75, 1.5, 2.5, 3.25], length: 0.5, cutoff: 3200, voice: 'nylon', harmony: 'jazz' },
-  reggaeton: { swing: 0, swingRange: [0, 0.02], melody: [0, 0.75, 1.5, 2.75, 3.5], length: 0.38, cutoff: 5000, voice: 'pulse' },
+  reggaeton: { swing: 0, swingRange: [0, 0.02], melody: [0, 0.75, 1.5, 2.75, 3.5], length: 0.38, cutoff: 5000, voice: 'pulse' },};
+/** Gentle bus dynamics used by the live graph and the WAV render. */
+export const SPACE = {
+  compressor: { threshold: -20, knee: 18, ratio: 2, attack: 0.012, release: 0.24 },
+  limiter: { threshold: -2, knee: 1, ratio: 12, attack: 0.003, release: 0.08 },
 };
+const VOWEL_OO = [310, 820, 2300];
+const VOWEL_AH = [760, 1180, 2550];
+const ROCK_COLORS = [
+  { offset: 0, intervals: [0, 5, 7, 11], suffix: 'sus4' },
+  { offset: 7, intervals: [0, 5, 7, 10], suffix: 'sus4' },
+  { offset: 0, intervals: [0, 2, 4, 7], suffix: 'add9' },
+  { offset: 5, intervals: [0, 2, 4, 7], suffix: 'add9' },
+  { offset: 7, intervals: [0, 2, 4, 7], suffix: 'add9' },
+  { offset: 9, intervals: [0, 5, 7, 10], suffix: 'sus4' },
+];
 export function genreProfile(genre) {
   return Object.hasOwn(PROFILES, genre) ? { ...PROFILES[genre] } : null;
 }
@@ -223,6 +259,7 @@ const MIDI_TRACKS = [
   { name: 'Harmony', instrument: 'chords', channel: 1, program: 4 },
   { name: 'Bass', instrument: 'bass', channel: 2, program: 33 },
   { name: 'Drums', instrument: 'drums', channel: 9 },
+  { name: 'Hum', instrument: 'hum', channel: 4, program: 53 },
 ];
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -249,12 +286,50 @@ export function normalizeSettings(input = {}) {
     bars: [8, 16, 32].includes(Number(input.bars)) ? Number(input.bars) : 16,
     seed: finite(input.seed, 20261017) >>> 0,
     scale: Object.hasOwn(SCALE_SETS, input.scale) ? input.scale : 'major',
-    instruments: Object.fromEntries(['melody', 'chords', 'bass', 'drums'].map(key => [key, layers[key] !== false])),
+    instruments: {
+      melody: layers.melody !== false,
+      chords: layers.chords !== false,
+      bass: layers.bass !== false,
+      drums: layers.drums !== false,
+      hum: layers.hum === true,
+    },
   };
 }
 
-function chordForDegree(degree, key, closing, style) {
-  const root = key + SCALE[degree];
+/** Wordless oo→ah formant targets. 0 is "oo", 1 is "ah". */
+export function vowelFormants(amount) {
+  const mixAmount = clamp(finite(amount, 0), 0, 1);
+  return VOWEL_OO.map((freq, index) => Math.round(freq + (VOWEL_AH[index] - freq) * mixAmount));
+}
+
+/**
+ * Stereo impulse built from noise, an exponential tail, and a few early taps.
+ * No recorded room is used. The same seed rebuilds the same impulse.
+ */
+export function createImpulseChannels(sampleRate, seconds, decay, seed) {
+  const rate = Math.max(8000, Math.round(finite(sampleRate, 44100)));
+  const length = Math.max(8, Math.floor(rate * clamp(finite(seconds, 1.6), 0.2, 4)));
+  const fall = clamp(finite(decay, 2.4), 0.5, 8);
+  const random = seededRandom(finite(seed, 1) >>> 0);
+  const channels = [new Float32Array(length), new Float32Array(length)];
+  const taps = [0.011, 0.017, 0.029, 0.041, 0.059, 0.073];
+  for (let channel = 0; channel < 2; channel++) {
+    const data = channels[channel];
+    for (let i = 0; i < length; i++) {
+      const env = (1 - i / length) ** fall;
+      data[i] = (random() * 2 - 1) * env * 0.32;
+    }
+    taps.forEach((tap, index) => {
+      const pos = Math.min(length - 1, Math.floor(tap * rate));
+      const sign = index % 2 === 0 ? 1 : -1;
+      const side = channel === 0 ? 1 : (index % 2 ? 0.62 : 0.88);
+      data[pos] += sign * (0.4 - index * 0.04) * side;
+    });
+  }
+  return channels;
+}
+
+function chordForDegree(degree, key, closing, style) {  const root = key + SCALE[degree];
   const minor = [1, 2, 5].includes(degree);
   let intervals = minor ? [0, 3, 7, 10] : degree === 4 ? [0, 4, 7, 9] : [0, 4, 7, 11];
   let suffix = minor ? 'm7' : degree === 4 ? '6' : 'maj7';
@@ -358,14 +433,14 @@ export function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cue
   } else if (cues.wantChorus || cues.wantLift || mood === 'bright') {
     const hooks = choices.filter(template => template.includes('pre') || template.filter(role => role === 'chorus').length >= 2);
     if (hooks.length) choices = hooks;
-  } else if (genre === 'ambient' || genre === 'cinematic' || mood === 'melancholy') {
+  } else if (genre === 'ambient' || genre === 'cinematic' || genre === 'dawn' || mood === 'melancholy') {
     const spacious = choices.filter(template => template[0] === 'intro');
     if (spacious.length) choices = spacious;
   }
   const template = choices[mix(seed, 0x517) % choices.length];
   const weight = { intro: 1, verse: 2, pre: 1, chorus: 3, bridge: 2, outro: 1, motif: 1 };
-  if (genre === 'ambient' || genre === 'cinematic' || cues.wantSpace) { weight.intro = 2; weight.verse = 2; weight.chorus = 2; }
-  if (genre === 'edm' || genre === 'pop' || genre === 'house' || genre === 'citypop' || genre === 'reggaeton' || cues.wantLift) weight.chorus = 4;
+  if (genre === 'ambient' || genre === 'cinematic' || genre === 'dawn' || cues.wantSpace) { weight.intro = 2; weight.verse = 2; weight.chorus = 2; }
+  if (genre === 'edm' || genre === 'pop' || genre === 'modernrock' || genre === 'house' || genre === 'citypop' || genre === 'reggaeton' || cues.wantLift) weight.chorus = 4;
   const totalWeight = template.reduce((sum, role) => sum + weight[role], 0);
   const left = count - template.length;
   const fractions = template.map(role => left * weight[role] / totalWeight);
@@ -394,18 +469,30 @@ function sectionSpans(structure) {
   return spans;
 }
 
-const GENRE_SALT = { lofi: 11, pop: 23, rnb: 37, ambient: 41, ballad: 53, edm: 67, acoustic: 71, cinematic: 83, citypop: 89, trap: 97, house: 101, bossa: 103, reggaeton: 107 };
+const GENRE_SALT = { lofi: 11, pop: 23, rnb: 37, ambient: 41, ballad: 53, edm: 67, acoustic: 71, cinematic: 83, modernrock: 89, dawn: 97, nitelofi: 101, citypop: 89, trap: 97, house: 101, bossa: 103, reggaeton: 107 };
 const MOOD_SALT = { warm: 3, dreamy: 5, bright: 7, melancholy: 9 };
+
+function colorFits(scale, color) {
+  return color.intervals.every(interval => scale.includes((color.offset + interval) % 12));
+}
 
 function harmonyPlan(genre, mood, scaleName, seed, bars) {
   const bank = GENRE_PROGRESSIONS[genre] || PROGRESSIONS[mood] || PROGRESSIONS.warm;
   let index = mix(seed, (GENRE_SALT[genre] || 13) * 100 + (MOOD_SALT[mood] || 3)) % bank.length;
   if (seed === 42 && mood === 'warm' && !GENRE_PROGRESSIONS[genre]) index = 0;
   const progression = bank[index];
-  const alt = seed === 42 ? progression : bank[(index + 1 + (mix(seed, 0xA11) % (bank.length - 1))) % bank.length];
-  const colorOk = seed !== 42 && seed !== 99 && mix(seed, 0xC010) % 3 === 0 && bars >= 8;
-  const borrowed = BORROWED[scaleName] || BORROWED.major;
-  const color = colorOk ? borrowed[mix(seed, 0xB17) % borrowed.length] : null;
+  const alt = seed === 42 ? progression : bank[(index + 1 + (mix(seed, 0xA11) % Math.max(1, bank.length - 1))) % bank.length];
+  const scale = SCALE_SETS[scaleName] || SCALE;
+  let color = null;
+  if (genre === 'modernrock') {
+    const shapes = ROCK_COLORS.filter(shape => colorFits(scale, shape));
+    const colorOk = seed !== 42 && seed !== 99 && bars >= 8 && mix(seed, 0xC010) % 2 === 0 && shapes.length > 0;
+    if (colorOk) color = shapes[mix(seed, 0xB17) % shapes.length];
+  } else {
+    const colorOk = seed !== 42 && seed !== 99 && mix(seed, 0xC010) % 3 === 0 && bars >= 8;
+    const borrowed = BORROWED[scaleName] || BORROWED.major;
+    color = colorOk ? borrowed[mix(seed, 0xB17) % borrowed.length] : null;
+  }
   const colorAt = color ? 4 + (mix(seed, 0xB0) % (bars - 5)) : -1;
   return { progression, alt, index, color, colorAt };
 }
@@ -455,12 +542,47 @@ export function compose(input = {}) {
   let previousVoicing;
   let lastMelody = 72 + key + [-5, 0, 4][plan.register];
 
-  function add(instrument, beat, length, midi, velocity, humanize = true) {
-    const drift = humanize && genre !== 'ambient' && genre !== 'cinematic' ? (random() - 0.5) * 0.015 : 0;
+  function add(instrument, beat, length, midi, velocity, humanize = true, extra) {
+    const driftScale = instrument === 'melody' ? 0.02 : instrument === 'chords' ? 0.008 : 0.012;
+    const drift = humanize && genre !== 'ambient' && genre !== 'cinematic' ? (random() - 0.5) * driftScale : 0;
     const time = Math.max(0, beat * beatSeconds + drift);
     const duration = Math.min(length * beatSeconds, bars * 4 * beatSeconds - time);
     if (duration <= 0 || !Number.isInteger(midi)) return;
-    events.push({ instrument, time: round(time), duration: round(duration), midi, velocity: round(clamp(velocity * (0.94 + random() * 0.12), 0.1, 0.95)) });
+    // Velocity jitter is drawn only for notes that sound, matching the original call order.
+    const feel = 0.9 + random() * 0.18;
+    const event = { instrument, time: round(time), duration: round(duration), midi, velocity: round(clamp(velocity * feel, 0.1, 0.95)) };
+    if (extra) {
+      event.vowelFrom = round(clamp(extra.vowelFrom, 0, 1));
+      event.vowelTo = round(clamp(extra.vowelTo, 0, 1));
+    }
+    events.push(event);
+  }
+
+  const humRandom = seededRandom(mix(seed, 0xBEE5));
+  function addHum(beat, length, midi, velocity, extra) {
+    const drift = (humRandom() - 0.5) * 0.012;
+    const time = Math.max(0, beat * beatSeconds + drift);
+    const duration = Math.min(length * beatSeconds, bars * 4 * beatSeconds - time);
+    const feel = 0.92 + humRandom() * 0.12;
+    if (duration <= 0 || !Number.isInteger(midi)) return;
+    events.push({
+      instrument: 'hum',
+      time: round(time),
+      duration: round(duration),
+      midi,
+      velocity: round(clamp(velocity * feel, 0.08, 0.72)),
+      vowelFrom: round(clamp(extra.vowelFrom, 0, 1)),
+      vowelTo: round(clamp(extra.vowelTo, 0, 1)),
+    });
+  }
+
+  function vowelPair(role, barIndex) {
+    const tilt = ((mix(seed, 0xA11 + barIndex) % 7) - 3) * 0.02;
+    const pair = role === 'chorus' || role === 'pre' ? [0.12, 0.9]
+      : role === 'bridge' ? [0.72, 0.22]
+        : barIndex % 2 ? [0.04, 0.42]
+          : [0, 0.2];
+    return { vowelFrom: clamp(pair[0] + tilt, 0, 1), vowelTo: clamp(pair[1] + tilt, 0, 1) };
   }
 
   function scaleStep(midi, direction = 1) {
@@ -496,15 +618,34 @@ export function compose(input = {}) {
     chords.push({ ...chord, bar, notes: voicing, time: round(beat * beatSeconds), duration: round(4 * beatSeconds) });
     const intro = bars > 8 && bar < 2 && plan.groove === 0;
     let energy = ROLE_ENERGY[role] || 0.8;
+    if (span.bars > 1 && (role === 'intro' || role === 'verse' || role === 'chorus' || role === 'pre')) {
+      const ramp = barInSection / (span.bars - 1);
+      energy *= role === 'chorus' || role === 'pre' ? 0.9 + ramp * 0.1 : 0.84 + ramp * 0.16;
+    }
     if (finalBar) energy *= 0.78;
     if (cues.wantLift && role === 'chorus') energy = Math.min(1, energy + 0.05);
     if (cues.wantSpace) energy *= 0.92;
     const center = (ROLE_CENTER[role] || 74) + [-5, 0, 4][plan.register] + (role === 'chorus' ? 2 : 0);
+    const fuller = role === 'chorus' || role === 'pre';
 
     const texture = (finalBar || role === 'intro' || role === 'outro') ? 'pad'
-      : (genre === 'ambient' || genre === 'cinematic') && plan.texture === 'stab' ? 'pad'
+      : (genre === 'ambient' || genre === 'cinematic' || genre === 'dawn') && plan.texture === 'stab' ? 'pad'
         : plan.texture;
-    if (genre === 'bossa' && !finalBar) {
+    if (genre === 'modernrock') {
+      const padLevel = energy * (fuller ? 0.5 : role === 'verse' || role === 'intro' ? 0.26 : 0.34);
+      voicing.forEach((midi, index) => add('chords', beat + index * 0.02, finalBar ? 3.6 : 3.75, midi, padLevel));
+      if (!finalBar && role !== 'intro') {
+        const steps = fuller ? [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]
+          : plan.texture === 'pad' ? [0, 2]
+            : plan.texture === 'strum' ? [0, 1.5, 3]
+              : [0, 1, 2.5, 3];
+        steps.forEach((position, index) => {
+          const tone = voicing[index % voicing.length];
+          const midi = tone + 12 <= 86 ? tone + 12 : tone;
+          add('chords', beat + position, fuller ? 0.36 : 0.5, midi, energy * (fuller ? 0.38 : 0.22));
+        });
+      }
+    } else if (genre === 'bossa' && !finalBar) {
       const comps = texture === 'arp' ? [0, 1, 1.5, 2.5, 3.5]
         : texture === 'stab' ? [0, 1.5, 2.5, 3.5]
           : texture === 'strum' ? [0, 0.75, 2, 2.75, 3.5]
@@ -539,9 +680,9 @@ export function compose(input = {}) {
     } else {
       const length = finalBar ? 3.8 : genre === 'edm' ? 3.4 : 3.9;
       voicing.forEach((midi, index) => add('chords', beat + index * 0.018, length - index * 0.018, midi, energy * (genre === 'ambient' || genre === 'cinematic' ? 0.58 : 0.52)));
-      if (role === 'chorus' && plan.register === 2) {
+      if (role === 'chorus' && !finalBar) {
         const top = voicing.at(-1) + 12;
-        if (top <= 88) add('chords', beat, 3.2, top, energy * 0.28);
+        if (top <= 88) add('chords', beat + 0.4, 2.8, top, energy * (plan.register === 2 ? 0.3 : 0.18));
       }
     }
 
@@ -583,9 +724,10 @@ export function compose(input = {}) {
         add('bass', beat + 1, 0.8, passing <= 60 ? passing : root, 0.5 * energy);
         add('bass', beat + 2, 0.85, fifth <= 60 ? fifth : upper, 0.58 * energy);
         add('bass', beat + 3, 0.7, upper, 0.48 * energy);
-      } else if (genre === 'cinematic') {
+      } else if (genre === 'cinematic' || genre === 'dawn') {
         add('bass', beat, 3.6, root, 0.62 * energy);
-        if (bar % 2 === 1) add('bass', beat + 3, 0.7, upper, 0.4 * energy);
+        if (genre === 'dawn' && fuller) add('bass', beat + 2.5, 0.8, upper, 0.34 * energy);
+        else if (genre !== 'dawn' && bar % 2 === 1) add('bass', beat + 3, 0.7, upper, 0.4 * energy);
       } else {
         add('bass', beat, genre === 'ambient' ? 3.7 : 1.6, root, 0.68 * energy);
         if (genre !== 'ambient') {
@@ -644,6 +786,21 @@ export function compose(input = {}) {
           add('kick', beat, 0.32, 36, energy * 0.48);
           if (!intro) add('snare', beat + 2, 0.2, 38, energy * 0.32);
           [0, 2].forEach(position => add('hat', beat + position, 0.08, 42, energy * 0.16));
+        } else if (genre === 'modernrock') {
+          add('kick', beat, 0.3, 36, energy * (fuller ? 0.5 : 0.34));
+          if (fuller) add('kick', beat + 2.5, 0.24, 36, energy * 0.3);
+          if (!intro && role !== 'intro') add('snare', beat + 2, 0.16, 38, energy * (fuller ? 0.36 : 0.18));
+          const hats = fuller ? [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5] : [0, 1, 2, 3];
+          hats.forEach(position => add('hat', beat + position + (position % 1 ? plan.swing : 0), 0.05, 42, energy * (fuller ? 0.15 : 0.09)));
+        } else if (genre === 'dawn') {
+          add('kick', beat, 0.36, 36, energy * 0.28);
+          if (fuller && !intro) add('snare', beat + 2, 0.14, 38, energy * 0.15);
+          add('hat', beat + 2, 0.08, 42, energy * 0.09);
+          if (fuller) add('hat', beat, 0.06, 42, energy * 0.07);
+        } else if (genre === 'nitelofi') {
+          [0, 2.25].forEach((position, index) => add('kick', beat + position, 0.28, 36, energy * (index === 0 ? 0.46 : 0.32)));
+          if (!intro) [1, 3].forEach(position => add('snare', beat + position + 0.03, 0.16, 38, energy * 0.26));
+          [0.5, 1.5, 2.5, 3.5].forEach(position => add('hat', beat + position + plan.swing, 0.05, 42, energy * 0.12));
         } else if (genre === 'edm') {
           [0, 1, 2, 3].forEach((position, index) => add('kick', beat + position, 0.22, 36, energy * (index % 2 ? 0.62 : 0.78)));
           if (!intro) [1, 3].forEach(position => add('snare', beat + position, 0.16, 38, energy * 0.5));
@@ -711,6 +868,25 @@ export function compose(input = {}) {
         if (sectionEnd && role !== 'intro') [3.25, 3.5, 3.75].forEach((position, index) => add('snare', beat + position, 0.1, 38, energy * (0.18 + index * 0.06)));
       }
     }
+
+    if (instruments.hum) {
+      const pcs = [];
+      const pushPc = pc => {
+        const normalized = ((pc % 12) + 12) % 12;
+        if (pitchInScale(normalized, key, activeScale) && !pcs.includes(normalized)) pcs.push(normalized);
+      };
+      pushPc(chord.root);
+      chord.intervals.forEach(interval => pushPc(chord.root + interval));
+      if (!pcs.length) pushPc(key);
+      const glide = vowelPair(role, bar);
+      const level = energy * (fuller ? 0.7 : role === 'intro' || role === 'outro' || finalBar ? 0.34 : 0.5);
+      const primary = nearestPitch(pcs[0], fuller ? 67 : 62, fuller ? 60 : 55, fuller ? 74 : 70);
+      addHum(beat + 0.02, finalBar ? 3.3 : 3.65, primary, level, glide);
+      if (fuller && !finalBar && pcs.length > 1) {
+        const upper = nearestPitch(pcs[1], primary + 3, 60, 76);
+        if (upper !== primary) addHum(beat + 0.08, 3.35, upper, level * 0.72, { vowelFrom: glide.vowelTo, vowelTo: glide.vowelFrom });
+      }
+    }
   }
 
   events.sort((a, b) => a.time - b.time || a.midi - b.midi);
@@ -727,34 +903,56 @@ export function compose(input = {}) {
 
 function createGraph(context, song, destination, initialVolume = 0.8) {
   const active = new Set();
+  const genre = song.settings.genre;
+  const spacious = genre === 'ambient' || genre === 'cinematic' || genre === 'dawn';
+  const emotional = spacious || genre === 'modernrock' || genre === 'ballad' || genre === 'nitelofi';
   const input = context.createGain();
-  input.gain.value = 0.84;
+  input.gain.value = 0.74;
+  const warmth = context.createBiquadFilter();
+  warmth.type = 'lowshelf';
+  warmth.frequency.value = 280;
+  warmth.gain.value = genre === 'edm' ? 0.6 : emotional ? 2.8 : 1.7;
+  const shaper = context.createWaveShaper();
+  const curve = new Float32Array(257);
+  for (let i = 0; i < curve.length; i++) {
+    const x = (i / 256) * 2 - 1;
+    curve[i] = Math.tanh(x * 1.28) / Math.tanh(1.28);
+  }
+  shaper.curve = curve;
+  shaper.oversample = '2x';
   const filter = context.createBiquadFilter();
   filter.type = 'lowpass';
   const timbre = song.timbre || { cutoffMul: 1, attackMul: 1, wide: false };
-  filter.frequency.value = PROFILES[song.settings.genre].cutoff * (timbre.cutoffMul || 1);
-  filter.Q.value = 0.2;
+  filter.frequency.value = PROFILES[genre].cutoff * (timbre.cutoffMul || 1);
+  filter.Q.value = 0.35;
   const compressor = context.createDynamicsCompressor();
-  compressor.threshold.value = -17;
-  compressor.knee.value = 13;
-  compressor.ratio.value = 3;
-  compressor.attack.value = 0.008;
-  compressor.release.value = 0.18;
+  compressor.threshold.value = SPACE.compressor.threshold;
+  compressor.knee.value = SPACE.compressor.knee;
+  compressor.ratio.value = SPACE.compressor.ratio;
+  compressor.attack.value = SPACE.compressor.attack;
+  compressor.release.value = SPACE.compressor.release;
+  const limiter = context.createDynamicsCompressor();
+  limiter.threshold.value = SPACE.limiter.threshold;
+  limiter.knee.value = SPACE.limiter.knee;
+  limiter.ratio.value = SPACE.limiter.ratio;
+  limiter.attack.value = SPACE.limiter.attack;
+  limiter.release.value = SPACE.limiter.release;
   const master = context.createGain();
   master.gain.value = initialVolume;
-  input.connect(filter);
+  input.connect(warmth);
+  warmth.connect(shaper);
+  shaper.connect(filter);
   filter.connect(compressor);
-  compressor.connect(master);
+  compressor.connect(limiter);
+  limiter.connect(master);
   master.connect(destination);
 
   const delay = context.createDelay(1);
-  delay.delayTime.value = Math.min(0.42, song.beatSeconds * 0.5);
+  delay.delayTime.value = Math.min(0.38, song.beatSeconds * 0.5);
   const feedback = context.createGain();
-  const genre = song.settings.genre;
-  const spacious = genre === 'ambient' || genre === 'cinematic';
-  feedback.gain.value = spacious ? 0.28 : genre === 'edm' ? 0.08 : genre === 'house' ? 0.07 : genre === 'trap' ? 0.05 : 0.15;
+  feedback.gain.value = spacious ? 0.22 : genre === 'edm' || genre === 'house' ? 0.06 : genre === 'trap' ? 0.05 : genre === 'bossa' ? 0.16 : 0.1;
   const wet = context.createGain();
-  wet.gain.value = spacious ? 0.2 : genre === 'edm' ? 0.06 : genre === 'house' ? 0.05 : genre === 'bossa' ? 0.12 : 0.09;
+  wet.gain.value = spacious ? 0.1 : genre === 'edm' || genre === 'house' ? 0.04 : genre === 'trap' ? 0.035 : genre === 'bossa' ? 0.09 : 0.06;
   const echoFilter = context.createBiquadFilter();
   echoFilter.type = 'lowpass';
   echoFilter.frequency.value = 1800;
@@ -765,11 +963,37 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
   echoFilter.connect(wet);
   wet.connect(compressor);
 
+  const reverbSend = context.createGain();
+  reverbSend.gain.value = genre === 'edm' ? 0.07 : emotional ? 0.34 : 0.2;
+  const reverbHighpass = context.createBiquadFilter();
+  reverbHighpass.type = 'highpass';
+  reverbHighpass.frequency.value = 170;
+  const predelay = context.createDelay(0.08);
+  predelay.delayTime.value = spacious ? 0.032 : genre === 'edm' ? 0.012 : 0.022;
+  const convolver = context.createConvolver();
+  convolver.normalize = true;
+  const impulse = createImpulseChannels(context.sampleRate, emotional ? 2.2 : genre === 'edm' ? 1.05 : 1.6, emotional ? 1.7 : genre === 'edm' ? 3.5 : 2.4, mix(song.seed, 0x51DE));
+  const impulseBuffer = context.createBuffer(2, impulse[0].length, context.sampleRate);
+  impulse.forEach((channel, index) => impulseBuffer.getChannelData(index).set(channel));
+  convolver.buffer = impulseBuffer;
+  const damp = context.createBiquadFilter();
+  damp.type = 'lowpass';
+  damp.frequency.value = spacious ? 4800 : 3400;
+  const reverbReturn = context.createGain();
+  reverbReturn.gain.value = 0.85;
+  filter.connect(reverbSend);
+  reverbSend.connect(reverbHighpass);
+  reverbHighpass.connect(predelay);
+  predelay.connect(convolver);
+  convolver.connect(damp);
+  damp.connect(reverbReturn);
+  reverbReturn.connect(compressor);
+
   const random = seededRandom(song.seed);
   const noise = context.createBuffer(1, context.sampleRate, context.sampleRate);
   const noiseData = noise.getChannelData(0);
   for (let i = 0; i < noiseData.length; i++) noiseData[i] = random() * 2 - 1;
-  const graphNodes = [input, filter, compressor, master, delay, feedback, wet, echoFilter];
+  const graphNodes = [input, warmth, shaper, filter, compressor, limiter, master, delay, feedback, wet, echoFilter, reverbSend, reverbHighpass, predelay, convolver, damp, reverbReturn];
 
   const track = (source, nodes, stop) => {
     active.add(source);
@@ -848,6 +1072,137 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
       harmonic.start(time);
       track(harmonic, [harmonicGain], time + duration + 0.08);
     }
+    if (voice === 'pad' && (kind === 'chords' || kind === 'melody')) {
+      const detuned = context.createOscillator();
+      const detuneGain = context.createGain();
+      detuned.type = kind === 'chords' ? 'triangle' : 'sine';
+      detuned.frequency.value = source.frequency.value;
+      detuned.detune.value = kind === 'chords' ? 6 : -5;
+      detuneGain.gain.setValueAtTime(amplitude * (kind === 'chords' ? 0.34 : 0.28), time);
+      detuneGain.gain.exponentialRampToValueAtTime(0.0001, time + duration + release);
+      detuned.connect(detuneGain);
+      detuneGain.connect(input);
+      detuned.start(time);
+      track(detuned, [detuneGain], time + duration + release + 0.02);
+    }
+  }
+
+  function bandVoice(event, time, duration) {
+    const kind = event.instrument;
+    const plucked = kind === 'chords' && duration < 0.75;
+    const freq = 440 * 2 ** ((event.midi - 69) / 12);
+    const attack = plucked ? 0.004 : kind === 'chords' ? 0.018 : kind === 'bass' ? 0.016 : 0.028;
+    const release = plucked ? 0.14 : kind === 'chords' ? 0.48 : kind === 'bass' ? 0.16 : 0.3;
+    const amplitude = (plucked ? 0.085 : kind === 'chords' ? 0.095 : kind === 'bass' ? 0.24 : 0.15) * event.velocity;
+    const sustain = plucked ? 0.06 : kind === 'bass' ? 0.7 : 0.52;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, amplitude), time + Math.min(attack, Math.max(0.003, duration * 0.25)));
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, amplitude * sustain), time + duration);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + duration + release);
+    const tone = context.createBiquadFilter();
+    tone.type = 'lowpass';
+    tone.frequency.value = plucked ? 3200 : kind === 'melody' ? 2800 : 2200;
+    tone.Q.value = plucked ? 0.6 : 0.3;
+    gain.connect(tone);
+    tone.connect(input);
+    const source = context.createOscillator();
+    source.type = kind === 'bass' || kind === 'melody' ? 'sine' : 'triangle';
+    source.frequency.value = freq;
+    source.connect(gain);
+    source.start(time);
+    const nodes = [gain, tone];
+    track(source, nodes, time + duration + release + 0.02);
+    if (plucked) {
+      const click = context.createBufferSource();
+      click.buffer = noise;
+      const clickFilter = context.createBiquadFilter();
+      clickFilter.type = 'highpass';
+      clickFilter.frequency.value = 1400;
+      const clickGain = context.createGain();
+      clickGain.gain.setValueAtTime(Math.max(0.0002, event.velocity * 0.045), time);
+      clickGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.045);
+      click.connect(clickFilter);
+      clickFilter.connect(clickGain);
+      clickGain.connect(input);
+      click.start(time, (event.time * 0.173) % 0.6);
+      track(click, [clickFilter, clickGain], time + 0.06);
+    } else if (kind === 'chords') {
+      const pad = context.createOscillator();
+      const padGain = context.createGain();
+      pad.type = 'triangle';
+      pad.frequency.value = freq;
+      pad.detune.value = 7;
+      padGain.gain.setValueAtTime(Math.max(0.0002, amplitude * 0.4), time);
+      padGain.gain.exponentialRampToValueAtTime(0.0001, time + duration + release);
+      pad.connect(padGain);
+      padGain.connect(tone);
+      pad.start(time);
+      track(pad, [padGain], time + duration + release + 0.02);
+    }
+  }
+
+  /** Two detuned formant singers, gliding between oo and ah, with a slow vibrato. */
+  function formantPad(event, time, duration) {
+    const base = 440 * 2 ** ((event.midi - 69) / 12);
+    const from = vowelFormants(event.vowelFrom ?? 0);
+    const to = vowelFormants(event.vowelTo ?? event.vowelFrom ?? 0);
+    const output = context.createGain();
+    const amp = Math.max(0.0002, 0.26 * event.velocity);
+    const release = 0.5;
+    output.gain.setValueAtTime(0.0001, time);
+    output.gain.exponentialRampToValueAtTime(amp, time + Math.min(0.32, Math.max(0.05, duration * 0.35)));
+    output.gain.exponentialRampToValueAtTime(Math.max(0.0001, amp * 0.8), time + duration);
+    output.gain.exponentialRampToValueAtTime(0.0001, time + duration + release);
+    output.connect(input);
+    const body = context.createOscillator();
+    body.type = 'sine';
+    body.frequency.setValueAtTime(base, time);
+    const bodyGain = context.createGain();
+    bodyGain.gain.value = 0.62;
+    body.connect(bodyGain);
+    bodyGain.connect(output);
+    body.start(time);
+    const vibrato = context.createOscillator();
+    vibrato.frequency.value = 5.05;
+    const vibGain = context.createGain();
+    vibGain.gain.setValueAtTime(0.0001, time);
+    vibGain.gain.exponentialRampToValueAtTime(Math.max(0.0002, base * 0.007), time + Math.min(0.75, Math.max(0.12, duration * 0.4)));
+    vibrato.connect(vibGain);
+    vibGain.connect(body.frequency);
+    vibrato.start(time);
+    const nodes = [output, bodyGain, vibGain];
+    [-6, 7].forEach(cents => {
+      const osc = context.createOscillator();
+      osc.type = 'sawtooth';
+      const freq = base * 2 ** (cents / 1200);
+      osc.frequency.setValueAtTime(freq, time);
+      vibGain.connect(osc.frequency);
+      const tame = context.createBiquadFilter();
+      tame.type = 'lowpass';
+      tame.frequency.value = 2600;
+      tame.Q.value = 0.45;
+      osc.connect(tame);
+      from.forEach((startFreq, index) => {
+        const band = context.createBiquadFilter();
+        band.type = 'bandpass';
+        band.frequency.setValueAtTime(startFreq, time);
+        band.frequency.linearRampToValueAtTime(Math.max(90, to[index]), time + Math.max(0.08, duration));
+        band.Q.value = clamp(startFreq / [80, 110, 170][index], 2.5, 11);
+        const partial = context.createGain();
+        partial.gain.value = [0.9, 0.55, 0.24][index];
+        tame.connect(band);
+        band.connect(partial);
+        partial.connect(output);
+        nodes.push(band, partial);
+      });
+      osc.start(time);
+      nodes.push(tame);
+      track(osc, [], time + duration + release + 0.02);
+    });
+    const stop = time + duration + release + 0.02;
+    track(body, nodes, stop);
+    track(vibrato, [], stop);
   }
 
   function percussion(event, time) {
@@ -855,28 +1210,28 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
     gain.connect(input);
     if (event.instrument === 'kick') {
       const source = context.createOscillator();
-      const genreName = song.settings.genre;
-      const punchy = genreName === 'edm';
-      const house = genreName === 'house';
-      const eight = genreName === 'trap';
-      source.frequency.setValueAtTime(eight ? 148 : (punchy || house) ? 156 : 105, time);
-      source.frequency.exponentialRampToValueAtTime(eight ? 34 : (punchy || house) ? 46 : 44, time + (eight ? 0.16 : (punchy || house) ? 0.09 : 0.075));
+      const punchy = genre === 'edm' || genre === 'house';
+      const eight = genre === 'trap';
+      const softKit = ['modernrock', 'dawn', 'nitelofi', 'ballad', 'acoustic'].includes(genre);
+      source.frequency.setValueAtTime(eight ? 148 : punchy ? 156 : softKit ? 86 : 105, time);
+      source.frequency.exponentialRampToValueAtTime(eight ? 34 : punchy ? 46 : 44, time + (eight ? 0.16 : punchy ? 0.09 : softKit ? 0.11 : 0.075));
       gain.gain.setValueAtTime(0.0001, time);
-      gain.gain.exponentialRampToValueAtTime(event.velocity * (eight ? 0.7 : 0.57), time + 0.004);
-      gain.gain.exponentialRampToValueAtTime(0.0001, time + (eight ? 0.42 : 0.28));
+      gain.gain.exponentialRampToValueAtTime(event.velocity * (eight ? 0.7 : softKit ? 0.48 : 0.57), time + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + (eight ? 0.42 : softKit ? 0.36 : 0.28));
       source.connect(gain);
       source.start(time);
-      track(source, [gain], time + (eight ? 0.46 : 0.3));
+      track(source, [gain], time + (eight ? 0.46 : softKit ? 0.4 : 0.3));
       return;
     }
     const hat = event.instrument === 'hat';
-    const open = hat && event.midi === 46 && (song.settings.genre === 'house' || song.settings.genre === 'citypop');
+    const softKit = ['modernrock', 'dawn', 'nitelofi', 'ballad', 'acoustic'].includes(genre);
+    const open = hat && event.midi === 46 && (genre === 'house' || genre === 'citypop');
     const source = context.createBufferSource();
     source.buffer = noise;
     const band = context.createBiquadFilter();
     band.type = hat ? 'highpass' : 'bandpass';
-    band.frequency.value = hat ? 6200 : 1600;
-    band.Q.value = hat ? 0.45 : 0.65;
+    band.frequency.value = hat ? 6200 : softKit ? 980 : 1600;
+    band.Q.value = hat ? 0.45 : softKit ? 0.5 : 0.65;
     const length = hat ? (open ? 0.16 : 0.065) : 0.17;
     gain.gain.setValueAtTime(event.velocity * (hat ? 0.14 : 0.4), time);
     gain.gain.exponentialRampToValueAtTime(0.0001, time + length);
@@ -890,6 +1245,8 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
     master,
     schedule(event, time, duration = event.duration) {
       if (['kick', 'snare', 'hat'].includes(event.instrument)) percussion(event, time);
+      else if (event.instrument === 'hum') formantPad(event, time, duration);
+      else if (PROFILES[genre].voice === 'band') bandVoice(event, time, duration);
       else tonal(event, time, duration);
     },
     dispose() {
@@ -1081,7 +1438,7 @@ function midiTrack(messages, endTick) {
   return [...ascii('MTrk'), ...u32(bytes.length), ...bytes];
 }
 
-/** Standard MIDI format 1: tempo track and four independently editable layers. */
+/** Standard MIDI format 1: tempo track plus melody, harmony, bass, drums, and hum. */
 export function createMidi(song) {
   const ppq = 480;
   const endTick = song.bars * 4 * ppq;
