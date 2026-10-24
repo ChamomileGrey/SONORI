@@ -16,9 +16,30 @@ const PRESETS = {
 };
 const clone = value => JSON.parse(JSON.stringify(value));
 const cleanString = (value, max) => typeof value === 'string' ? value.slice(0,max) : '';
+const FEEL = {lofi:[76,98],pop:[96,126],rnb:[72,100],ambient:[72,92],ballad:[72,88],edm:[118,140],acoustic:[84,112],cinematic:[72,98]};
+const KEYS = ['C','D','E','F','G','A'];
+const CONTOUR_KO = {arch:'아치',rise:'상승',fall:'하강',wave:'물결',neighbor:'인접'};
+const TEXTURE_KO = {pad:'지속음',stab:'스타브',arp:'분산',strum:'스트럼'};
+function feelAnchorOf(value) {
+  const anchor = value?.feelAnchor;
+  if (!anchor || typeof anchor !== 'object') return null;
+  const bpm = Math.round(Number(anchor.bpm));
+  if (!Number.isFinite(bpm) || !KEYS.includes(anchor.key)) return null;
+  return {bpm:Math.max(72,Math.min(140,bpm)),key:anchor.key};
+}
+function varyFeel(genre, seed, anchor) {
+  const [lo, hi] = FEEL[genre] || [72, 140];
+  const min = Math.max(72, lo);
+  const max = Math.min(140, hi);
+  const center = Math.max(min, Math.min(max, Math.round(Number(anchor?.bpm) || 84)));
+  const bpm = Math.max(min, Math.min(max, center + ((seed % 11) - 5)));
+  const index = Math.max(0, KEYS.indexOf(anchor?.key));
+  const key = KEYS[(index + ((seed % 5) - 2) + KEYS.length) % KEYS.length];
+  return {bpm, key};
+}
 function normalize(value = {}) {
   const valid = (obj, key, fallback) => Object.hasOwn(obj, key) ? key : fallback;
-  return {title:cleanString(value.title,70),topic:cleanString(value.topic,600),notes:cleanString(value.notes,2000),genre:valid(GENRES,value.genre,'lofi'),mood:valid(MOODS,value.mood,'warm'),bpm:Math.max(72,Math.min(140,Math.round(Number(value.bpm)||84))),key:['C','D','E','F','G','A'].includes(value.key)?value.key:'C',scale:valid(SCALES,value.scale,'major'),bars:[8,16,32].includes(Number(value.bars))?Number(value.bars):16,seed:(Number(value.seed)||20261017)>>>0,vocal:['female','male','duet','instrumental'].includes(value.vocal)?value.vocal:'female',instruments:Object.fromEntries(['melody','chords','bass','drums'].map(name=>[name,value.instruments?.[name]!==false]))};
+  return {title:cleanString(value.title,70),topic:cleanString(value.topic,600),notes:cleanString(value.notes,2000),genre:valid(GENRES,value.genre,'lofi'),mood:valid(MOODS,value.mood,'warm'),bpm:Math.max(72,Math.min(140,Math.round(Number(value.bpm)||84))),key:KEYS.includes(value.key)?value.key:'C',scale:valid(SCALES,value.scale,'major'),bars:[8,16,32].includes(Number(value.bars))?Number(value.bars):16,seed:(Number(value.seed)||20261017)>>>0,vocal:['female','male','duet','instrumental'].includes(value.vocal)?value.vocal:'female',instruments:Object.fromEntries(['melody','chords','bass','drums'].map(name=>[name,value.instruments?.[name]!==false])),feelAnchor:feelAnchorOf(value)};
 }
 let stored;
 let storageWorks = true;
@@ -143,7 +164,9 @@ function renderSong() {
   $('variationLabel').textContent=`TAKE ${String(take).padStart(2,'0')}`;
   $('tempoDisplay').textContent=`${song.bpm} BPM`;
   $('totalTime').textContent=formatTime(song.duration);
-  $('soundDescription').textContent=`${MOODS[applied.mood]} ${GENRES[applied.genre]} · ${applied.key} ${SCALES[applied.scale]||'메이저'} · ${applied.bars}마디 합성 연주 데모 · 보컬 미포함`;
+  const contour = CONTOUR_KO[song.variation?.contour] || '모티프';
+  const texture = TEXTURE_KO[song.variation?.texture] || '코드';
+  $('soundDescription').textContent=`${MOODS[applied.mood]} ${GENRES[applied.genre]} · ${applied.key} ${SCALES[applied.scale]||'메이저'} · ${applied.bars}마디 · ${contour} 멜로디 · ${texture} · 스윙 ${Math.round((song.swing||0)*100)} · 보컬 미포함`;
   const wave=Array.from({length:72},(_,i)=>{
     const bar=document.createElement('i');bar.className='wave-bar';
     const notes=song.events.filter(e=>e.time>=i/72*song.duration&&e.time<(i+1)/72*song.duration);
@@ -153,9 +176,22 @@ function renderSong() {
   });
   $('waveform').replaceChildren(...wave);
   $('barTrack').replaceChildren(...Array.from({length:applied.bars},()=>document.createElement('i')));
-  $('structure').replaceChildren(...brief.structure.map(part=>{const div=document.createElement('div');div.className='structure-part';div.style.flex=part.bars;div.title=part.description;const b=document.createElement('b');b.textContent=part.name;const span=document.createElement('span');span.textContent=`${part.bars} bars`;div.append(b,span);return div;}));
-  $('structureMeta').textContent=`${applied.bars} BARS · 구성 제안`;
-  $('chords').replaceChildren(...song.chordNames.map(name=>{const span=document.createElement('span');span.textContent=name;return span;}));
+  const structure = song.structure?.length ? song.structure : brief.structure;
+  if (song.structure?.length) {
+    const line = song.structure.map(section => `${section.name} ${section.bars} bars`).join(' → ');
+    brief = {...brief, structure: song.structure, prompt: brief.prompt.replace(/Suggested sketch structure:.*?\./, `Suggested sketch structure: ${line}.`)};
+  }
+  $('structure').replaceChildren(...structure.map(part=>{const div=document.createElement('div');div.className='structure-part';div.style.flex=part.bars;div.title=part.description;const b=document.createElement('b');b.textContent=part.name;const span=document.createElement('span');span.textContent=`${part.bars} bars`;div.append(b,span);return div;}));
+  $('structureMeta').textContent=`${applied.bars} BARS · 이 데모의 구성`;
+  const phrases = [];
+  for (const group of song.phraseChords?.length ? song.phraseChords : [song.chordNames]) {
+    if (!phrases.length || phrases.at(-1).join('-') !== group.join('-')) phrases.push(group);
+  }
+  $('chords').replaceChildren(...phrases.flatMap((group, index) => {
+    const items = group.map(name => {const span=document.createElement('span');span.textContent=name;return span;});
+    if (index) {const mark=document.createElement('span');mark.className='chord-break';mark.textContent='·';items.unshift(mark);}
+    return items;
+  }));
   const hints=LAYER_HINTS[applied.genre]||LAYER_HINTS.lofi;
   document.querySelectorAll('[data-layer]').forEach(button=>{const enabled=applied.instruments[button.dataset.layer];button.classList.toggle('enabled',enabled);button.setAttribute('aria-pressed',String(enabled));const small=button.querySelector('small');if(small&&hints[button.dataset.layer]) small.textContent=hints[button.dataset.layer];});
   $('lyrics').value=customLyrics??brief.lyrics;
@@ -166,7 +202,15 @@ function renderSong() {
 function playbackHandlers() {return {onProgress:setProgress,onEnded:()=>{handleEnded();}};}
 function generate({newSeed=false,message='새로운 데모를 만들었어요. 재생해서 들어보세요.'}={}) {
   player.stop();
-  if(newSeed) {settings.seed=(settings.seed+7919)>>>0;take++;} else take=1;
+  if(newSeed) {
+    settings.seed=(settings.seed+7919)>>>0;
+    if(!settings.feelAnchor) settings.feelAnchor={bpm:settings.bpm,key:settings.key};
+    const feel=varyFeel(settings.genre,settings.seed,settings.feelAnchor);
+    settings.bpm=feel.bpm;
+    settings.key=feel.key;
+    take++;
+    fillForm();
+  } else {settings.feelAnchor={bpm:settings.bpm,key:settings.key};take=1;}
   applied=clone(settings);example=false;playContext='studio';renderSong();persist();toast(message);
 }
 async function play() {
@@ -479,14 +523,14 @@ function openProject(project) {
   toast('저장한 스케치를 불러왔어요.');
 }
 function showGuide() {
-  openDialog('취향에서 노래까지, 세 걸음','<ol class="guide-steps"><li><b>이야기하며 방향 정하기</b><span>장르 프리셋이나 분위기, 주제를 고르세요. “함께 곡의 방향 정하기”에서 상담용 내용을 복사해 ChatGPT 등 AI 대화창에 붙여 넣어 상의해 보세요.</span></li><li><b>데모를 듣고 취향 찾기</b><span>데모를 만들고 아래 재생 바에서 재생하세요. 반복과 셔플, 이전·다음은 라이브러리나 플레이리스트 안에서 움직입니다. 다른 멜로디 버튼은 같은 설정으로 새로운 변주를 만들어요.</span></li><li><b>가사를 다듬고 다음 제작으로</b><span>템플릿 가사 초안을 직접 수정하거나 함께 쓴 가사를 붙여 넣으세요. 저장한 스케치는 라이브러리에서 찾고, 플레이리스트로 순서를 정할 수 있어요. WAV·MIDI·제작안으로 내보내 후속 작업을 이어가세요.</span></li></ol><p class="dialog-description">연주는 브라우저의 합성 악기입니다. 외부 음원을 받지 않으며, 프로젝트와 플레이리스트는 이 브라우저에 저장됩니다.</p><div class="dialog-actions"><button class="button primary" id="guideDone">좋아요, 시작할게요 →</button></div><p class="dialog-description">© 2026 캐모마일그레이 (ChamomileGrey)</p>');$('guideDone').onclick=closeDialog;
+  openDialog('취향에서 노래까지, 세 걸음','<ol class="guide-steps"><li><b>이야기하며 방향 정하기</b><span>장르 프리셋이나 분위기, 주제를 고르세요. “함께 곡의 방향 정하기”에서 상담용 내용을 복사해 ChatGPT 등 AI 대화창에 붙여 넣어 상의해 보세요.</span></li><li><b>데모를 듣고 취향 찾기</b><span>데모를 만들고 아래 재생 바에서 재생하세요. 반복과 셔플, 이전·다음은 라이브러리나 플레이리스트 안에서 움직입니다. 변주 버튼은 같은 이야기에서 코드, 멜로디, 그루브, 구성, 조성과 템포를 다시 뽑아요.</span></li><li><b>가사를 다듬고 다음 제작으로</b><span>템플릿 가사 초안을 직접 수정하거나 함께 쓴 가사를 붙여 넣으세요. 저장한 스케치는 라이브러리에서 찾고, 플레이리스트로 순서를 정할 수 있어요. WAV·MIDI·제작안으로 내보내 후속 작업을 이어가세요.</span></li></ol><p class="dialog-description">연주는 브라우저의 합성 악기입니다. 외부 음원을 받지 않으며, 프로젝트와 플레이리스트는 이 브라우저에 저장됩니다.</p><div class="dialog-actions"><button class="button primary" id="guideDone">좋아요, 시작할게요 →</button></div><p class="dialog-description">© 2026 캐모마일그레이 (ChamomileGrey)</p>');$('guideDone').onclick=closeDialog;
 }
 
 $('settingsForm').addEventListener('submit',event=>{event.preventDefault();generate();});
-for(const id of ['title','topic','bpm','key','bars','vocal','notes']) $(id).addEventListener('input',()=>{settings[id]=['bpm','bars'].includes(id)?Number($(id).value):$(id).value;if(id==='bpm')$('bpmOutput').innerHTML=`${settings.bpm} <span>BPM</span>`;if(id==='key'||id==='bpm') updatePresetHint();updatePending();scheduleSave();});
+for(const id of ['title','topic','bpm','key','bars','vocal','notes']) $(id).addEventListener('input',()=>{settings[id]=['bpm','bars'].includes(id)?Number($(id).value):$(id).value;if(id==='bpm'||id==='key'){settings.feelAnchor=null;updatePresetHint();}if(id==='bpm')$('bpmOutput').innerHTML=`${settings.bpm} <span>BPM</span>`;updatePending();scheduleSave();});
 for(const type of ['genre','mood']) document.querySelectorAll(`[data-${type}]`).forEach(button=>button.onclick=()=>{settings[type]=button.dataset[type];if(type==='genre'){const detail=detailForGenre(settings.genre);if(detail.scale) settings.scale=detail.scale;}fillForm();scheduleSave();});
-document.querySelectorAll('[data-genre-preset]').forEach(button=>button.onclick=()=>{const preset=presetById(button.dataset.genrePreset);if(!preset) return;chosenPresetId=preset.id;settings=normalize(applyPresetToSettings(settings,preset.id));fillForm();scheduleSave();toast(`${preset.ko} 프리셋을 넣었어요. 데모 만들기를 누르거나, 현재 데모에 적용하세요.`);});
-$('applyPresetBtn').onclick=()=>{const id=chosenPresetId||matchingPresetId()||'lofi';const preset=presetById(id);if(!preset) return;chosenPresetId=id;settings=normalize(applyPresetToSettings(settings,id));fillForm();generate({message:`${preset.ko} 프리셋을 현재 곡에 적용했어요.`});};
+document.querySelectorAll('[data-genre-preset]').forEach(button=>button.onclick=()=>{const preset=presetById(button.dataset.genrePreset);if(!preset) return;chosenPresetId=preset.id;settings=normalize(applyPresetToSettings(settings,preset.id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};fillForm();scheduleSave();toast(`${preset.ko} 프리셋을 넣었어요. 데모 만들기를 누르거나, 현재 데모에 적용하세요.`);});
+$('applyPresetBtn').onclick=()=>{const id=chosenPresetId||matchingPresetId()||'lofi';const preset=presetById(id);if(!preset) return;chosenPresetId=id;settings=normalize(applyPresetToSettings(settings,id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};fillForm();generate({message:`${preset.ko} 프리셋을 현재 곡에 적용했어요.`});};
 $('playBtn').onclick=play;
 $('barPlayBtn').onclick=play;
 $('prevBtn').onclick=()=>{previousTrack();};
@@ -494,7 +538,7 @@ $('nextBtn').onclick=()=>{goQueue(1);};
 $('shuffleBtn').onclick=()=>{shuffleOn=!shuffleOn;shuffleSeed=(shuffleSeed+Date.now())>>>0;shuffleOrder=[];persist();updateTransportState();};
 $('repeatBtn').onclick=()=>{repeatMode=nextRepeatMode(repeatMode);persist();updateTransportState();};
 $('restartBtn').onclick=async()=>{const wasPlaying=player.getState().status==='playing';player.stop();setProgress(0);updatePlayUI();if(wasPlaying)await play();};
-$('variationBtn').onclick=()=>generate({newSeed:true,message:'같은 취향으로 새로운 멜로디를 만들었어요.'});
+$('variationBtn').onclick=()=>generate({newSeed:true,message:'변주를 다시 뽑았어요. 코드, 멜로디, 그루브, 구성이 바뀌고 조성과 템포는 장르 범위 안에서 조금 움직입니다.'});
 function setVolume(value){const next=Math.max(0,Math.min(100,Number(value)||0));$('volume').value=String(next);$('playerVolume').value=String(next);player.setVolume(next/100);}
 $('volume').oninput=()=>setVolume($('volume').value);
 $('playerVolume').oninput=()=>setVolume($('playerVolume').value);
