@@ -105,7 +105,17 @@ for (const genre of ['modernrock', 'dawn', 'nitelofi']) {
 }
 assert.ok(moodProgressions / 3 >= 2, `new moods need more than one progression (${moodProgressions})`);
 assert.ok(moodGrooves / 3 >= 2, `new moods need more than one groove (${moodGrooves})`);
-
+for (const genre of ['citypop', 'trap', 'house', 'bossa', 'reggaeton']) {
+  const set = seeds.map(seed => compose({ ...base, genre, seed }));
+  const genreProgressions = new Set(set.map(song => song.chordNames.join('-')));
+  const genreGrooves = new Set(set.map(groove));
+  const timbres = new Set(set.map(song => song.timbre?.id));
+  assert.ok(genreProgressions.size >= 3, `${genre} progressions ${genreProgressions.size}`);
+  assert.ok(genreGrooves.size >= 3, `${genre} grooves ${genreGrooves.size}`);
+  assert.ok(timbres.size >= 2, `${genre} timbres ${timbres.size}`);
+  const profileSwing = genre === 'house' ? [0, 0] : null;
+  if (profileSwing) assert.ok(set.every(song => song.swing === 0), 'house stays straight');
+}
 const space = compose({ ...base, seed: 5, notes: '여백을 많이 두고 고요하게' });
 const lift = compose({ ...base, seed: 5, notes: '후렴을 크게, 브리지에서 전환' });
 assert.notEqual(structureKey(space.structure), structureKey(lift.structure), 'The brief should change the form.');

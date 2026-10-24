@@ -75,4 +75,28 @@ fieldset legend span{float:right;color:#9a90a4;font-size:9px;font-weight:400}
 .play-buttons .variation-button svg{width:16px;height:16px}
 .chord-break{opacity:.4;padding:0 2px}
 /* Keep supporting text legible on the quiet palette. */
-.hero-copy p,.form-footnote,.sound-info,.section-label>span,.range-labels,.field-label span,.more-settings summary,.content-heading p,.editor-footer,.service-note,.dialog-description,.saved-item small,.download-option small,.inspiration-heading p{color:#786d82}.song-tags span,.mood,.choice,.tabs button,.layer small,.preset>span:nth-child(2)>span{color:#796d85}.range-labels,.form-footnote,.section-label>span,.field-label span,.sound-info,.studio-footer>span{font-size:10px}.studio-footer>span{color:#786d82}.stage-top,.stage-bottom,.transport-side,.structure-part span,.chord-line>div{color:#7c6a8e}.dialog-description,.service-note{font-size:11px}
+.hero-copy p,.form-footnote,.sound-info,.section-label>span,.range-labels,.field-label span,.more-settings summary,.content-heading p,.editor-footer,.service-note,.dialog-description,.saved-item small,.download-option small,.inspiration-heading p{color:#514a5c}.song-tags span,.mood,.choice,.tabs button,.layer small,.preset>span:nth-child(2)>span{color:#4e455c}.range-labels,.form-footnote,.section-label>span,.field-label span,.sound-info,.studio-footer>span{font-size:12px}.studio-footer>span{color:#514a5c}.stage-top,.stage-bottom,.transport-side,.structure-part span,.chord-line>div{color:#53485f}.dialog-description,.service-note{font-size:12px}
+:root{--muted:#4a4754}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid #2f2a40;outline-offset:3px}
+.preset-pick,.playlist-chip,.player-aux,.player-skip{color:#3f364c}
+.preset-pick small,fieldset legend span,.playlist-chip small{color:#534960}
+.preset-hint,.library-head p,.playlist-header p,.sketch-top p,.player-context,.player-progress{color:#4e465c}
+.sketch-actions button{color:#3e3548}
+input::placeholder,textarea::placeholder{color:#5c5666}
+.storage-warning{color:#4e3814;background:#f8efe2;border-color:#d9c4a4}
+.app-error{margin:0 0 14px;padding:14px 16px;border:1px solid #e3b4b0;border-radius:8px;background:#fdf4f3;color:#5c2c2a}
+.app-error p{margin:0 0 8px;line-height:1.7}
+.app-error button{border:1px solid #5c2c2a;border-radius:999px;padding:8px 12px;color:#3f1f1e}
+.page-footer{color:#3e3648;font-size:12px;flex-wrap:wrap}
+.footer-brand{color:#282735}
+.page-footer .footer-end{margin-left:auto;letter-spacing:1.3px;font-size:11px;color:#3e3648}
+.page-footer a{text-decoration:underline;text-underline-offset:3px}
+#whatsNew{color:#3a3444}
+.privacy-note{flex:1 0 100%;margin-top:8px;color:#282735}
+.privacy-note summary{cursor:pointer;font-weight:650}
+.privacy-note p{margin:8px 0 0;line-height:1.7;color:#3a3444;font-size:13px}
+.header nav button,.local-status,.section-index,.tiny-label,.sample-badge{color:#4a4456}
+.header nav button.nav-active{color:var(--ink)}
+@media(min-width:901px){.choice-grid,.preset-picks{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:620px){.choice-grid{grid-template-columns:1fr 1fr}.choice{font-size:12px;padding:10px 8px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.waveform.playing .wave-bar{animation:none!important}}
