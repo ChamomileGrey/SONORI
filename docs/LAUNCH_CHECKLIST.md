@@ -14,6 +14,9 @@
 - [x] 전역 오류 안내, AudioContext 미지원 안내, 저장 공간·개인정보 보호 모드 안내, 삭제 전 확인
 - [x] 바닥글의 개인정보 안내, v1.6.0, 새로운 점. 데이터는 브라우저 안에만 있고 분석 도구·쿠키·네트워크 호출은 없음
 - [x] 곡 콘셉트와 다른 느낌으로. `planner:"concept"`가 없는 저장본은 1.4 작곡으로 재생. 프로젝트 JSON 버전 1
+- [x] 장면 다섯 가지와 합성 비·바이닐·바람. 새벽 공부는 새벽 피아노, 비 오는 카페는 스윙 로파이, 밤 드라이브는 시티팝, 집중은 여백 앰비언트, 잠들기 전은 하프타임 심야. 예전 `sonori.studio.v1` 저장본은 배경음 0으로 열림
+- [x] 반복 WAV와 30·60분 WAV(구간 렌더, 크로스페이드, 진행, 취소). 프로젝트 JSON은 버전 1
+- [x] 크리에이터 이용 안내와 Ko-fi. 라이선스는 All rights reserved
 - [x] 장르 · 무드 선택 하나. Pop, R&B, Ambient를 포함한 예전 장르 값은 `sonori.studio.v1`과 프로젝트 JSON 버전 1에서 그대로 열림
 - [x] 대비, 포커스, 접근 이름, `prefers-reduced-motion`
 - [x] `SECURITY.md`와 문의 메일 chamomilegrey.official@gmail.com

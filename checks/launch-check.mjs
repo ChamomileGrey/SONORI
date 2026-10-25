@@ -29,6 +29,8 @@ assert.match(index, /All data stays in this browser/);
 assert.match(privacy, /분석 도구, 쿠키, 네트워크 호출은 없습니다/);
 assert.match(privacy, /no analytics, cookies, or network calls/);
 assert.match(sw, /sonori-v1\.6\.0/);
+assert.match(index, /크리에이터 이용 안내/);
+assert.match(index, /Music: SONORI by ChamomileGrey/);
 assert.match(sw, /skipWaiting/);
 assert.equal(manifest.display, 'standalone');
 assert.equal(manifest.theme_color, '#f4f3ee');

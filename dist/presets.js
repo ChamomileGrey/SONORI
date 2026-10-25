@@ -110,3 +110,45 @@ export function applyPresetToSettings(settings = {}, presetId) {
     instruments: { melody: true, chords: true, bass: true, drums: true, hum: preset.hum === true },
   };
 }
+
+/** Scenes point at an existing genre preset and a generated ambience mix. */
+export const SCENE_PRESETS = [
+  {
+    id: 'dawn-study', label: '새벽 공부', preset: 'dawn',
+    ambience: { rain: 0, vinyl: 0, wind: 46 },
+    blurb: '새벽 피아노 · 낮은 바람',
+  },
+  {
+    id: 'rain-cafe', label: '비 오는 카페', preset: 'lofi',
+    ambience: { rain: 62, vinyl: 34, wind: 10 },
+    blurb: '스윙 로파이 · 비와 바이닐',
+  },
+  {
+    id: 'night-drive', label: '밤 드라이브', preset: 'citypop',
+    ambience: { rain: 16, vinyl: 0, wind: 40 },
+    blurb: '시티팝 · 가는 비와 바람',
+  },
+  {
+    id: 'focus', label: '집중 작업', preset: 'ambient',
+    ambience: { rain: 18, vinyl: 0, wind: 36 },
+    blurb: '여백 앰비언트 · 얇은 비',
+  },
+  {
+    id: 'bedtime', label: '잠들기 전', preset: 'nitelofi',
+    ambience: { rain: 12, vinyl: 24, wind: 50 },
+    blurb: '하프타임 심야 · 바람과 잡음',
+  },
+];
+
+export function sceneById(id) {
+  return SCENE_PRESETS.find(scene => scene.id === id) || null;
+}
+
+export function applySceneToSettings(settings = {}, sceneId) {
+  const scene = sceneById(sceneId);
+  if (!scene) return { ...settings };
+  return {
+    ...applyPresetToSettings(settings, scene.preset),
+    ambience: { rain: scene.ambience.rain, vinyl: scene.ambience.vinyl, wind: scene.ambience.wind },
+  };
+}

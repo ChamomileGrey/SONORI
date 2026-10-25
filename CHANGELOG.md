@@ -32,12 +32,38 @@
 ### 유지
 
 - 같은 시드와 같은 설정, 같은 작곡 방식은 같은 스케치
+- 1.5의 반복 WAV, 30·60분 WAV, 장면, 비·바이닐·바람, 크리에이터 이용 안내를 그대로 둠. 장면은 더 갈라진 장르를 가리킴: 새벽 공부→새벽 피아노, 비 오는 카페→스윙 로파이, 밤 드라이브→시티팝, 집중→여백 앰비언트, 잠들기 전→하프타임 심야
+- 서비스 워커 캐시 `sonori-v1.6.0`
 - 단일 HTML, 엄격한 CSP(`connect-src 'none'`), 외부 의존성·샘플·네트워크 없음
 - 브랜드 캐모마일그레이 (ChamomileGrey), Ko-fi https://ko-fi.com/chamomilegrey, 라이선스
 
 ## English
 
-Sketches were clustering on a handful of four-bar diatonic loops, eight verse-chorus forms, five snapped contours, and one texture and bass line per song. 1.6 plans a song concept per seed: form, a larger mood-weighted progression, a motif developed by inversion, retrograde, displacement, and leap, plus groove, arrangement, intro, outro, and a dynamic arc. Each genre preset now keeps its own tempo band, drum pattern, harmony, timbre, form, and energy arc. House is a 124 BPM dorian loop with shuffled 16ths, offbeat open hats, and Rhodes stabs. EDM is 128 BPM, straight, with minor anthem triads, a supersaw, and a build into a drop. The stage shows the concept and can re-roll it with 다른 느낌으로 without moving tempo or key. Saved projects that do not set `planner` to `"concept"` still play through the 1.4 composer. Making a demo, a variation, or another feel writes the 1.6 concept and will not match the 1.4.1 performance of that seed. House’s 16th shuffle applies whenever the genre is house, including older house saves, because the swing range is shared. Rhodes, supersaw, filter moves, the riser, and sidechain apply only to concept playback. Choosing the House preset again sets Dorian; a saved project’s scale is left as stored. Storage stays `sonori.studio.v1` and project JSON stays version 1. Seeds 42 and 99 stay inside the preset scale.
+Sketches were clustering on a handful of four-bar diatonic loops, eight verse-chorus forms, five snapped contours, and one texture and bass line per song. 1.6 plans a song concept per seed: form, a larger mood-weighted progression, a motif developed by inversion, retrograde, displacement, and leap, plus groove, arrangement, intro, outro, and a dynamic arc. Each genre preset now keeps its own tempo band, drum pattern, harmony, timbre, form, and energy arc. House is a 124 BPM dorian loop with shuffled 16ths, offbeat open hats, and Rhodes stabs. EDM is 128 BPM, straight, with minor anthem triads, a supersaw, and a build into a drop. The stage shows the concept and can re-roll it with 다른 느낌으로 without moving tempo or key. Saved projects that do not set `planner` to `"concept"` still play through the 1.4 composer. Making a demo, a variation, or another feel writes the 1.6 concept and will not match the 1.4.1 performance of that seed. House’s 16th shuffle applies whenever the genre is house, including older house saves, because the swing range is shared. Rhodes, supersaw, filter moves, the riser, and sidechain apply only to concept playback. Choosing the House preset again sets Dorian; a saved project’s scale is left as stored. Storage stays `sonori.studio.v1` and project JSON stays version 1. Seeds 42 and 99 stay inside the preset scale. 1.5’s loop and long-form WAV, five scenes, synthesized rain, vinyl, and wind, and the creator note stay. Scenes still point at dawn, lo-fi, city pop, ambient, and night lo-fi, which are now more distinct. The service worker cache is `sonori-v1.6.0`.
+
+## 1.5.0 — 2026-10-25
+
+반복해서 들을 수 있는 음원, 장면, 그리고 합성 배경음.
+
+### 추가
+
+- 반복 WAV. 한 사이클 길이에 끝의 여운을 시작과 겹쳐, 이어서 재생해도 클릭이 나지 않게 함
+- 30분 · 60분 WAV. `OfflineAudioContext`로 구간을 하나씩 렌더하고, 시드만 다른 변주를 크로스페이드로 겹침. 진행과 취소. 들은 구간은 16-bit PCM 조각으로 넘겨 전체를 float로 들고 있지 않음
+- 장면 다섯 가지: 새벽 공부, 비 오는 카페, 밤 드라이브, 집중 작업, 잠들기 전. 각각 기존 장르 프리셋과 배경음 음량
+- 비, 바이닐 잡음, 부드러운 바람(룸톤). 샘플 없이 시드로 합성하고, 레이어마다 음량 슬라이더
+- 크리에이터 이용 안내. 유튜브·방송·영상(수익 포함)에 쓸 수 있고, 크레딧 예는 `Music: SONORI by ChamomileGrey`. 곡 그대로를 음원 라이브러리로 되팔지는 말아 달라는 짧은 안내. 법률 자문은 아니며, 응원 링크는 Ko-fi
+- 서비스 워커 캐시 `sonori-v1.5.0`
+
+### 유지
+
+- 저장 키 `sonori.studio.v1`, 프로젝트 JSON 버전 1. 배경음이 없는 예전 저장본은 슬라이더 0으로 열림
+- 같은 시드는 같은 스케치. 배경음을 꺼 두면 연주 이벤트는 이전과 같음
+- 단일 HTML, 엄격한 CSP(`connect-src 'none'`), 외부 의존성·샘플·네트워크 없음
+- 브랜드 캐모마일그레이 (ChamomileGrey), 후원 주소 https://ko-fi.com/chamomilegrey, All rights reserved
+
+## English
+
+Loop and long-form WAV export, five scenes, and synthesized rain, vinyl, and wind. Long exports render one variation at a time, crossfade the joins, and stream PCM chunks. Saved projects stay on JSON version 1. The cache name at this release was `sonori-v1.5.0`.
 
 ## 1.4.1 — 2026-10-24
 
