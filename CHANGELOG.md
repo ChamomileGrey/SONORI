@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.6.0 — 2026-10-25
+
+스케치마다 다른 곡 콘셉트.
+
+1.4의 작곡은 무드당 예닐곱 개의 4마디 다이아토닉 루프, 벌스-후렴 형식 여덟 개, 코드톤에 붙인 윤곽 다섯 개, 곡 전체의 텍스처·베이스 하나, 그루브 네 개 안쪽으로 모여 있었다. 시드는 그 작은 풀 안의 자리와 한두 마디의 색채만 바꿨다. 코드 이름 문자열이 달라도 진행의 뼈대는 같은 경우가 많았다. 템포와 조성은 프리셋에 고정이다.
+
+### 추가
+
+- 곡 콘셉트. 시드가 형식(벌스-후렴, AABA, 통절, 빌드-드롭), 무드별 가중 코드 풀, 모티프와 그 전위·역행·리듬 이동·음정 도약, 그루브, 반주 질감, 베이스, 인트로·아웃트로, 다이내믹 호를 함께 고름
+- 차용 코드와 관계조·딸림조·버금딸림조로의 브리지 전조. 스케일 검사가 고정된 시드 42와 99는 조 안의 음만 사용
+- 화면의 곡 콘셉트 한 줄(형식, 진행, 그루브)과 **다른 느낌으로**. 템포와 조성은 두고 콘셉트만 다시 뽑음
+- 다양성 검사가 1.4 작곡과 1.6 콘셉트의 수치를 나란히 출력
+- 장르 프리셋마다 다른 템포 구간, 그루브, 화성, 음색, 형식, 에너지. 하우스와 EDM을 갈라 둠
+- 프리셋 쌍의 거리 행렬. 가장 가까운 쌍도 기준선 위에 있어야 함
+
+### 장르
+
+- 하우스: 124 BPM, 도리안, 마이너 9, 16분음 셔플(0.02–0.06), 포 온 더 플로어와 오프비트 오픈햇, 싱코페이션 베이스, 짧은 모티프, 낮은 에너지 폭, 느린 필터. 개념 재생에서는 로즈·오르간
+- EDM: 128 BPM, 곧은 박, 마이너 트라이어드(i–♭VI–♭III–♭VII), 슈퍼소, 사이드체인 패드, 빌드(스네어 롤·노이즈 라이저·필터 오픈)와 드롭(서브·큰 스탭). 퓨처 베이스는 128의 하프타임 그루브
+- 로파이는 스윙 8분음과 스탭, 심야 로파이는 하프타임과 허밍. 앰비언트는 드럼이 거의 없는 통절, 새벽 감성은 피아노 아르페지오의 AABA. 발라드는 하프타임 패드, 감성 모던 록은 벌스에서 넓어지는 아르페지오. R&B는 늦은 16분음과 9th, 팝은 곧은 앤섬 트라이어드
+- 하우스의 16분음 셔플은 장르 설정에 붙어 있어, 예전 하우스 저장본도 셔플이 조금 생긴다. 음 순서는 `planner`가 `"concept"`가 아니면 1.4 작곡 그대로. 로즈, 슈퍼소, 필터, 라이저, 사이드체인은 개념 재생에서만 바뀜
+- 하우스 프리셋을 다시 고르면 스케일이 도리안이 된다. 이미 저장된 프로젝트의 스케일 값은 유지
+
+### 재생
+
+- `planner`가 `"concept"`가 아닌 저장본은 1.4 작곡으로 다시 연주함. 저장 키는 `sonori.studio.v1`, 프로젝트 JSON은 버전 1
+- 데모 만들기, 변주, 다른 느낌으로를 누르면 1.6 콘셉트로 다시 씀. 같은 시드라도 1.4.1의 연주와 같지 않음
+- 변주는 예전처럼 장르 범위 안에서 조성과 템포를 조금 옮김
+
+### 유지
+
+- 같은 시드와 같은 설정, 같은 작곡 방식은 같은 스케치
+- 1.5의 반복 WAV, 30·60분 WAV, 장면, 비·바이닐·바람, 크리에이터 이용 안내를 그대로 둠. 장면은 더 갈라진 장르를 가리킴: 새벽 공부→새벽 피아노, 비 오는 카페→스윙 로파이, 밤 드라이브→시티팝, 집중→여백 앰비언트, 잠들기 전→하프타임 심야
+- 서비스 워커 캐시 `sonori-v1.6.0`
+- 단일 HTML, 엄격한 CSP(`connect-src 'none'`), 외부 의존성·샘플·네트워크 없음
+- 브랜드 캐모마일그레이 (ChamomileGrey), Ko-fi https://ko-fi.com/chamomilegrey, 라이선스
+
+## English
+
+Sketches were clustering on a handful of four-bar diatonic loops, eight verse-chorus forms, five snapped contours, and one texture and bass line per song. 1.6 plans a song concept per seed: form, a larger mood-weighted progression, a motif developed by inversion, retrograde, displacement, and leap, plus groove, arrangement, intro, outro, and a dynamic arc. Each genre preset now keeps its own tempo band, drum pattern, harmony, timbre, form, and energy arc. House is a 124 BPM dorian loop with shuffled 16ths, offbeat open hats, and Rhodes stabs. EDM is 128 BPM, straight, with minor anthem triads, a supersaw, and a build into a drop. The stage shows the concept and can re-roll it with 다른 느낌으로 without moving tempo or key. Saved projects that do not set `planner` to `"concept"` still play through the 1.4 composer. Making a demo, a variation, or another feel writes the 1.6 concept and will not match the 1.4.1 performance of that seed. House’s 16th shuffle applies whenever the genre is house, including older house saves, because the swing range is shared. Rhodes, supersaw, filter moves, the riser, and sidechain apply only to concept playback. Choosing the House preset again sets Dorian; a saved project’s scale is left as stored. Storage stays `sonori.studio.v1` and project JSON stays version 1. Seeds 42 and 99 stay inside the preset scale. 1.5’s loop and long-form WAV, five scenes, synthesized rain, vinyl, and wind, and the creator note stay. Scenes still point at dawn, lo-fi, city pop, ambient, and night lo-fi, which are now more distinct. The service worker cache is `sonori-v1.6.0`.
+
 ## 1.5.0 — 2026-10-25
 
 반복해서 들을 수 있는 음원, 장면, 그리고 합성 배경음.
@@ -22,7 +63,7 @@
 
 ## English
 
-Loop and long-form WAV export, five scenes, and synthesized rain, vinyl, and wind. Long exports render one variation at a time, crossfade the joins, and stream PCM chunks. Saved projects stay on JSON version 1.
+Loop and long-form WAV export, five scenes, and synthesized rain, vinyl, and wind. Long exports render one variation at a time, crossfade the joins, and stream PCM chunks. Saved projects stay on JSON version 1. The cache name at this release was `sonori-v1.5.0`.
 
 ## 1.4.1 — 2026-10-24
 

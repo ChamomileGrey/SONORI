@@ -213,11 +213,11 @@ const GENRE_TIMBRE = {
 };
 const PROFILES = {
   lofi: { swing: 0.13, melody: [0, 0.75, 1.5, 2.5, 3.25], length: 0.62, cutoff: 3400 },
-  pop: { swing: 0, melody: [0, 0.5, 1.5, 2, 2.75, 3.5], length: 0.43, cutoff: 6500 },
+  pop: { swing: 0, melody: [0, 0.5, 1.5, 2, 2.75, 3.5], length: 0.43, cutoff: 6500, harmony: 'anthem' },
   ambient: { swing: 0, melody: [0, 1.5, 3], length: 1.25, cutoff: 3000 },
-  rnb: { swing: 0.09, melody: [0, 0.75, 1.75, 2.5, 3.25], length: 0.64, cutoff: 4200 },
+  rnb: { swing: 0.09, melody: [0, 0.75, 1.75, 2.5, 3.25], length: 0.64, cutoff: 4200, harmony: 'soul' },
   ballad: { swing: 0.04, melody: [0, 1.25, 2.5], length: 0.95, cutoff: 2800, voice: 'pad' },
-  edm: { swing: 0, melody: [0, 0.5, 1, 1.5, 2.5, 3.25], length: 0.32, cutoff: 7600, voice: 'saw' },
+  edm: { swing: 0, swingRange: [0, 0], melody: [0, 0.5, 1, 1.5, 2.5, 3.25], length: 0.28, cutoff: 7600, voice: 'saw', harmony: 'anthem' },
   acoustic: { swing: 0.02, melody: [0, 0.75, 1.5, 2.5, 3.25], length: 0.5, cutoff: 5000, voice: 'pluck' },
   cinematic: { swing: 0, melody: [0, 2], length: 1.6, cutoff: 2400, voice: 'wide' },
   modernrock: { swing: 0.03, melody: [0, 1, 2.25, 3.25], length: 0.78, cutoff: 4300, voice: 'band' },
@@ -225,7 +225,7 @@ const PROFILES = {
   nitelofi: { swing: 0.12, melody: [0, 1, 2.25, 3.25], length: 0.84, cutoff: 3000, voice: 'pad' },
   citypop: { swing: 0.06, swingRange: [0.04, 0.1], melody: [0, 0.5, 1.5, 2, 3, 3.5], length: 0.48, cutoff: 4600, voice: 'keys', harmony: 'city' },
   trap: { swing: 0, swingRange: [0, 0.02], melody: [0, 1.5, 3], length: 0.34, cutoff: 5400, voice: '808' },
-  house: { swing: 0, swingRange: [0, 0], melody: [0, 0.5, 1.5, 2, 3, 3.5], length: 0.3, cutoff: 7400, voice: 'house' },
+  house: { swing: 0.04, swingRange: [0.02, 0.06], melody: [0, 0.5, 2], length: 0.22, cutoff: 7400, voice: 'house', harmony: 'club' },
   bossa: { swing: 0.03, swingRange: [0.01, 0.05], melody: [0, 0.75, 1.5, 2.5, 3.25], length: 0.5, cutoff: 3200, voice: 'nylon', harmony: 'jazz' },
   reggaeton: { swing: 0, swingRange: [0, 0.02], melody: [0, 0.75, 1.5, 2.75, 3.5], length: 0.38, cutoff: 5000, voice: 'pulse' },};
 /** Gentle bus dynamics used by the live graph and the WAV render. */
@@ -539,8 +539,1433 @@ export function arrangementCues(input = {}) {
   };
 }
 
+const FORM_BOOK = {
+  verseChorus: [
+    ['intro', 'verse', 'chorus', 'outro'],
+    ['verse', 'pre', 'chorus', 'outro'],
+    ['intro', 'verse', 'chorus', 'bridge', 'outro'],
+    ['verse', 'chorus', 'verse', 'chorus', 'outro'],
+    ['intro', 'verse', 'pre', 'chorus', 'outro'],
+    ['intro', 'verse', 'chorus', 'bridge', 'chorus', 'outro'],
+    ['verse', 'pre', 'chorus', 'bridge', 'chorus', 'outro'],
+    ['intro', 'verse', 'pre', 'chorus', 'bridge', 'chorus', 'outro'],
+  ],
+  aaba: [
+    ['intro', 'verse', 'verse', 'bridge', 'verse', 'outro'],
+    ['verse', 'verse', 'bridge', 'verse', 'outro'],
+    ['intro', 'verse', 'bridge', 'verse', 'chorus', 'outro'],
+    ['verse', 'verse', 'bridge', 'verse', 'chorus', 'outro'],
+  ],
+  through: [
+    ['intro', 'verse', 'pre', 'bridge', 'chorus', 'outro'],
+    ['verse', 'pre', 'bridge', 'chorus', 'outro'],
+    ['intro', 'verse', 'bridge', 'pre', 'outro'],
+    ['intro', 'verse', 'pre', 'bridge', 'outro'],
+    ['verse', 'bridge', 'pre', 'chorus', 'outro'],
+  ],
+  build: [
+    ['intro', 'verse', 'pre', 'chorus', 'outro'],
+    ['intro', 'verse', 'pre', 'chorus', 'bridge', 'outro'],
+    ['intro', 'pre', 'chorus', 'outro'],
+    ['intro', 'verse', 'chorus', 'outro'],
+    ['intro', 'verse', 'pre', 'chorus', 'verse', 'outro'],
+  ],
+};
+
+function formWeights(genre, mood, cues) {
+  const ambientish = genre === 'ambient' || genre === 'cinematic' || genre === 'dawn';
+  const table = {
+    lofi: { verseChorus: 6, aaba: 3, through: 3, build: 2 },
+    pop: { verseChorus: 8, build: 2, aaba: 1, through: 1 },
+    rnb: { aaba: 10, verseChorus: 2, through: 1, build: 1 },
+    ambient: { through: 8, build: 2, aaba: 1, verseChorus: 1 },
+    ballad: { aaba: 8, verseChorus: 2, through: 1, build: 1 },
+    edm: { build: 10, verseChorus: 2, through: 1, aaba: 1 },
+    acoustic: { aaba: 5, verseChorus: 3, through: 2, build: 1 },
+    cinematic: { build: 8, through: 2, aaba: 1, verseChorus: 1 },
+    modernrock: { verseChorus: 8, aaba: 2, build: 1, through: 1 },
+    dawn: { aaba: 14, through: 1, build: 1, verseChorus: 1 },
+    nitelofi: { through: 6, aaba: 4, verseChorus: 1, build: 1 },
+    citypop: { aaba: 5, verseChorus: 3, build: 2, through: 1 },
+    trap: { build: 5, verseChorus: 4, aaba: 1, through: 1 },
+    house: { verseChorus: 9, aaba: 2, through: 1, build: 1 },
+    bossa: { aaba: 6, verseChorus: 3, through: 2, build: 1 },
+    reggaeton: { verseChorus: 5, build: 5, aaba: 1, through: 1 },
+  };
+  const weights = { ...(table[genre] || { verseChorus: 4, aaba: 3, through: 3, build: 2 }) };
+  if (mood === 'bright') { weights.verseChorus += 1; weights.build += 1; }
+  if (mood === 'melancholy') { weights.aaba += 1; weights.through += 1; }
+  if (mood === 'dreamy') { weights.through += 1; }
+  if (cues.wantBridge) return { verseChorus: 2, aaba: 4, through: 4, build: 2 };
+  if (cues.wantSpace) return ambientish ? { build: 4, through: 6, aaba: 1, verseChorus: 1 } : { through: 5, build: 3, aaba: 2, verseChorus: 1 };
+  if (cues.wantChorus || cues.wantLift) { weights.verseChorus += 3; if (genre === 'edm') weights.build += 2; }
+  return weights;
+}
+
+function templateAllowed(template, cues) {
+  if (cues.wantBridge) return template.includes('bridge');
+  if (cues.wantSpace) return template[0] === 'intro' && !template.includes('bridge') && template.filter(role => role === 'chorus').length <= 1;
+  return true;
+}
+
+function allocateSectionBars(template, count, weight) {
+  const totalWeight = template.reduce((sum, role) => sum + weight[role], 0) || 1;
+  const left = count - template.length;
+  const fractions = template.map(role => left * weight[role] / totalWeight);
+  const extras = fractions.map(value => Math.floor(value));
+  let used = extras.reduce((sum, value) => sum + value, 0);
+  const order = fractions.map((value, index) => ({ index, frac: value - Math.floor(value) })).sort((a, b) => b.frac - a.frac || a.index - b.index);
+  for (const item of order) {
+    if (used >= left) break;
+    extras[item.index] += 1;
+    used += 1;
+  }
+  return extras.map(extra => 1 + extra);
+}
+
 /** Section lengths for a sketch. The same inputs are used by the lyric brief. */
 export function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cues = {}) {
+  const count = Math.max(1, Math.round(Number(bars) || 1));
+  const hint = cues || {};
+  if (count < 4) {
+    const [name, description] = SECTION_META.motif;
+    return [{ role: 'motif', name, bars: count, description, family: 'motif' }];
+  }
+  const weights = formWeights(genre, mood, hint);
+  let options = [];
+  for (const family of Object.keys(FORM_BOOK)) {
+    const weight = weights[family] || 0;
+    if (weight <= 0) continue;
+    for (const template of FORM_BOOK[family]) {
+      if (template.length > count) continue;
+      if (!templateAllowed(template, hint)) continue;
+      options.push({ family, template, weight });
+    }
+  }
+  if (!options.length) {
+    options = [];
+    for (const family of Object.keys(FORM_BOOK)) {
+      for (const template of FORM_BOOK[family]) {
+        if (template.length <= count) options.push({ family, template, weight: 1 });
+      }
+    }
+  }
+  const chosen = options.length ? (() => {
+    const total = options.reduce((sum, option) => sum + option.weight, 0);
+    let roll = mix(seed, 0x517) % total;
+    for (const option of options) {
+      roll -= option.weight;
+      if (roll < 0) return option;
+    }
+    return options[0];
+  })() : { family: 'verseChorus', template: ['verse', 'chorus', 'outro'].slice(0, Math.min(3, count)) };
+  const template = chosen.template.length <= count ? chosen.template : ['verse', 'chorus', 'outro'].slice(0, count);
+  const weight = { intro: 1, verse: 2, pre: 1, chorus: 3, bridge: 2, outro: 1, motif: 1 };
+  if (genre === 'ambient' || genre === 'dawn' || hint.wantSpace) { weight.intro = 3; weight.verse = 3; weight.chorus = 1; }
+  if (genre === 'cinematic') { weight.intro = 3; weight.verse = 1; weight.pre = 2; weight.chorus = 3; }
+  if (genre === 'edm' || genre === 'pop' || genre === 'modernrock' || genre === 'citypop' || genre === 'reggaeton' || hint.wantLift) weight.chorus = 4;
+  if (genre === 'house') { weight.verse += 2; weight.chorus = 2; weight.intro = 1; }
+  if (genre === 'ballad') { weight.verse += 2; weight.bridge += 1; weight.chorus = 2; }
+  if (genre === 'nitelofi' || genre === 'rnb') { weight.verse += 2; weight.chorus = 2; }
+  if (chosen.family === 'build') { weight.intro += 1; weight.pre += 1; }
+  if (chosen.family === 'through') { weight.verse += 1; weight.bridge += 1; weight.chorus = Math.max(1, weight.chorus - 1); }
+  if (chosen.family === 'aaba') { weight.verse += 1; weight.bridge += 1; }
+  weight.intro += mix(seed, 0xA17) % 3;
+  weight.outro += mix(seed, 0xA18) % 3;
+  weight.verse += mix(seed, 0xA19) % 2;
+  weight.bridge += mix(seed, 0xA1A) % 2;
+  const barsEach = allocateSectionBars(template, count, weight);
+  return template.map((role, index) => {
+    const [name, fallback] = SECTION_META[role];
+    let description = fallback;
+    if (genre === 'ambient' && role === 'verse') description = '성긴 모티프와 긴 잔향으로 공간을 넓힙니다.';
+    else if (genre === 'ambient' && role === 'chorus') description = '질감의 밀도를 높이며 중심 장면을 만듭니다.';
+    else if (chosen.family === 'through' && role !== 'intro' && role !== 'outro') description = '앞 구간을 반복하지 않고 모티프를 새 위치로 이어 갑니다.';
+    else if (chosen.family === 'aaba' && role === 'verse') description = 'A 구간입니다. 같은 모티프를 두고, 두 번째 A는 한 단계 올려 변주합니다.';
+    else if (chosen.family === 'aaba' && role === 'bridge') description = 'B 구간입니다. 모티프를 뒤집고 화성을 돌려 대비를 만듭니다.';
+    else if (chosen.family === 'build' && role === 'pre') description = '에너지를 모아 다음 장면으로 넘깁니다.';
+    else if (genre === 'house' && (role === 'verse' || role === 'chorus')) description = '같은 루프를 유지하고 필터와 그루브만 조금씩 움직입니다.';
+    else if (genre === 'edm' && role === 'pre') description = '스네어 롤과 라이저, 필터가 열리며 드롭을 준비합니다.';
+    else if (genre === 'edm' && role === 'chorus') description = '큰 리드와 서브가 드롭을 엽니다.';
+    else if (genre === 'dawn' && role === 'verse') description = '짧은 피아노 모티프가 먼 공간에 남습니다.';
+    else if (genre === 'cinematic' && role === 'chorus') description = '낮은 타격과 넓은 화음이 장면을 엽니다.';
+    else if (chosen.family === 'build' && role === 'chorus') description = genre === 'edm' || genre === 'reggaeton' ? '모아 둔 에너지를 드롭으로 엽니다.' : '쌓아 올린 텍스처를 넓은 공간으로 내려놓습니다.';
+    return { role, name, bars: barsEach[index], description, family: chosen.family };
+  });
+}
+
+const FORM_KO = { verseChorus: '벌스-후렴', aaba: 'AABA', through: '통절', build: '빌드-드롭', motif: '모티프' };
+const FORM_EN = { verseChorus: 'verse-chorus', aaba: 'AABA', through: 'through-composed', build: 'build and drop', motif: 'motif' };
+const ROMAN = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii'];
+const ARC_BOOK = {
+  bloom: { ko: '서서히 피어남', en: 'a slow bloom', shape: 'swell', intro: 0.46, verse: 0.7, pre: 0.86, chorus: 1, bridge: 0.62, outro: 0.4, motif: 0.78 },
+  lift: { ko: '후렴에서 넓어짐', en: 'a chorus lift', shape: 'late', intro: 0.5, verse: 0.68, pre: 0.9, chorus: 1, bridge: 0.72, outro: 0.48, motif: 0.8 },
+  drop: { ko: '쌓았다가 내려놓기', en: 'a build and drop', shape: 'peak', intro: 0.42, verse: 0.74, pre: 0.96, chorus: 0.7, bridge: 0.5, outro: 0.36, motif: 0.66 },
+  ebb: { ko: '잔잔한 숨', en: 'a quiet ebb', shape: 'flat', intro: 0.4, verse: 0.58, pre: 0.66, chorus: 0.74, bridge: 0.5, outro: 0.34, motif: 0.6 },
+  wave: { ko: '파도처럼 오르내림', en: 'a wave', shape: 'swell', intro: 0.48, verse: 0.84, pre: 0.7, chorus: 0.95, bridge: 0.55, outro: 0.42, motif: 0.75 },
+};
+const MOTIFS = [
+  [0, 2, 1, 4], [0, 1, 0, -1], [0, 2, 4, 2], [0, -1, 1, 2], [0, 4, 2, 3], [0, 1, 3, 1],
+  [0, -2, 0, 2], [0, 2, 0, 1], [0, 3, 2, 4], [0, 1, -1, 2], [0, 2, 3, 5], [0, -1, -2, 0],
+  [0, 1, 2, 0, 3], [0, 4, 5, 3], [0, 2, -1, 3], [0, 5, 3, 4, 2], [0, -2, -1, 1], [0, 1, 4, 2],
+  [0, 3, 1, 2], [0, -1, 2, 0], [0, 2, 5, 3], [0, 4, 1, 3],
+];
+const CONCEPT_SALT = { lofi: 11, pop: 23, rnb: 37, ambient: 41, ballad: 53, edm: 67, acoustic: 71, cinematic: 83, modernrock: 91, dawn: 93, nitelofi: 95, citypop: 109, trap: 113, house: 127, bossa: 131, reggaeton: 137 };
+
+function progressionRows(block) {
+  return block.trim().split('\n').filter(Boolean).map(line => {
+    const [w, mood, p, alt] = line.split('|');
+    return { w: Number(w), mood, p: p.trim().split(/\s+/), alt: alt ? alt.trim().split(/\s+/) : null };
+  });
+}
+
+const PROGRESSION_BOOKS = {
+  lofi: progressionRows(`
+3|warm|0 5 1 4|5 3 0 4
+2|warm|1 4 0 3|0 5 3 4
+2|warm|0 3 4 5|1 4 0 5
+2|*|0 4 5 3|1 5 3 4
+2|*|5 3 0 4|0 1 4 3
+2|*|0 5 3 4|2 5 1 4
+2|*|0 3 5 4|5 1 4 0
+2|*|5 1 4 0|0 3 4 0
+2|*|3 0 5 4|1 4 0 3
+2|*|0 1 3 4|5 3 1 4
+2|dreamy|2 5 1 4|0 3 5 4
+2|dreamy|0 5 2 4|3 4 0 5
+2|*|1 4 2 5|0 5 3 4
+2|*|3 4 0 5|5 1 4 0
+2|melancholy|5 3 1 4|0 5 3 4
+2|*|0 4 1 4|5 3 0 4
+2|warm|0 3 0 4|5 4 0 3
+2|dreamy|0 5 2 3|1 4 0 5
+2|*|1 4 0 5|0 3 4 5
+2|bright|0 1 4 3|4 0 5 3
+2|*|3 5 0 4|1 4 2 5
+2|bright|0 4 0 5|3 4 0 5
+2|*|2 4 5 3|0 5 1 4
+2|dreamy|5 0 3 4|2 5 1 4
+2|*|0 2 5 4|1 4 0 3
+2|*|1 5 3 4|0 4 5 3
+2|*|3 1 4 0|5 3 0 4
+2|*|0 5 4 3|1 4 0 5
+2|bright|4 5 3 0|0 3 5 4
+2|*|2 1 4 0|5 3 4 0
+2|bright|0 3 5 1|4 0 3 4
+2|*|5 4 0 3|1 4 5 0
+2|warm|0 5 3 3m|
+2|melancholy|1 4 0 3m|5 3 0 4
+2|dreamy|0 5b 3 4|
+2|bright|0 6b 3 4|0 4 5 3
+2|warm|0 3 3m 4|
+2|dreamy|0 2b 5 4|
+2|melancholy|5 3m 0 4|
+2|*|0 5 1 4 3 4 0 5|
+`),
+  pop: progressionRows(`
+3|bright|0 4 5 3|1 4 0 5
+3|bright|0 3 5 4|0 4 1 4
+2|*|0 5 3 4|5 4 0 3
+2|*|5 3 0 4|0 1 4 3
+2|warm|0 5 1 4|3 4 0 5
+2|*|1 4 0 3|0 5 3 4
+2|*|0 4 0 5|3 5 4 0
+2|*|3 4 5 0|0 5 1 4
+2|*|0 1 4 5|5 3 4 0
+2|dreamy|0 5 2 4|1 4 0 3
+2|*|4 0 5 3|1 4 0 5
+2|*|0 3 4 1|5 4 0 3
+2|bright|0 4 3 4|5 3 0 4
+2|*|5 1 4 3|0 4 5 0
+2|*|0 5 4 1|3 4 0 5
+2|bright|0 6b 4 3|
+2|*|0 4 5 3 1 4 0 5|
+2|*|0 3 5 4 0 1 4 0|
+`),
+  rnb: progressionRows(`
+3|dreamy|5 3 0 4|1 4 0 3
+3|*|1 4 0 5|5 3 4 0
+2|warm|0 5 1 4|3 4 0 5
+2|*|5 1 4 0|0 3 5 4
+2|*|2 5 1 4|0 5 3 4
+2|*|0 3 4 5|1 4 2 5
+2|melancholy|5 3 1 4|0 5 3m 4
+2|*|1 4 2 5|0 3 4 0
+2|*|3 0 5 4|1 4 0 5
+2|*|0 5 3 2|4 0 5 3
+2|*|5 0 4 3|1 4 0 3
+2|dreamy|0 2b 5 4|
+2|*|1 4 0 3m|
+2|*|5 3 0 6b|
+2|*|0 5 1 4 3 2 5 4|
+`),
+  ambient: progressionRows(`
+3|dreamy|0 3 0 4|5 3 0 5
+3|*|0 5 0 3|2 5 0 4
+2|*|5 3 5 4|0 3 0 5
+2|*|0 2 5 2|3 0 4 0
+2|*|0 4 0 5|5 0 3 0
+2|warm|0 5 1 4|0 3 0 4
+2|*|3 5 3 0|4 0 5 0
+2|*|0 3 5 3|1 4 0 4
+2|melancholy|5 3 5 0|0 5 3m 0
+2|*|2 0 5 0|3 0 4 0
+2|*|0 5 2 5|4 0 3 0
+2|dreamy|0 5b 0 3|
+2|*|0 3 3m 0|
+2|*|0 5 3 4 0 2 5 0|
+2|*|5 0 3 0 4 0 5 0|
+`),
+  ballad: progressionRows(`
+3|melancholy|5 3 0 4|1 4 5 0
+3|*|5 1 4 0|3 4 0 5
+2|*|0 5 3 4|5 3 1 4
+2|warm|0 5 1 4|4 0 3 5
+2|*|1 4 0 3|5 0 4 3
+2|*|5 3 1 4|0 5 3 4
+2|*|3 0 4 5|1 4 0 5
+2|dreamy|2 5 1 4|5 3 0 4
+2|*|0 3 5 4|5 1 4 0
+2|*|5 4 0 3|1 5 4 0
+2|*|0 5 4 3|3 0 5 4
+2|melancholy|5 3m 0 4|
+2|*|1 4 0 3m|
+2|*|5 3 0 4 1 4 5 0|
+`),
+  edm: progressionRows(`
+4|bright|0 5 2 6|5 2 6 0
+4|*|5 2 6 0|0 5 2 6
+3|*|0 5 6 2|6 2 0 5
+3|*|2 6 0 5|0 2 5 6
+2|*|0 2 5 6|6 0 5 2
+2|*|5 0 2 6|2 5 6 0
+2|*|0 6 5 2|5 2 0 6
+2|*|2 0 5 6|0 5 6 2
+2|*|6 0 5 2|0 2 6 5
+2|*|0 5 6 2|2 6 5 0
+`),
+  acoustic: progressionRows(`
+3|warm|0 3 4 2|0 1 3 4
+3|*|0 2 4 3|1 4 0 2
+2|*|0 4 2 3|0 1 4 0
+2|*|2 4 0 3|0 3 1 4
+2|*|0 1 4 3|2 0 4 3
+2|*|3 0 4 2|0 2 3 4
+2|*|0 3 1 2|4 0 3 2
+2|*|1 3 0 4|0 2 4 0
+2|*|0 4 0 3|2 3 0 4
+2|*|2 0 3 4|0 1 2 4
+2|*|0 2 1 4|3 4 0 2
+2|*|4 2 0 3|0 3 4 1
+`),
+  cinematic: progressionRows(`
+3|dreamy|0 5 3 4|0 3 0 5
+3|*|5 3 0 4|2 5 0 4
+2|*|0 3 5 0|4 0 5 3
+2|*|0 4 0 3|5 0 2 0
+2|melancholy|5 1 4 0|3 5 0 4
+2|*|0 2 5 4|0 5 0 3
+2|*|3 0 4 5|5 3 1 4
+2|*|0 6 5 3|4 0 5 6
+2|*|5 0 3 4|1 4 0 5
+2|*|0 5 6 4|3 0 5 0
+2|dreamy|0 5b 3 0|
+2|*|0 3m 5 4|
+2|*|0 5 3 4 0 2 5 0|
+`),
+  modernrock: progressionRows(`
+3|melancholy|0 4 5 3|5 3 0 4
+3|*|5 3 0 4|0 5 3 4
+3|*|0 5 3 4|5 3 4 0
+3|*|5 3 4 0|0 4 5 3
+2|*|0 4 5 3 1 4 0 3|
+2|*|5 3 0 4 1 5 4 0|
+2|*|0 5 3 4 0 4 1 4|
+2|*|5 3 4 0 3 4 5 0|
+2|warm|0 4 5 3m|
+2|*|5 3 0 4 0s 4 5a 3|
+2|*|0 5 3 4 5 3a 0 4|
+`),
+  dawn: progressionRows(`
+3|dreamy|0 5 3 4|5 0 3 4
+3|*|5 3 0 4|0 4 5 3
+2|*|0 3 5 4|5 1 4 0
+2|*|3 0 5 4|0 5 2 4
+2|*|0 5 0 4|3 5 0 4
+2|melancholy|5 1 4 0|0 3 5 0
+2|*|0 2 5 4|5 3 0 5
+2|*|5 0 4 3|1 4 0 5
+2|*|0 4 0 5|5 3 4 0
+2|*|3 5 0 2|0 5 3 0
+2|dreamy|0 5b 3 4|
+2|*|5 3m 0 4|
+2|*|0 5 3 4 0 2 5 0|
+`),
+  nitelofi: progressionRows(`
+3|melancholy|0 5 3 4|5 3 0 4
+3|*|5 3 0 4|0 3 4 5
+2|warm|0 5 1 4|5 1 4 0
+2|*|5 1 4 0|0 5 3 4
+2|*|0 3 4 5|1 4 0 3
+2|*|1 4 0 5|5 3 1 4
+2|*|0 5 2 4|3 0 5 4
+2|*|5 3 1 4|0 5 4 3
+2|*|2 5 1 4|0 3 0 4
+2|*|0 3 5 4|5 0 4 3
+2|dreamy|0 5 3m 4|
+2|*|5 3 0 6b|
+2|*|0 5 1 4 3 4 0 5|
+`),
+  citypop: progressionRows(`
+3|warm|3 2 5 0|1 4 0 5
+3|*|1 4 0 5|0 5 3 4
+2|*|0 5 3 4|5 1 4 0
+2|*|5 1 4 0|2 5 1 4
+2|*|0 3 4 5|1 4 3 0
+2|*|2 5 1 4|0 3 5 4
+2|*|0 1 4 3|5 2 4 0
+2|*|4 0 3 5|1 4 0 3
+2|*|5 2 0 4|3 4 0 5
+2|*|1 4 2 5|0 5 1 4
+2|*|0 4 1 5|3 2 5 0
+2|bright|0 6b 3 4|
+2|*|1 4 0 3m|
+2|*|3 2 5 0 1 4 0 5|
+`),
+  trap: progressionRows(`
+3|melancholy|0 5 2 6|0 6 5 3
+3|*|0 6 5 3|5 3 0 4
+2|*|0 5 3 6|0 2 5 6
+2|*|5 3 0 4|0 6 3 5
+2|*|0 2 5 6|5 6 0 3
+2|*|0 6 3 5|0 5 6 4
+2|*|5 6 0 3|0 3 6 5
+2|*|0 5 6 4|0 6 5 4
+2|*|0 3 6 5|5 0 6 3
+2|*|6 5 0 3|0 5 2 6
+2|*|0 6b 5 3|
+2|*|0 5 3m 6|
+2|*|0 5 2 6 3 6 5 0|
+`),
+  house: progressionRows(`
+4|bright|0 3 0 4|1 4 0 3
+4|*|1 4 0 3|0 3 4 0
+3|*|0 6 3 4|0 3 6 0
+3|*|0 4 3 0|4 0 3 4
+2|*|1 4 1 3|0 1 4 0
+2|*|0 3 4 6|6 3 0 4
+2|*|4 0 3 1|0 4 0 3
+2|*|0 1 3 4|3 4 0 1
+2|*|6 0 3 4|0 6 4 3
+2|*|0 3 1 4|4 3 0 3
+2|*|1 0 4 3|0 4 1 3
+2|*|0 3 0 6|4 0 3 0
+`),
+  bossa: progressionRows(`
+3|warm|1 4 0 0|1 4 0 5
+3|*|1 4 0 5|5 1 4 0
+3|*|5 1 4 0|2 5 1 4
+2|*|2 5 1 4|0 1 4 3
+2|*|0 1 4 3|1 4 3 0
+2|*|1 4 3 0|2 5 1 4
+2|*|1 4 0 3|5 1 4 3
+2|*|2 5 1 4|1 4 0 5
+2|*|5 2 1 4|0 1 4 0
+2|*|0 3 1 4|1 4 2 5
+2|*|1 2 4 0|5 1 4 0
+2|*|3 1 4 0|1 4 0 5
+2|*|1 4 5 0|2 5 1 4
+2|*|1 4 0 5 2 5 1 0|
+`),
+  reggaeton: progressionRows(`
+3|bright|0 6 5 6|0 5 3 4
+3|*|0 5 3 4|0 3 6 5
+2|*|0 3 6 5|5 6 0 3
+2|*|5 6 0 3|0 5 6 4
+2|*|0 5 6 4|0 4 5 3
+2|*|0 4 5 3|6 5 0 4
+2|*|0 6 3 5|5 3 6 0
+2|*|6 0 5 3|0 6 4 5
+2|*|0 5 6 3|3 6 5 0
+2|*|5 3 0 6|0 6 5 4
+2|*|0 3 5 6|6 4 0 5
+2|bright|0 6b 5 4|
+2|*|0 6 5 6 3 6 5 0|
+`),
+};
+
+function tokenFits(token, scaleName) {
+  const flavor = String(token).slice(1);
+  if (!flavor) return true;
+  const degree = Number(token[0]);
+  const scale = SCALE_SETS[scaleName] || SCALE;
+  if (!Number.isInteger(degree) || degree < 0 || degree >= scale.length) return false;
+  const diatonic = scale[degree];
+  const root = flavor === 'b' ? (diatonic + 11) % 12 : diatonic;
+  const intervals = flavor === 's' ? [0, 5, 7, 11]
+    : flavor === 'a' ? [0, 2, 4, 7]
+      : flavor === 'm' ? [0, 3, 7, 10]
+        : flavor === 'M' ? [0, 4, 7, 11]
+          : [0, 4, 7, 10];
+  return intervals.every(interval => scale.includes((root + interval) % 12));
+}
+
+function tokenRoman(token) {
+  const degree = Number(token[0]);
+  const flavor = String(token).slice(1);
+  const base = ROMAN[degree] || 'I';
+  if (flavor === 'm') return base === base.toUpperCase() ? base.toLowerCase() : base;
+  if (flavor === 'b') return '♭' + base.toUpperCase();
+  if (flavor === 's') return base + 'sus';
+  if (flavor === 'a') return base + 'add9';
+  if (flavor === 'M') return base.toUpperCase();
+  if (flavor === 'd') return base + '7';
+  return base;
+}
+
+function triadSpell(degree, tonic, scaleName) {
+  const scale = SCALE_SETS[scaleName] || SCALE;
+  const rootInterval = scale[degree % scale.length];
+  const root = (tonic + rootInterval) % 12;
+  const third = scale.includes((rootInterval + 3) % 12) ? 3 : 4;
+  const intervals = third === 3 ? [0, 3, 7, 12] : [0, 4, 7, 12];
+  return { root, degree, intervals, name: NOTE_NAMES[root] + (third === 3 ? 'm' : '') };
+}
+
+function colorSpell(degree, tonic, scaleName) {
+  const scale = SCALE_SETS[scaleName] || SCALE;
+  const rootInterval = scale[degree % scale.length];
+  const has = interval => scale.includes((rootInterval + interval) % 12);
+  const third = has(3) ? 3 : has(4) ? 4 : null;
+  const seventh = has(10) ? 10 : has(11) ? 11 : null;
+  if (third === null || seventh === null || !has(2)) return null;
+  return {
+    root: (tonic + rootInterval) % 12,
+    degree,
+    intervals: [0, third, seventh, 14],
+    name: NOTE_NAMES[(tonic + rootInterval) % 12] + (third === 3 ? 'm9' : seventh === 10 ? '9' : 'maj9'),
+  };
+}
+
+function spellToken(token, tonic, scaleName, closing, style) {
+  const degree = Number(String(token)[0]);
+  const flavor = String(token).slice(1);
+  const scale = SCALE_SETS[scaleName] || SCALE;
+  if (!flavor) {
+    if (style === 'anthem') return triadSpell(degree, tonic, scaleName);
+    if (!closing && (style === 'club' || style === 'soul')) {
+      const colored = colorSpell(degree, tonic, scaleName);
+      if (colored) return colored;
+    }
+    if ((scaleName === 'major' || !SCALE_SETS[scaleName]) && degree < 6) return chordForDegree(degree, tonic, closing, style);
+    return chordForDegreeScaled(degree % scale.length, tonic, closing, scale);
+  }
+  const diatonic = scale[degree % scale.length];
+  const root = (tonic + (flavor === 'b' ? (diatonic + 11) % 12 : diatonic)) % 12;
+  let intervals = [0, 4, 7, 10];
+  let suffix = '7';
+  if (flavor === 's') { intervals = [0, 5, 7, 11]; suffix = 'sus4'; }
+  else if (flavor === 'a') { intervals = [0, 2, 4, 7]; suffix = 'add9'; }
+  else if (flavor === 'm') { intervals = [0, 3, 7, 10]; suffix = 'm7'; }
+  else if (flavor === 'M') { intervals = [0, 4, 7, 11]; suffix = 'maj7'; }
+  return { root, degree, intervals, name: NOTE_NAMES[root] + suffix };
+}
+
+function pickWeightedId(table, seed, salt) {
+  const entries = Object.entries(table).filter(([, weight]) => weight > 0);
+  const total = entries.reduce((sum, [, weight]) => sum + weight, 0);
+  let roll = mix(seed, salt) % total;
+  for (const [id, weight] of entries) {
+    roll -= weight;
+    if (roll < 0) return id;
+  }
+  return entries[0][0];
+}
+
+function usableRows(book, mood, scaleName, allowChromatic) {
+  const rows = [];
+  for (const row of book) {
+    const tokens = row.p.concat(row.alt || []);
+    if (!allowChromatic && tokens.some(token => !tokenFits(token, scaleName))) continue;
+    let weight = row.w;
+    if (row.mood === mood) weight *= 2;
+    else if (row.mood !== '*') weight = Math.max(1, Math.round(weight / 2));
+    rows.push({ ...row, w: weight });
+  }
+  return rows.length ? rows : [{ w: 1, mood: '*', p: ['0', '5', '3', '4'], alt: ['1', '4', '0', '5'] }];
+}
+
+function pickRow(rows, seed, salt) {
+  const total = rows.reduce((sum, row) => sum + row.w, 0);
+  let roll = mix(seed, salt) % total;
+  for (const row of rows) {
+    roll -= row.w;
+    if (roll < 0) return row;
+  }
+  return rows[0];
+}
+
+function groove(ko, swing, kick, snare, hat, open = '') {
+  const nums = value => (value ? String(value).split(',').filter(Boolean).map(Number) : []);
+  return { ko, swing, kick: nums(kick), snare: nums(snare), hat: nums(hat), open: nums(open) };
+}
+
+const GROOVE_BOOK = {
+  lofi: [
+    groove('스윙 포켓', 0.12, '0,2.25', '1,3', '0.5,1.5,2.5,3.5'),
+    groove('늘어지는 백비트', 0.08, '0,1.5,2.5', '3', '0,1,2,3'),
+    groove('성긴 오픈햇', 0.1, '0,2.5', '1,2.75', '0.5,1.5,2.5,3.5', '1,3'),
+    groove('하프타임 포켓', 0.06, '0,2.75', '2', '0.5,1.5,2.5,3.5'),
+    groove('셔플 킥', 0.14, '0,0.75,2,2.75', '1,3', '0,1,2,3'),
+    groove('늦은 스네어', 0.09, '0,2', '1.25,3.25', '0.5,1.5,2.5,3.5'),
+    groove('밤의 림', 0.11, '0,1.75,3', '1,2.5', '0,1,2,3', '2'),
+  ],
+  pop: [
+    groove('곧은 팝', 0, '0,2', '1,3', '0,0.5,1,1.5,2,2.5,3,3.5'),
+    groove('밀어 올리는 킥', 0.02, '0,1.5,2,3', '1,3', '0.5,1.5,2.5,3.5'),
+    groove('오프비트 킥', 0, '0,0.75,2,2.75', '1,3', '0,1,2,3'),
+    groove('밝은 16비트', 0, '0,2,2.5', '1,3', '0,0.5,1,1.5,2,2.5,3,3.5', '1.5,3.5'),
+    groove('클랩 백비트', 0, '0,1.75,2.5', '1,3', '0.5,1.5,2.5,3.5'),
+    groove('드라이브', 0.02, '0,0.5,2,2.5', '1,3', '0,1,2,3'),
+  ],
+  rnb: [
+    groove('뒤로 기대는 그루브', 0.09, '0,2.5', '1.25,3.25', '0.25,0.75,1.25,1.75,2.25,2.75,3.25,3.75'),
+    groove('늦은 킥', 0.07, '0,2.75', '1.5,3.5', '0.75,1.75,2.75,3.75'),
+    groove('싱코페이션', 0.1, '0,1.75', '1.25,3', '0.25,1.25,2.25,3.25'),
+    groove('느린 포켓', 0.06, '0', '1.5,3.25', '0.75,1.25,2.75,3.25'),
+    groove('고스트 스네어', 0.08, '0,2.25', '1.25,2.75,3.5', '0.25,0.75,1.75,2.75,3.75'),
+    groove('스윙 햇', 0.11, '0,1.5,3', '1.75,3.25', '0.25,1.25,2.25,3.25'),
+  ],
+  ambient: [
+    groove('먼 펄스', 0, '', '', '2'),
+    groove('숨 고르기', 0, '', '', '3'),
+    groove('여백', 0, '0', '', ''),
+    groove('느린 하프', 0, '3', '', ''),
+    groove('안개', 0, '', '', ''),
+    groove('긴 잔향', 0, '0', '', '2'),
+  ],
+  ballad: [
+    groove('하프타임', 0.04, '0', '2', '2.5'),
+    groove('여린 브러시', 0.03, '0', '2,3.5', '2'),
+    groove('느린 킥', 0.05, '0,3', '2', '2.5'),
+    groove('긴 숨', 0.02, '0', '2', '3.5'),
+    groove('후렴의 펄스', 0.04, '0,2', '2', '2.5'),
+    groove('성긴 스네어', 0.03, '0,2.5', '2,3.5', '2'),
+  ],
+  edm: [
+    groove('빅룸', 0, '0,1,2,3', '1,3', '0,0.5,1,1.5,2,2.5,3,3.5'),
+    groove('드라이브 킥', 0, '0,0.5,2,2.5', '1,3', '0,1,2,3'),
+    groove('드롭 스네어', 0, '0,1,2,3', '1,1.5,3', '0,1,2,3'),
+    groove('퓨처 하프', 0, '0,2', '2', '0,1,2,3'),
+    groove('브레이크다운', 0, '0', '3', '2'),
+    groove('빌드 햇', 0, '0,1,2,3', '1,3', '0,0.5,1,1.5,2,2.5,3,3.5'),
+  ],
+  acoustic: [
+    groove('브러시 투비트', 0.02, '0,2.5', '1,3', '0.5,1.5,2.5,3.5'),
+    groove('가벼운 킥', 0.03, '0,1.5,3', '2', '0,1,2,3'),
+    groove('성긴 브러시', 0.02, '0,2', '1.5,3.5', '0.5,2.5'),
+    groove('스트럼 펄스', 0.04, '0,2,3', '1,3', '0.5,1.5,2.5,3.5'),
+    groove('느린 포크', 0.03, '0', '2,3', '0,1,2,3'),
+    groove('셔플 브러시', 0.08, '0,2.25', '1,3', '0.5,1.5,2.5,3.5'),
+  ],
+  cinematic: [
+    groove('넓은 타격', 0, '0', '2', '1.5'),
+    groove('먼 킥', 0, '0', '3', '2'),
+    groove('저역 히트', 0, '0,3', '1.5', '0'),
+    groove('드롭 전', 0, '0,2.5', '', '3'),
+    groove('히트', 0, '0', '2', '0.5'),
+    groove('느린 붐', 0, '0,1.5', '3', '2.5'),
+  ],
+  modernrock: [
+    groove('여린 백비트', 0.03, '0,2', '2', '0,1,2,3'),
+    groove('벌스의 킥', 0.02, '0', '2,3.5', '0.5,1.5,2.5,3.5'),
+    groove('오픈햇', 0.04, '0,2.5', '2', '0,1,2,3', '2'),
+    groove('하프타임', 0.03, '0,2.75', '2', '0.5,1.5,2.5,3.5'),
+    groove('8비트', 0.02, '0,2', '1,3', '0,0.5,1,1.5,2,2.5,3,3.5'),
+    groove('늦은 스네어', 0.05, '0,1.5', '2.25', '0,1,2,3'),
+  ],
+  dawn: [
+    groove('새벽 피아노 펄스', 0.02, '0', '', '0'),
+    groove('아주 여린 킥', 0.02, '0', '', '0,3'),
+    groove('먼 틱', 0.01, '0', '', '0'),
+    groove('두 번째 숨', 0.03, '0', '3', '0'),
+    groove('잔향 킥', 0.02, '0', '', '0'),
+    groove('느린 하프', 0.04, '0,3', '', '0'),
+  ],
+  nitelofi: [
+    groove('느린 스윙', 0.12, '0', '2', '1,3'),
+    groove('밤의 킥', 0.1, '0,2.75', '2', '1,3'),
+    groove('오픈 스네어', 0.11, '0', '2', '3', '2'),
+    groove('하프타임', 0.08, '0', '2', '1'),
+    groove('성긴 포켓', 0.09, '0,3', '2', '1'),
+    groove('셔플', 0.14, '0', '2,3.5', '3'),
+  ],
+  citypop: [
+    groove('가벼운 디스코', 0.06, '0,2', '1,3', '0,0.5,1,1.5,2,2.5,3,3.5', '1.5,3.5'),
+    groove('옥타브 킥', 0.05, '0,0.75,2,2.75', '1,3', '0.5,1.5,2.5,3.5'),
+    groove('스윙 햇', 0.08, '0,1.5,2.5', '1,3', '0,1,2,3', '0.5,2.5'),
+    groove('16비트 라이드', 0.04, '0,2,2.5', '1,3', '0,0.5,1,1.5,2,2.5,3,3.5'),
+    groove('늦은 클랩', 0.07, '0,2', '1.25,3', '0.5,1.5,2.5,3.5', '1.5'),
+    groove('저녁 드라이브', 0.09, '0,0.5,2,2.75', '1,3', '0,1,2,3', '0.5,2.5'),
+  ],
+  trap: [
+    groove('하프타임 롤', 0, '0,2.75', '2', '0,0.5,1,1.5,2,2.5,3,3.125,3.25,3.375,3.5,3.75'),
+    groove('마른 808', 0.01, '0', '2', '0,1,2,2.5,3,3.25,3.5,3.75', '1.5'),
+    groove('킥 싱코프', 0, '0,1.5,3', '2', '0.5,1.5,2.5,3,3.125,3.25,3.5,3.75'),
+    groove('느린 스네어', 0.02, '0,3.25', '2', '0,1,2,3,3.25,3.5,3.75'),
+    groove('오픈 스페이스', 0, '0,2.5', '2', '0,1.5,3,3.125,3.25,3.5,3.75', '1'),
+    groove('더블 킥', 0, '0,0.75,2.75', '2', '0.5,1.5,2.5,3,3.25,3.5,3.75'),
+  ],
+  house: [
+    groove('포 온 더 플로어', 0.05, '0,1,2,3', '1,3', '0,0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3,3.25,3.5,3.75', '0.5,1.5,2.5,3.5'),
+    groove('오픈햇', 0.04, '0,1,2,3', '1,3', '0,0.5,1,1.5,2,2.5,3,3.5', '0.5,1.5,2.5,3.5'),
+    groove('셔플 16', 0.06, '0,1,2,3', '1,3', '0.25,0.75,1.25,1.75,2.25,2.75,3.25,3.75', '0.5,1.5,2.5,3.5'),
+    groove('오프비트 클랩', 0.05, '0,1,2,3', '1,1.75,3', '0,0.25,0.75,1.25,1.75,2.25,2.75,3.25,3.75', '0.5,1.5,2.5,3.5'),
+    groove('라이드', 0.04, '0,1,2,3', '1,3', '0,1,2,3', '0.5,1.5,2.5,3.5'),
+    groove('따뜻한 루프', 0.05, '0,1,2,3', '1,3', '0.25,0.75,1.25,1.75,2.25,2.75,3.25,3.75', '0.5,1.5,2.5,3.5'),
+  ],
+  bossa: [
+    groove('보사 림', 0.03, '0,2', '0.75,1.75,2.5,3.5', '0,1,2,3'),
+    groove('싱코페이션', 0.02, '0,1.5,3', '0.5,1.5,2.75,3.25', '0.5,1.5,2.5,3.5'),
+    groove('부드러운 오픈', 0.04, '0,2.5', '1,1.75,3,3.5', '0,2', '1.5,3.5'),
+    groove('파티도', 0.03, '0,2', '0.5,1.5,2.5,3.5', '0,1,2,3'),
+    groove('느린 클릭', 0.02, '0,3', '0.75,1.75,2.75,3.5', '0.5,1.5,2.5,3.5'),
+    groove('투 비트', 0.05, '0,2', '1,1.5,3,3.5', '0,1,2,3', '2.5'),
+  ],
+  reggaeton: [
+    groove('뎀보우', 0, '0,1.75,2.5', '0.75,1.75,2.75,3.5', '0,0.5,1,1.5,2,2.5,3,3.5'),
+    groove('밀어 붙이는 킥', 0, '0,1.5,2.5,3.25', '0.75,1.75,2.75,3.5', '0.5,1.5,2.5,3.5', '1.5,3.5'),
+    groove('짧은 스네어', 0.01, '0,0.75,1.5,2.5', '0.75,1.75,2.75,3.5', '0,1,2,3'),
+    groove('오픈햇 뎀보우', 0, '0,1.75,3', '0.75,1.75,2.75,3.5', '0,0.5,1,1.5,2,2.5,3,3.5', '0.5,2.5'),
+    groove('하프 변주', 0.02, '0,2.5', '0.75,1.75,2.75,3.5', '0.5,1.5,2.5,3.5'),
+    groove('더블', 0, '0,0.75,1.75,2.5', '0.75,1.75,2.75,3.5', '0,1,2,3', '1.5'),
+  ],
+};
+
+const RHYTHM_BOOK = {
+  lofi: [[0, 0.75, 1.5, 2.5, 3.25], [0, 1, 2, 2.5, 3.5], [0.5, 1, 2, 3, 3.5], [0, 0.5, 1.5, 2.75, 3.25], [0, 1.5, 2, 3], [0.25, 1, 1.75, 2.5, 3.25], [0, 0.75, 2, 2.75, 3.5], [0.5, 1.25, 2, 3.25]],
+  pop: [[0, 0.5, 1.5, 2, 2.75, 3.5], [0, 1, 1.5, 2.5, 3, 3.5], [0.5, 1, 2, 2.5, 3.5], [0, 0.75, 1.5, 2.5, 3], [0, 0.5, 1, 2, 3], [0.25, 1, 1.75, 2.5, 3.25], [0, 1.5, 2.25, 3, 3.5]],
+  ambient: [[0, 1.5, 3], [0, 2], [0.5, 2.5], [0, 1, 3], [0, 2.5], [1, 3]],
+  rnb: [[0, 0.75, 1.75, 2.5, 3.25], [0.5, 1.25, 2, 3, 3.5], [0, 1, 1.5, 2.75, 3.5], [0, 0.5, 2, 2.5, 3.25], [0.25, 1, 1.75, 3], [0, 1.25, 2.25, 3.5]],
+  ballad: [[0, 1.25, 2.5], [0, 1.5, 3], [0.5, 2, 3.25], [0, 2, 3], [0, 1, 2.5], [0.5, 1.75, 3]],
+  edm: [[0, 0.5, 1, 1.5, 2.5, 3.25], [0, 0.75, 1.5, 2, 2.5, 3.5], [0.5, 1, 1.5, 2.5, 3, 3.5], [0, 1, 2, 2.5, 3, 3.5], [0, 0.5, 1.5, 2.5, 3], [0, 1, 1.5, 2, 3.5]],
+  acoustic: [[0, 0.75, 1.5, 2.5, 3.25], [0, 1, 2, 3], [0.5, 1.5, 2.5, 3.5], [0, 0.5, 1.5, 2.75], [0, 1.25, 2,5, 3.5], [0.25, 1, 2, 3.25]],
+  cinematic: [[0, 2], [0, 1.5, 3], [0.5, 2.5], [0, 3], [0, 2.5], [1, 3]],
+  modernrock: [[0, 1, 2.25, 3.25], [0, 0.75, 2, 3], [0.5, 1.5, 2.5, 3.5], [0, 1.5, 3], [0, 1, 2, 3.5], [0.5, 1.25, 2.5, 3.25]],
+  dawn: [[0, 1.5, 3], [0, 2], [0.5, 2.5], [0, 1, 3], [0, 2.5], [1, 3]],
+  nitelofi: [[0, 1, 2.25, 3.25], [0, 0.75, 1.75, 3], [0.5, 1.5, 2.75], [0, 2, 3.25], [0.25, 1.25, 2.5], [0, 1.5, 3]],
+  citypop: [[0, 0.5, 1.5, 2, 3, 3.5], [0, 0.75, 1.5, 2.5, 3.25], [0.5, 1, 2, 2.75, 3.5], [0, 1, 1.75, 2.5, 3.5], [0, 0.5, 1.75, 2.5, 3], [0.25, 1, 2, 3.25]],
+  trap: [[0, 1.5, 3], [0, 2, 3.25, 3.5], [0.5, 2.5, 3.75], [0, 0.75, 2, 3.5], [0, 2.5, 3.25], [0.5, 1.5, 3]],
+  house: [[0, 0.5, 1.5, 2, 3, 3.5], [0, 1, 1.5, 2.5, 3], [0.5, 1, 2, 2.5, 3.5], [0, 0.75, 1.5, 2.5, 3.25], [0, 0.5, 1.5, 2.5, 3.5], [0, 1, 2, 3]],
+  bossa: [[0, 0.75, 1.5, 2.5, 3.25], [0.5, 1.5, 2, 3, 3.5], [0, 1, 1.75, 2.75, 3.5], [0.75, 1.5, 2.5, 3.25], [0, 0.5, 1.75, 3], [0.25, 1.25, 2.25, 3.25]],
+  reggaeton: [[0, 0.75, 1.5, 2.75, 3.5], [0, 1, 1.75, 2.5, 3.25], [0.5, 1.5, 2.75, 3.5], [0, 0.75, 2, 2.75, 3.5], [0, 1.5, 2.5, 3.25], [0.25, 1, 2, 3.5]],
+};
+
+function conceptSwing(genre, grooveSwing, seed) {
+  const profile = PROFILES[genre];
+  if (profile.swingRange) {
+    const [min, max] = profile.swingRange;
+    if (max <= min) return min;
+    const steps = 4;
+    const tilt = (mix(seed, 0x51F) % (steps + 1)) / steps;
+    const value = min + (max - min) * (0.45 + 0.55 * tilt) * (0.7 + 0.3 * clamp(grooveSwing / 0.16, 0, 1));
+    return clamp(Math.round(value * 1000) / 1000, min, max);
+  }
+  const base = Number.isFinite(grooveSwing) ? grooveSwing : profile.swing;
+  return clamp(Math.round((base + ((mix(seed, 0x51F) % 5) - 2) * 0.01) * 1000) / 1000, 0, 0.18);
+}
+
+function busyRhythm(rhythm) {
+  const out = [];
+  for (const step of rhythm) {
+    out.push(step);
+    const next = Math.round((step + 0.5) * 4) / 4;
+    if (next < 3.9 && !rhythm.some(value => Math.abs(value - next) < 0.01)) out.push(next);
+  }
+  return out.sort((a, b) => a - b);
+}
+
+function sparseRhythm(rhythm) {
+  const picked = rhythm.filter((_, index) => index % 2 === 0);
+  return picked.length ? picked : [0];
+}
+
+function planConcept(genre, mood, scaleName, seed, bars, structure) {
+  const family = structure[0]?.family || 'verseChorus';
+  const salt = (CONCEPT_SALT[genre] || 13) * 100 + ({ warm: 3, dreamy: 5, bright: 7, melancholy: 9 }[mood] || 3);
+  const allowChromatic = seed !== 42 && seed !== 99;
+  const book = PROGRESSION_BOOKS[genre] || PROGRESSION_BOOKS.lofi;
+  let row = pickRow(usableRows(book, mood, scaleName, allowChromatic), seed, salt);
+  const classic = seed === 42 && genre === 'lofi' && mood === 'warm';
+  if (classic) row = { p: ['0', '5', '1', '4'], alt: null, mood: 'warm' };
+  const grooveList = GROOVE_BOOK[genre] || GROOVE_BOOK.lofi;
+  const feel = grooveList[mix(seed, 0x600 + salt) % grooveList.length];
+  const rhythms = RHYTHM_BOOK[genre] || RHYTHM_BOOK.lofi;
+  const rhythm = rhythms[mix(seed, 0x91 + salt) % rhythms.length];
+  const arcWeights = {
+    lofi: { wave: 5, bloom: 3, lift: 2, ebb: 1, drop: 1 },
+    pop: { lift: 12, bloom: 1, wave: 1, drop: 0, ebb: 0 },
+    rnb: { ebb: 10, wave: 2, bloom: 1, lift: 0, drop: 0 },
+    ambient: { ebb: 10, bloom: 1, wave: 1, drop: 0, lift: 0 },
+    ballad: { bloom: 10, ebb: 1, wave: 1, lift: 0, drop: 0 },
+    edm: { drop: 12, lift: 1, bloom: 0, wave: 0, ebb: 0 },
+    acoustic: { wave: 8, bloom: 2, lift: 1, ebb: 1, drop: 0 },
+    cinematic: { drop: 12, bloom: 1, lift: 1, ebb: 0, wave: 0 },
+    modernrock: { lift: 10, bloom: 2, wave: 1, ebb: 0, drop: 0 },
+    dawn: { bloom: 10, ebb: 1, wave: 1, lift: 0, drop: 0 },
+    nitelofi: { ebb: 10, bloom: 1, wave: 1, lift: 0, drop: 0 },
+    citypop: { lift: 8, wave: 2, bloom: 1, drop: 0, ebb: 0 },
+    trap: { drop: 10, ebb: 1, wave: 1, lift: 1, bloom: 0 },
+    house: { wave: 10, ebb: 2, bloom: 0, lift: 0, drop: 0 },
+    bossa: { wave: 5, bloom: 3, ebb: 2, lift: 1, drop: 0 },
+    reggaeton: { lift: 5, drop: 4, wave: 2, bloom: 1, ebb: 0 },
+  }[genre] || { bloom: 3, lift: 3, wave: 2, drop: 2, ebb: 2 };
+  const arcId = pickWeightedId(arcWeights, seed, 0xA4C);
+  const textureWeights = {
+    lofi: { stab: 6, arp: 2, pad: 1, strum: 1 },
+    pop: { stab: 6, arp: 3, strum: 1, pad: 0 },
+    rnb: { pad: 7, stab: 2, arp: 0, strum: 0 },
+    ambient: { pad: 8, arp: 0, strum: 0, stab: 0 },
+    ballad: { pad: 8, arp: 0, strum: 0, stab: 0 },
+    edm: { stab: 6, arp: 2, pad: 1, strum: 0 },
+    acoustic: { strum: 8, arp: 1, pad: 0, stab: 0 },
+    cinematic: { pad: 5, stab: 4, arp: 0, strum: 0 },
+    modernrock: { arp: 7, strum: 2, pad: 1, stab: 0 },
+    dawn: { arp: 7, pad: 2, strum: 0, stab: 0 },
+    nitelofi: { pad: 8, arp: 1, strum: 0, stab: 0 },
+    citypop: { stab: 10, arp: 1, pad: 1, strum: 0 },
+    trap: { stab: 6, pad: 2, arp: 1, strum: 0 },
+    house: { stab: 8, arp: 0, pad: 0, strum: 0 },
+    bossa: { strum: 4, stab: 3, arp: 1, pad: 1 },
+    reggaeton: { stab: 6, arp: 2, pad: 1, strum: 0 },
+  }[genre] || { pad: 3, stab: 2, arp: 2, strum: 2 };
+  const texture = pickWeightedId(textureWeights, seed, 0x71);
+  const bassWeights = {
+    lofi: { sync: 6, root: 2, pulse: 1, walk: 1 },
+    pop: { pulse: 6, root: 2, sync: 1, walk: 0 },
+    rnb: { sync: 8, root: 1, walk: 0, pulse: 0 },
+    ambient: { root: 8, walk: 0, sync: 0, pulse: 0 },
+    ballad: { root: 8, sync: 0, walk: 0, pulse: 0 },
+    edm: { pulse: 8, sync: 0, root: 0, walk: 0 },
+    acoustic: { walk: 6, root: 2, sync: 1, pulse: 0 },
+    cinematic: { root: 8, walk: 0, sync: 0, pulse: 0 },
+    modernrock: { root: 6, sync: 2, walk: 1, pulse: 0 },
+    dawn: { root: 7, sync: 1, walk: 0, pulse: 0 },
+    nitelofi: { root: 7, sync: 1, pulse: 0, walk: 0 },
+    citypop: { sync: 5, walk: 3, root: 1, pulse: 0 },
+    trap: { pulse: 5, root: 3, sync: 1, walk: 0 },
+    house: { sync: 8, pulse: 0, root: 0, walk: 0 },
+    bossa: { sync: 6, root: 2, walk: 1, pulse: 0 },
+    reggaeton: { sync: 6, pulse: 2, root: 1, walk: 0 },
+  }[genre] || { root: 3, sync: 2, pulse: 2, walk: 2 };
+  const bass = pickWeightedId(bassWeights, seed, 0xBACE);
+  const introWeights = ['ambient', 'cinematic', 'dawn'].includes(genre)
+    ? { space: 4, chords: 3, melody: 2, bass: 2, pulse: 1 }
+    : ['edm', 'house'].includes(genre) && family === 'build'
+      ? { pulse: 4, chords: 2, melody: 2, bass: 2, space: 1 }
+      : { chords: 3, melody: 3, pulse: 2, bass: 2, space: 2 };
+  const outroWeights = ['ambient', 'cinematic', 'dawn', 'ballad'].includes(genre)
+    ? { hold: 4, thin: 3, cadence: 2, tag: 2 }
+    : { cadence: 3, tag: 3, hold: 2, thin: 2 };
+  const intro = pickWeightedId(introWeights, seed, 0x111);
+  const outro = pickWeightedId(outroWeights, seed, 0x222);
+  const steady = ['modernrock', 'bossa', 'house', 'trap', 'edm', 'reggaeton', 'citypop', 'pop'].includes(genre);
+  const hold = !classic && !steady && mix(seed, 0x401) % 3 !== 0 ? 2 : 1;
+  let modulation = null;
+  if (!classic && seed !== 42 && seed !== 99 && bars >= 16 && scaleName !== 'pentatonic' && scaleName !== 'dorian' && mix(seed, 0xB0D) % 5 !== 0) {
+    if (scaleName === 'minor') {
+      modulation = allowChromatic && mix(seed, 0xB0E) % 3 === 0
+        ? { semi: 7, scale: 'major', ko: '브리지에서 딸림조', en: 'bridge to the dominant' }
+        : { semi: 3, scale: 'major', ko: '브리지에서 관계장조', en: 'bridge to the relative major' };
+    } else if (allowChromatic && mix(seed, 0xB0E) % 4 === 0) modulation = { semi: 5, scale: 'major', ko: '브리지에서 버금딸림조', en: 'bridge to the subdominant' };
+    else if (allowChromatic && mix(seed, 0xB0E) % 4 === 1) modulation = { semi: 7, scale: 'major', ko: '브리지에서 딸림조', en: 'bridge to the dominant' };
+    else modulation = { semi: 9, scale: 'minor', ko: '브리지에서 관계단조', en: 'bridge to the relative minor' };
+  }
+  const bridgePool = [['1', '4', '0', '5'], ['3', '4', '0', '3'], ['5', '1', '4', '0'], ['0', '3', '4', '0']];
+  const bridge = bridgePool[mix(seed, 0xB41) % bridgePool.length];
+  let color = null;
+  let colorAt = -1;
+  if (genre === 'modernrock' && allowChromatic && bars >= 8 && (mix(seed, 0xC010) % 2 === 0 || seed % 5 === 2)) {
+    const scale = SCALE_SETS[scaleName] || SCALE;
+    const shapes = ROCK_COLORS.filter(shape => colorFits(scale, shape));
+    if (shapes.length) {
+      color = shapes[mix(seed, 0xB17) % shapes.length];
+      colorAt = 4 + (mix(seed, 0xB0) % Math.max(1, bars - 5));
+    }
+  }
+  let motif = MOTIFS[mix(seed, 0x33C + salt) % MOTIFS.length].slice();
+  const motifFlip = mix(seed, 0x341 + salt) % 3;
+  if (motifFlip === 1) motif = motif.map((step, index) => (index ? -step : step));
+  else if (motifFlip === 2) motif = motif.slice().reverse();
+  if (genre === 'house' || genre === 'ambient') motif = motif.slice(0, 3);
+  const motifRegister = (mix(seed, 0x33D + salt) % 5) - 1;
+  const motifLift = genre === 'house' ? [0, 1, 2, 2][mix(seed, 0x33E + salt) % 4]
+    : genre === 'edm' ? [3, 5, 5, 7][mix(seed, 0x33E + salt) % 4]
+      : [2, 3, 5, 7][mix(seed, 0x33E + salt) % 4];
+  const motifAccent = 1 + (mix(seed, 0x33F + salt) % Math.max(1, motif.length - 1));
+  const displace = [0, 0.25, 0.5, 0.75][mix(seed, 0xD15) % 4];
+  const pool = GENRE_TIMBRE[genre];
+  const timbre = pool ? pool[mix(seed, 0x77) % pool.length] : TIMBRES[mix(seed, 0x77) % TIMBRES.length];
+  const swing = conceptSwing(genre, feel.swing, seed);
+  const progression = row.p.slice(0, 8).map(tokenRoman).join('–');
+  const form = FORM_KO[family] || '벌스-후렴';
+  const summary = [form, progression, feel.ko, modulation ? modulation.ko : ''].filter(Boolean).join(' · ');
+  const prompt = `Form: ${FORM_EN[family] || family}. Progression: ${progression.replace(/–/g, '-')}. Feel: ${feel.ko}. Arc: ${ARC_BOOK[arcId].en}. Intro: ${intro}. Outro: ${outro}.${modulation ? ` ${modulation.en}.` : ''}`;
+  return {
+    family, form, progression, p: row.p, alt: row.alt, hold, bridge, modulation, color, colorAt,
+    feel: feel.ko, groove: feel, rhythm, rhythmBusy: busyRhythm(rhythm), rhythmSparse: sparseRhythm(rhythm),
+    arc: ARC_BOOK[arcId], arcId, texture, bass, intro, outro, motif, motifRegister, motifLift, motifAccent, displace, swing, timbre, classic,
+    summary, prompt,
+    signature: [family, row.p.join(' '), feel.ko, texture, bass, arcId, intro, outro, hold, motif.join(','), motifRegister, motifLift].join('|'),
+  };
+}
+
+function tokenAt(bar, role, concept) {
+  if (role === 'bridge' && concept.bridge) return concept.bridge[Math.max(0, bar) % concept.bridge.length];
+  const step = concept.hold === 2 && role !== 'chorus' && role !== 'pre' ? 2 : 1;
+  const cursor = Math.floor(Math.max(0, bar) / step);
+  const span = concept.p.length;
+  const cycle = concept.alt ? span * 2 : span;
+  const pos = cursor % cycle;
+  const seq = concept.alt && pos >= span ? concept.alt : concept.p;
+  return seq[pos % seq.length];
+}
+
+function shapeEnergy(arc, role, barInSection, spanBars, cues) {
+  const base = arc[role] ?? arc.verse ?? 0.75;
+  const ramp = spanBars > 1 ? barInSection / (spanBars - 1) : 1;
+  let shape = 0.94 + ramp * 0.06;
+  if (arc.shape === 'swell') shape = 0.84 + ramp * 0.16;
+  else if (arc.shape === 'late') shape = ramp < 0.55 ? 0.8 : 0.8 + (ramp - 0.55) * 0.44;
+  else if (arc.shape === 'peak') shape = 0.78 + Math.sin(ramp * Math.PI) * 0.22;
+  let energy = base * shape;
+  if (cues.wantLift && role === 'chorus') energy += 0.05;
+  if (cues.wantSpace) energy *= 0.9;
+  return clamp(energy, 0.22, 1);
+}
+
+function developShape(motif, role, occurrence, family, barInSection) {
+  let kind = 'prime';
+  let shift = 0;
+  if (role === 'intro') kind = 'fragment';
+  else if (role === 'pre') { kind = 'sequence'; shift = 1 + (barInSection % 2); }
+  else if (role === 'chorus') { kind = barInSection % 2 ? 'expand' : 'prime'; shift = 2; }
+  else if (role === 'bridge') kind = occurrence % 2 ? 'invert' : 'retrograde';
+  else if (role === 'outro') kind = 'retrograde';
+  else if (role === 'verse') {
+    if (family === 'through') { kind = 'sequence'; shift = occurrence; }
+    else if (occurrence === 2) { kind = 'sequence'; shift = 1; }
+    else if (barInSection % 2 === 1) { kind = 'sequence'; shift = 1; }
+  }
+  let shape = motif.slice();
+  if (kind === 'invert') shape = shape.map((step, index) => (index ? -step : step));
+  else if (kind === 'retrograde') shape = shape.slice().reverse();
+  else if (kind === 'expand') shape = shape.map((step, index) => (index ? step + Math.sign(step || 1) : step));
+  else if (kind === 'fragment') shape = shape.slice(0, Math.max(2, Math.ceil(shape.length / 2)));
+  if (kind === 'sequence') shape = shape.map(step => step + shift);
+  return shape;
+}
+
+function layerGate(role, mode, barInSection, spanBars, layer) {
+  if (role === 'intro') {
+    if (mode === 'space') return layer === 'chords' || (layer === 'bass' && barInSection >= spanBars - 1);
+    if (mode === 'chords') return layer !== 'melody' || barInSection >= spanBars - 1;
+    if (mode === 'melody') return layer !== 'drums' || barInSection > 0;
+    if (mode === 'bass') return layer !== 'chords' || barInSection >= spanBars - 1;
+    return true;
+  }
+  if (role === 'outro') {
+    if ((mode === 'thin' || mode === 'cadence') && layer === 'drums') return false;
+    if (mode === 'hold' && layer === 'melody' && barInSection > 0) return false;
+    return true;
+  }
+  return true;
+}
+
+function coarseContour(motif) {
+  const end = motif[motif.length - 1];
+  const peak = Math.max(...motif);
+  if (peak > 1 && end < peak && end >= 0) return 'arch';
+  if (end > 1) return 'rise';
+  if (end < 0) return 'fall';
+  return motif.some((step, index) => index && step < motif[index - 1]) ? 'wave' : 'neighbor';
+}
+
+function composeConcept(input = {}) {
+  const settings = normalizeSettings(input);
+  const { genre, mood, bpm, bars, seed, instruments } = settings;
+  const random = seededRandom(seed);
+  const profile = PROFILES[genre];
+  const scaleName = settings.scale;
+  const activeScale = SCALE_SETS[scaleName];
+  const key = KEYS[settings.key];
+  const beatSeconds = 60 / bpm;
+  const events = [];
+  const chords = [];
+  const cues = arrangementCues(input);
+  const structure = planStructure(bars, genre, mood, seed, cues);
+  const spans = sectionSpans(structure);
+  const concept = planConcept(genre, mood, scaleName, seed, bars, structure);
+  const style = profile.harmony;
+  let previousVoicing;
+  let lastMelody = 72 + key;
+
+  function add(instrument, beat, length, midi, velocity, humanize = true, extra) {
+    const driftScale = instrument === 'melody' ? 0.02 : instrument === 'chords' ? 0.008 : 0.012;
+    const drift = humanize && genre !== 'ambient' && genre !== 'cinematic' ? (random() - 0.5) * driftScale : 0;
+    const time = Math.max(0, beat * beatSeconds + drift);
+    const duration = Math.min(length * beatSeconds, bars * 4 * beatSeconds - time);
+    if (duration <= 0 || !Number.isInteger(midi)) return;
+    const feel = 0.9 + random() * 0.18;
+    const event = { instrument, time: round(time), duration: round(duration), midi, velocity: round(clamp(velocity * feel, 0.1, 0.95)) };
+    if (extra) {
+      event.vowelFrom = round(clamp(extra.vowelFrom, 0, 1));
+      event.vowelTo = round(clamp(extra.vowelTo, 0, 1));
+    }
+    events.push(event);
+  }
+
+  const humRandom = seededRandom(mix(seed, 0xBEE5));
+  function addHum(beat, length, midi, velocity, extra) {
+    const drift = (humRandom() - 0.5) * 0.012;
+    const time = Math.max(0, beat * beatSeconds + drift);
+    const duration = Math.min(length * beatSeconds, bars * 4 * beatSeconds - time);
+    const feel = 0.92 + humRandom() * 0.12;
+    if (duration <= 0 || !Number.isInteger(midi)) return;
+    events.push({
+      instrument: 'hum', time: round(time), duration: round(duration), midi,
+      velocity: round(clamp(velocity * feel, 0.08, 0.72)),
+      vowelFrom: round(clamp(extra.vowelFrom, 0, 1)),
+      vowelTo: round(clamp(extra.vowelTo, 0, 1)),
+    });
+  }
+
+  function scaleStep(midi, direction = 1) {
+    const step = direction < 0 ? -1 : 1;
+    for (let note = midi + step; note >= 36 && note <= 96; note += step) {
+      if (pitchInScale(note, key, activeScale)) return note;
+    }
+    let best = null;
+    for (let note = 48; note <= 96; note++) {
+      if (!pitchInScale(note, key, activeScale)) continue;
+      if (best === null || Math.abs(note - midi) < Math.abs(best - midi)) best = note;
+    }
+    return best ?? midi;
+  }
+
+  function walk(midi, steps) {
+    let note = midi;
+    const dir = steps < 0 ? -1 : 1;
+    for (let index = 0; index < Math.abs(steps); index++) note = scaleStep(note, dir);
+    while (note > 88) note -= 12;
+    while (note < 60) note += 12;
+    return note;
+  }
+
+  function writeChords(texture, voicing, beat, energy, role, finalBar) {
+    const fuller = role === 'chorus' || role === 'pre';
+    const pad = (level = 0.5) => voicing.forEach((midi, index) => add('chords', beat + index * 0.018, finalBar ? 3.7 : 3.85, midi, energy * level));
+    if (genre === 'house') {
+      pad(role === 'intro' || role === 'outro' || finalBar ? 0.34 : 0.18);
+      if (!finalBar && role !== 'intro') [0.5, 1.5, 2.5, 3.5].forEach(position => voicing.forEach((midi, index) => add('chords', beat + position + index * 0.01, 0.46, midi, energy * 0.32)));
+      return;
+    }
+    if (genre === 'edm') {
+      if (role === 'chorus') {
+        [0, 2].forEach(position => voicing.forEach((midi, index) => {
+          const tone = midi + 12 <= 88 ? midi + 12 : midi;
+          add('chords', beat + position + index * 0.008, 0.62, index ? tone : midi, energy * 0.5);
+        }));
+      } else if (role === 'pre') {
+        [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5].forEach((position, index) => add('chords', beat + position, 0.22, voicing[index % voicing.length], energy * (0.28 + index * 0.03)));
+      } else pad(role === 'verse' ? 0.36 : 0.42);
+      return;
+    }
+    if (genre === 'cinematic' && (texture === 'stab' || role === 'chorus') && !finalBar) {
+      pad(0.4);
+      voicing.forEach((midi, index) => add('chords', beat + index * 0.02, 1.4, Math.max(40, midi - 12), energy * 0.55));
+      return;
+    }
+    if (genre === 'modernrock') {
+      pad(fuller ? 0.48 : 0.3);
+      if (!finalBar && role !== 'intro' && role !== 'outro') {
+        const steps = fuller ? [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5] : texture === 'strum' ? [0, 1.5, 3] : [0, 1, 2.5, 3];
+        steps.forEach((position, index) => {
+          const tone = voicing[index % voicing.length];
+          add('chords', beat + position, fuller ? 0.34 : 0.48, tone + 12 <= 86 ? tone + 12 : tone, energy * (fuller ? 0.36 : 0.2));
+        });
+      }
+      return;
+    }
+    if (finalBar || role === 'outro' || role === 'intro' || texture === 'pad') {
+      pad(genre === 'ambient' || genre === 'cinematic' || genre === 'dawn' ? 0.56 : 0.5);
+      if (role === 'chorus' && !finalBar) {
+        const top = voicing.at(-1) + 12;
+        if (top <= 88) add('chords', beat + 0.45, 2.5, top, energy * 0.2);
+      }
+      return;
+    }
+    if (genre === 'house' && texture === 'stab') {
+      [0.5, 1.5, 2.5, 3.5].forEach(position => voicing.forEach((midi, index) => add('chords', beat + position + index * 0.008, 0.28, midi, energy * 0.42)));
+      return;
+    }
+    if (genre === 'bossa' && texture !== 'pad') {
+      const comps = texture === 'arp' ? [0, 1, 1.5, 2.5, 3.5] : texture === 'strum' ? [0, 0.75, 2, 2.75, 3.5] : [0, 1.5, 2.5, 3.5];
+      comps.forEach((position, index) => {
+        if (texture === 'arp') add('chords', beat + position, 0.38, voicing[index % voicing.length], energy * 0.4);
+        else voicing.forEach((midi, voice) => add('chords', beat + position + voice * 0.012, 0.36, midi, energy * 0.38));
+      });
+      return;
+    }
+    if (texture === 'arp') {
+      const steps = genre === 'edm' || genre === 'house' ? [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5] : [0, 0.75, 1.5, 2.25, 3];
+      steps.forEach((position, index) => add('chords', beat + position, genre === 'edm' ? 0.3 : 0.5, voicing[index % voicing.length], energy * 0.44));
+      return;
+    }
+    if (texture === 'stab') {
+      const hits = genre === 'edm' ? [0, 1, 2, 3] : [0, 1.5, 2.75];
+      hits.forEach(position => voicing.forEach((midi, index) => add('chords', beat + position + index * 0.016, 0.42, midi, energy * 0.46)));
+      return;
+    }
+    [0, 2].forEach(position => voicing.forEach((midi, index) => add('chords', beat + position + index * 0.04, 1.2, midi, energy * 0.42)));
+  }
+
+  function writeBass(kind, chord, beat, energy, role, finalBar) {
+    const root = 36 + chord.root;
+    const fifthPc = (chord.root + 7) % 12;
+    const fifth = pitchInScale(fifthPc, key, activeScale) ? 36 + fifthPc : root + 12;
+    const upper = root + 12 <= 60 ? root + 12 : root;
+    const fuller = role === 'chorus' || role === 'pre';
+    if (finalBar || role === 'outro') { add('bass', beat, 3.5, root, 0.62 * energy); return; }
+    if (genre === 'trap') {
+      add('bass', beat, kind === 'pulse' ? 1.4 : 3.1, root, 0.78 * energy, false);
+      if (kind === 'pulse' || kind === 'sync') add('bass', beat + 2, 1.1, root, 0.55 * energy, false);
+      if (kind === 'walk' || kind === 'sync') add('bass', beat + 3.25, 0.4, upper, 0.44 * energy, false);
+      return;
+    }
+    if (genre === 'bossa') {
+      add('bass', beat, 0.8, root, 0.58 * energy);
+      add('bass', beat + (kind === 'sync' ? 1.5 : 2), 0.7, fifth <= 55 ? fifth : root, 0.46 * energy);
+      if (kind === 'walk' || kind === 'pulse') add('bass', beat + 3.5, 0.32, upper, 0.36 * energy);
+      return;
+    }
+    if (genre === 'reggaeton') {
+      add('bass', beat, 0.62, root, 0.72 * energy, false);
+      add('bass', beat + (kind === 'sync' ? 1.75 : 1.5), 0.48, root, 0.54 * energy, false);
+      add('bass', beat + 2.5, 0.52, kind === 'walk' ? upper : root, 0.6 * energy, false);
+      return;
+    }
+    if (genre === 'citypop') {
+      add('bass', beat, 0.36, root, 0.62 * energy);
+      add('bass', beat + 0.75, 0.26, upper, 0.38 * energy);
+      add('bass', beat + (kind === 'sync' ? 1.75 : 2), 0.4, fifth <= 55 ? fifth : root, 0.5 * energy);
+      if (kind !== 'root') add('bass', beat + 3.5, 0.26, upper, 0.36 * energy);
+      return;
+    }
+    if (genre === 'house') {
+      add('bass', beat, 0.42, root, 0.62 * energy, false);
+      add('bass', beat + 0.75, 0.32, upper, 0.4 * energy, false);
+      add('bass', beat + 1.75, 0.4, fifth <= 55 ? fifth : root, 0.5 * energy, false);
+      add('bass', beat + 2.5, 0.34, root, 0.46 * energy, false);
+      add('bass', beat + 3.5, 0.24, upper, 0.34 * energy, false);
+      return;
+    }
+    if (genre === 'edm') {
+      if (role === 'chorus') {
+        add('bass', beat, 1.85, root, 0.84 * energy, false);
+        add('bass', beat + 2, 1.7, root, 0.8 * energy, false);
+      } else if (role === 'pre') {
+        [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5].forEach((position, index) => add('bass', beat + position, 0.18, root, energy * (0.28 + index * 0.05), false));
+      } else add('bass', beat, 1.5, root, 0.42 * energy, false);
+      return;
+    }
+    if (kind === 'pulse') {
+      [0, 0.75, 1.5, 2.5, 3.25].forEach((position, index) => add('bass', beat + position, index === 4 ? 0.46 : 0.34, index === 3 ? upper : root, energy * (index % 2 ? 0.56 : 0.7), genre !== 'edm'));
+      return;
+    }
+    if (kind === 'sync') {
+      add('bass', beat, 1.15, root, 0.66 * energy);
+      add('bass', beat + (genre === 'rnb' ? 1.75 : 1.5), 1, root, 0.54 * energy);
+      add('bass', beat + 3.25, 0.48, fifth <= 60 ? fifth : root, 0.4 * energy);
+      return;
+    }
+    if (kind === 'walk') {
+      const passing = scaleStep(root + 2, 1);
+      add('bass', beat, 0.8, root, 0.64 * energy);
+      add('bass', beat + 1, 0.75, passing <= 60 ? passing : root, 0.48 * energy);
+      add('bass', beat + 2, 0.8, fifth <= 60 ? fifth : upper, 0.56 * energy);
+      add('bass', beat + 3, 0.65, upper, 0.46 * energy);
+      return;
+    }
+    if (genre === 'cinematic' || genre === 'dawn') {
+      add('bass', beat, 3.5, root, 0.6 * energy);
+      if (genre === 'dawn' && fuller) add('bass', beat + 2.5, 0.75, upper, 0.32 * energy);
+      return;
+    }
+    add('bass', beat, genre === 'ambient' ? 3.6 : 1.5, root, 0.66 * energy);
+    if (genre !== 'ambient') add('bass', beat + (genre === 'rnb' ? 1.75 : 2), 1.15, root, 0.55 * energy);
+  }
+
+  function writePattern(pattern, beat, energy, swing, role, thin, sectionEnd) {
+    pattern.kick.forEach((position, index) => {
+      if (thin && index > 0 && genre !== 'house') return;
+      add('kick', beat + position, 0.24, 36, energy * (index === 0 ? 0.68 : 0.46));
+    });
+    if (!thin) pattern.snare.forEach((position, index) => add('snare', beat + position, 0.14, position % 1 ? 37 : 38, energy * (index ? 0.32 : 0.44)));
+    const hats = thin ? pattern.hat.filter((_, index) => index % 2 === 0) : pattern.hat;
+    hats.forEach(position => {
+      const off = Math.abs((position % 1) - 0.5) < 0.02;
+      const sixteenth = Math.abs((position * 4) % 2 - 1) < 0.08;
+      const shuffle = genre === 'house' ? (sixteenth ? swing : 0) : (off ? swing : 0);
+      add('hat', beat + position + shuffle, position % 0.25 ? 0.03 : 0.05, 42, energy * 0.16);
+    });
+    if ((!thin || genre === 'house' || genre === 'reggaeton') && pattern.open) pattern.open.forEach(position => add('hat', beat + position, 0.11, 46, energy * 0.18));
+    if (sectionEnd && !thin && role !== 'outro' && genre !== 'ambient' && genre !== 'dawn') {
+      [3.5, 3.75].forEach((position, index) => add('snare', beat + position, 0.08, 38, energy * (0.14 + index * 0.05)));
+    }
+  }
+
+  for (let bar = 0; bar < bars; bar++) {
+    const finalBar = bar === bars - 1;
+    const span = spans.find(section => bar >= section.start && bar < section.start + section.bars) || spans.at(-1);
+    const role = span.role;
+    const barInSection = bar - span.start;
+    const sectionEnd = bar === span.start + span.bars - 1;
+    const fuller = role === 'chorus' || role === 'pre';
+    const local = concept.modulation && role === 'bridge' && !finalBar ? concept.modulation : null;
+    const localKey = local ? (key + local.semi) % 12 : key;
+    const localScale = local ? local.scale : scaleName;
+    const homeToken = concept.p[0];
+    const useColor = concept.color && bar === concept.colorAt && !finalBar;
+    const token = finalBar ? homeToken : tokenAt(bar, role, concept);
+    const chord = useColor
+      ? { root: (key + concept.color.offset) % 12, degree: -1, intervals: concept.color.intervals, name: NOTE_NAMES[(key + concept.color.offset) % 12] + concept.color.suffix }
+      : spellToken(token, finalBar ? key : localKey, finalBar ? scaleName : localScale, finalBar, style);
+    if (finalBar) {
+      const home = spellToken(homeToken, key, scaleName, false, style);
+      chord.root = home.root;
+      if (!String(homeToken).slice(1) && scaleName === 'major' && Number(homeToken[0]) < 6) {
+        const closed = chordForDegree(Number(homeToken[0]), key, true, style);
+        chord.intervals = closed.intervals;
+        chord.name = closed.name;
+        chord.root = closed.root;
+      }
+    }
+    const voicing = voiceChord(chord, previousVoicing);
+    previousVoicing = voicing;
+    const beat = bar * 4;
+    chords.push({ ...chord, bar, notes: voicing, time: round(beat * beatSeconds), duration: round(4 * beatSeconds) });
+    let energy = shapeEnergy(concept.arc, role, barInSection, span.bars, cues);
+    if (genre === 'house') energy = 0.7 + (energy - 0.7) * 0.2;
+    if (genre === 'ambient' || genre === 'nitelofi') energy = 0.48 + (energy - 0.48) * 0.25;
+    if (genre === 'ballad') energy = 0.52 + (energy - 0.52) * 0.35;
+    if (genre === 'edm') {
+      if (role === 'intro' || role === 'verse' || role === 'bridge') energy *= 0.58;
+      if (role === 'pre') energy = Math.min(1, 0.55 + barInSection * 0.12);
+      if (role === 'chorus') energy = Math.min(1, energy + 0.2);
+    }
+    if (genre === 'cinematic') {
+      if (role === 'intro' || role === 'verse') energy *= 0.62;
+      if (role === 'chorus') energy = Math.min(1, energy + 0.22);
+    }
+    if (genre === 'modernrock' && role === 'chorus') energy = Math.min(1, energy + 0.08);
+    const texture = (finalBar || role === 'outro' || (role === 'intro' && (concept.intro === 'space' || concept.intro === 'chords'))) ? 'pad'
+      : (genre === 'ambient' || genre === 'dawn') && concept.texture === 'stab' ? 'pad'
+        : concept.texture;
+    if (layerGate(role, concept.intro, barInSection, span.bars, 'chords') || role !== 'intro') writeChords(texture, voicing, beat, energy, role, finalBar);
+    if (layerGate(role, role === 'outro' ? concept.outro : concept.intro, barInSection, span.bars, 'bass') || (role !== 'intro' && role !== 'outro')) writeBass(concept.bass, chord, beat, energy, role, finalBar);
+
+    if (finalBar) {
+      const resolving = nearestPitch(chord.root, lastMelody, 64, 84);
+      add('melody', beat + 0.05, 3.1, resolving, 0.68);
+      lastMelody = resolving;
+    } else if (layerGate(role, concept.intro, barInSection, span.bars, 'melody')) {
+      const center = (ROLE_CENTER[role] || 74) + (role === 'chorus' ? 2 : 0);
+      const inKey = [chord.root, ...chord.intervals.map(interval => (chord.root + interval) % 12)].filter(pc => pitchInScale(pc, key, activeScale));
+      const anchor = nearestPitch(inKey.length ? inKey[0] : key, center, 64, 84);
+      const shape = developShape(concept.motif, role, span.occurrence || 1, concept.family, barInSection);
+      let rhythm = role === 'chorus' || role === 'pre' ? concept.rhythmBusy : role === 'intro' || role === 'outro' ? concept.rhythmSparse : concept.rhythm.slice();
+      if (genre === 'house') rhythm = concept.rhythmSparse.slice(0, 3);
+      if (genre === 'ambient') rhythm = concept.rhythmSparse.slice(0, 2);
+      if (genre === 'ballad') rhythm = concept.rhythmSparse.slice(0, 2);
+      if (genre === 'edm' && role === 'chorus') rhythm = concept.rhythmBusy;
+      const shift = (role === 'bridge' || (role === 'verse' && (span.occurrence || 1) === 2) || (role === 'pre' && barInSection % 2 === 1)) ? concept.displace : 0;
+      if (shift) {
+        const moved = rhythm.map(step => Math.round((step + shift) * 4) / 4).filter(step => step >= 0 && step < 3.9);
+        if (moved.length >= 2) rhythm = moved;
+      }
+      const count = Math.min(8, Math.max(shape.length, rhythm.length));
+      let cursor = anchor;
+      for (let index = 0; index < count; index++) {
+        const at = index % shape.length;
+        let degree = shape[at];
+        if (at === concept.motifAccent) degree += concept.motifLift;
+        if (index === 0) cursor = walk(anchor, degree + concept.motifRegister);
+        else {
+          const prevAt = (index - 1) % shape.length;
+          let previous = shape[prevAt];
+          if (prevAt === concept.motifAccent) previous += concept.motifLift;
+          cursor = walk(cursor, degree - previous);
+        }
+        const position = rhythm[index % rhythm.length];
+        if ((role === 'intro' || role === 'outro') && position > 2.8 && index > 0) continue;
+        const next = rhythm[(index + 1) % rhythm.length];
+        const spanLength = next > position ? next - position : 4 - position;
+        const length = Math.min(profile.length * (index === 0 ? 1.12 : 0.9), Math.max(0.2, spanLength - 0.08));
+        const swung = Math.abs((position % 1) - 0.5) < 0.02 ? concept.swing : 0;
+        add('melody', beat + position + swung, Math.max(0.18, length), cursor, energy * (index === 0 ? 0.72 : 0.56));
+        lastMelody = cursor;
+      }
+    }
+
+    if (!finalBar) {
+      const playDrums = layerGate(role, role === 'outro' ? concept.outro : concept.intro, barInSection, span.bars, 'drums');
+      if (seed === 3) {
+        const intro = bars > 8 && bar < 2;
+        const drumEnergy = genre === 'modernrock' || genre === 'dawn' || genre === 'nitelofi' || genre === 'ballad' || genre === 'ambient' || genre === 'cinematic' ? 0.55 : 0.9;
+        const plan = { swing: concept.swing };
+        if (genre === 'ambient') {
+          if (bar % 2 === 0) add('kick', beat, 0.3, 36, 0.27);
+          [1.5, 3.5].forEach(position => add('hat', beat + position, 0.09, 42, 0.17));
+        } else if (genre === 'ballad') {
+          add('kick', beat, 0.32, 36, drumEnergy * 0.48);
+          if (!intro) add('snare', beat + 2, 0.2, 38, drumEnergy * 0.32);
+          [0, 2].forEach(position => add('hat', beat + position, 0.08, 42, drumEnergy * 0.16));
+        } else if (genre === 'modernrock') {
+          add('kick', beat, 0.3, 36, drumEnergy * (fuller ? 0.5 : 0.34));
+          if (fuller) add('kick', beat + 2.5, 0.24, 36, drumEnergy * 0.3);
+          if (!intro && role !== 'intro') add('snare', beat + 2, 0.16, 38, drumEnergy * (fuller ? 0.36 : 0.18));
+          const hats = fuller ? [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5] : [0, 1, 2, 3];
+          hats.forEach(position => add('hat', beat + position + (position % 1 ? plan.swing : 0), 0.05, 42, drumEnergy * (fuller ? 0.15 : 0.09)));
+        } else if (genre === 'dawn') {
+          add('kick', beat, 0.36, 36, drumEnergy * 0.28);
+          if (fuller && !intro) add('snare', beat + 2, 0.14, 38, drumEnergy * 0.15);
+          add('hat', beat + 2, 0.08, 42, drumEnergy * 0.09);
+          if (fuller) add('hat', beat, 0.06, 42, drumEnergy * 0.07);
+        } else if (genre === 'nitelofi') {
+          [0, 2.25].forEach((position, index) => add('kick', beat + position, 0.28, 36, drumEnergy * (index === 0 ? 0.46 : 0.32)));
+          if (!intro) [1, 3].forEach(position => add('snare', beat + position + 0.03, 0.16, 38, drumEnergy * 0.26));
+          [0.5, 1.5, 2.5, 3.5].forEach(position => add('hat', beat + position + plan.swing, 0.05, 42, drumEnergy * 0.12));
+        } else if (genre === 'edm') {
+          [0, 1, 2, 3].forEach((position, index) => add('kick', beat + position, 0.22, 36, drumEnergy * (index % 2 ? 0.62 : 0.78)));
+          if (!intro) [1, 3].forEach(position => add('snare', beat + position, 0.16, 38, drumEnergy * 0.5));
+          for (let index = 0; index < 8; index++) add('hat', beat + index * 0.5, 0.05, 42, drumEnergy * (index % 2 ? 0.28 : 0.16));
+        } else if (genre === 'acoustic') {
+          [0, 2].forEach((position, index) => add('kick', beat + position, 0.2, 36, drumEnergy * (index === 0 ? 0.4 : 0.28)));
+          if (!intro) [1, 3].forEach(position => add('snare', beat + position, 0.12, 38, drumEnergy * 0.22));
+          [0.5, 1.5, 2.5, 3.5].forEach(position => add('hat', beat + position, 0.05, 42, drumEnergy * 0.14));
+        } else if (genre === 'cinematic') {
+          add('kick', beat, 0.4, 36, drumEnergy * (bar % 4 === 0 ? 0.62 : 0.34));
+          if (!intro && bar % 4 === 3) add('snare', beat + 2, 0.24, 38, drumEnergy * 0.3);
+          add('hat', beat + 2, 0.1, 42, drumEnergy * 0.12);
+        } else if (genre === 'citypop') {
+          [0, 2].forEach((position, index) => add('kick', beat + position, 0.22, 36, drumEnergy * (index === 0 ? 0.7 : 0.48)));
+          if (!intro) add('kick', beat + 0.75, 0.16, 36, drumEnergy * 0.32);
+          if (!intro) [1, 3].forEach(position => add('snare', beat + position, 0.14, 38, drumEnergy * 0.44));
+          for (let index = 0; index < 8; index++) {
+            if (intro && index % 2) continue;
+            add('hat', beat + index * 0.5 + (index % 2 ? plan.swing : 0), 0.05, 42, drumEnergy * (index % 2 ? 0.16 : 0.26));
+          }
+        } else if (genre === 'trap') {
+          add('kick', beat, 0.36, 36, drumEnergy * 0.82);
+          if (!intro && bar % 2 === 1) add('kick', beat + 2.75, 0.22, 36, drumEnergy * 0.42);
+          if (!intro) add('snare', beat + 2, 0.16, 38, drumEnergy * 0.56);
+          [0, 0.5, 1, 1.5, 2, 2.5].forEach((position, index) => {
+            if (intro && index % 2) return;
+            add('hat', beat + position, 0.04, 42, drumEnergy * 0.16);
+          });
+          if (!intro) [3, 3.125, 3.25, 3.375, 3.5, 3.625, 3.75, 3.875].forEach((position, index) => add('hat', beat + position, 0.03, 42, drumEnergy * (0.12 + index * 0.015)));
+        } else if (genre === 'house') {
+          [0, 1, 2, 3].forEach((position, index) => add('kick', beat + position, 0.2, 36, drumEnergy * (index % 2 ? 0.64 : 0.8)));
+          if (!intro) [1, 3].forEach(position => add('snare', beat + position, 0.14, 38, drumEnergy * 0.48));
+          [0, 1, 2, 3].forEach(position => add('hat', beat + position, 0.04, 42, drumEnergy * 0.12));
+          [0.5, 1.5, 2.5, 3.5].forEach(position => add('hat', beat + position, 0.12, 46, drumEnergy * 0.22));
+        } else if (genre === 'bossa') {
+          add('kick', beat, 0.2, 36, drumEnergy * 0.42);
+          if (!intro) add('kick', beat + 2.5, 0.16, 36, drumEnergy * 0.28);
+          if (!intro) [0.75, 1.5, 2.75, 3.5].forEach(position => add('snare', beat + position, 0.07, 37, drumEnergy * 0.2));
+          [0, 1, 2, 3].forEach(position => add('hat', beat + position, 0.04, 42, drumEnergy * 0.1));
+        } else if (genre === 'reggaeton') {
+          [0, 1.5, 2.5].forEach((position, index) => add('kick', beat + position, 0.22, 36, drumEnergy * (index === 0 ? 0.78 : 0.52)));
+          if (!intro) [0.75, 1.75, 2.75, 3.5].forEach((position, index) => add('snare', beat + position, 0.12, 38, drumEnergy * (index % 2 ? 0.4 : 0.32)));
+          for (let index = 0; index < 8; index++) add('hat', beat + index * 0.5, 0.045, 42, drumEnergy * 0.15);
+        } else {
+          const kicks = genre === 'pop' ? [0, 1, 2, 3] : genre === 'rnb' ? [0, 1.75, 2.5] : [0, 2.25];
+          kicks.forEach((position, index) => add('kick', beat + position, 0.29, 36, drumEnergy * (index === 0 ? 0.7 : 0.52)));
+          if (!intro || bar > 0) [1, 3].forEach(position => add('snare', beat + position + (genre === 'lofi' ? 0.035 : 0), 0.18, 38, drumEnergy * 0.46));
+          for (let index = 0; index < 8; index++) {
+            if (intro && index % 2) continue;
+            add('hat', beat + index * 0.5 + (index % 2 ? plan.swing : 0), 0.065, 42, drumEnergy * (index % 2 ? 0.21 : 0.31));
+          }
+          if (!intro && bar % 8 === 7) add('snare', beat + 3.75, 0.12, 38, 0.23);
+        }
+      } else if (playDrums) {
+        const thin = role === 'intro' && concept.intro !== 'pulse';
+        writePattern(concept.groove, beat, energy * (role === 'outro' ? 0.7 : 1), concept.swing, role, thin, sectionEnd);
+        if (genre === 'edm' && role === 'pre') [2, 2.5, 3, 3.25, 3.5, 3.75].forEach((position, index) => add('snare', beat + position, 0.06, 38, energy * (0.12 + index * 0.045)));
+      }
+    }
+
+    if (instruments.hum) {
+      const pcs = [];
+      const pushPc = pc => {
+        const normalized = ((pc % 12) + 12) % 12;
+        if (pitchInScale(normalized, key, activeScale) && !pcs.includes(normalized)) pcs.push(normalized);
+      };
+      pushPc(chord.root);
+      chord.intervals.forEach(interval => pushPc(chord.root + interval));
+      if (!pcs.length) pushPc(key);
+      const tilt = ((mix(seed, 0xA11 + bar) % 7) - 3) * 0.02;
+      const pair = role === 'chorus' || role === 'pre' ? [0.12, 0.9] : role === 'bridge' ? [0.72, 0.22] : bar % 2 ? [0.04, 0.42] : [0, 0.2];
+      const glide = { vowelFrom: clamp(pair[0] + tilt, 0, 1), vowelTo: clamp(pair[1] + tilt, 0, 1) };
+      const level = energy * (fuller ? 0.7 : role === 'intro' || role === 'outro' || finalBar ? 0.34 : 0.5);
+      const primary = nearestPitch(pcs[0], fuller ? 67 : 62, fuller ? 60 : 55, fuller ? 74 : 70);
+      addHum(beat + 0.02, finalBar ? 3.3 : 3.65, primary, level, glide);
+      if (fuller && !finalBar && pcs.length > 1) {
+        const upper = nearestPitch(pcs[1], primary + 3, 60, 76);
+        if (upper !== primary) addHum(beat + 0.08, 3.35, upper, level * 0.72, { vowelFrom: glide.vowelTo, vowelTo: glide.vowelFrom });
+      }
+    }
+  }
+
+  events.sort((a, b) => a.time - b.time || a.midi - b.midi);
+  const phraseChords = [];
+  for (let start = 0; start < chords.length; start += 4) phraseChords.push(chords.slice(start, start + 4).map(chord => chord.name));
+  return {
+    events: events.filter(event => instruments[['kick', 'snare', 'hat'].includes(event.instrument) ? 'drums' : event.instrument]),
+    duration: round(bars * 4 * beatSeconds), bpm, bars, totalBars: bars,
+    chords, chordNames: chords.slice(0, 4).map(chord => chord.name), phraseChords, seed, settings,
+    beatSeconds, timeSignature: [4, 4], structure, swing: concept.swing, timbre: concept.timbre, engine: 'concept',
+    variation: {
+      groove: mix(seed, 0x600) % 4,
+      texture: concept.texture,
+      contour: coarseContour(concept.motif),
+      bass: concept.bass,
+      rhythm: concept.rhythm.join(','),
+      color: Boolean(concept.color),
+    },
+    concept: {
+      family: concept.family,
+      form: concept.form,
+      progression: concept.progression,
+      feel: concept.feel,
+      arc: concept.arc.ko,
+      texture: concept.texture,
+      bass: concept.bass,
+      intro: concept.intro,
+      outro: concept.outro,
+      hold: concept.hold,
+      motif: concept.motif.join(','),
+      modulation: concept.modulation ? concept.modulation.ko : '',
+      summary: concept.summary,
+      prompt: concept.prompt,
+      signature: concept.signature,
+    },
+  };
+}
+
+/** Section lengths for a sketch. The same inputs are used by the lyric brief. */
+function planStructureLegacy(bars, genre = 'lofi', mood = 'warm', seed = 1, cues = {}) {
   const count = Math.max(1, Math.round(Number(bars) || 1));
   if (count < 4) {
     const [name, description] = SECTION_META.motif;
@@ -586,8 +2011,10 @@ export function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cue
 function sectionSpans(structure) {
   const spans = [];
   let start = 0;
+  const seen = {};
   for (const section of structure) {
-    spans.push({ ...section, start });
+    seen[section.role] = (seen[section.role] || 0) + 1;
+    spans.push({ ...section, start, occurrence: seen[section.role] });
     start += section.bars;
   }
   return spans;
@@ -647,7 +2074,7 @@ function performancePlan(genre, seed) {
   };
 }
 
-export function compose(input = {}) {
+function composeLegacy(input = {}) {
   const settings = normalizeSettings(input);
   const { genre, mood, bpm, bars, seed, instruments } = settings;
   const random = seededRandom(seed);
@@ -659,7 +2086,7 @@ export function compose(input = {}) {
   const events = [];
   const chords = [];
   const cues = arrangementCues(input);
-  const structure = planStructure(bars, genre, mood, seed, cues);
+  const structure = planStructureLegacy(bars, genre, mood, seed, cues);
   const spans = sectionSpans(structure);
   const harmony = harmonyPlan(genre, mood, scaleName, seed, bars);
   const plan = performancePlan(genre, seed);
@@ -1020,9 +2447,14 @@ export function compose(input = {}) {
     events: events.filter(event => instruments[['kick', 'snare', 'hat'].includes(event.instrument) ? 'drums' : event.instrument]),
     duration: round(bars * 4 * beatSeconds), bpm, bars, totalBars: bars,
     chords, chordNames: chords.slice(0, 4).map(chord => chord.name), phraseChords, seed, settings,
-    beatSeconds, timeSignature: [4, 4], structure, swing: plan.swing, timbre: plan.timbre,
+    beatSeconds, timeSignature: [4, 4], structure, swing: plan.swing, timbre: plan.timbre, engine: 'legacy',
     variation: { groove: plan.groove, texture: plan.texture, contour: plan.contour, bass: plan.bass, rhythm: plan.rhythm.map(value => value).join(','), color: Boolean(harmony.color) },
   };
+}
+
+export function compose(input = {}) {
+  if (input && input.planner === 'legacy') return composeLegacy(input);
+  return composeConcept(input);
 }
 
 function createGraph(context, song, destination, initialVolume = 0.8) {
@@ -1097,6 +2529,43 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
   const convolver = context.createConvolver();
   convolver.normalize = true;
   const impulse = createImpulseChannels(context.sampleRate, emotional ? 2.2 : genre === 'edm' ? 1.05 : 1.6, emotional ? 1.7 : genre === 'edm' ? 3.5 : 2.4, mix(song.seed, 0x51DE));
+  if (song.engine === 'concept') {
+    if (genre === 'house') {
+      warmth.gain.value = 2.4;
+      feedback.gain.value = 0.08;
+      wet.gain.value = 0.055;
+      reverbSend.gain.value = 0.14;
+      predelay.delayTime.value = 0.018;
+    } else if (genre === 'edm') {
+      warmth.gain.value = 0.35;
+      feedback.gain.value = 0.03;
+      wet.gain.value = 0.02;
+      reverbSend.gain.value = 0.04;
+      predelay.delayTime.value = 0.008;
+    } else if (genre === 'rnb') {
+      feedback.gain.value = 0.14;
+      wet.gain.value = 0.07;
+      reverbSend.gain.value = 0.24;
+    } else if (genre === 'ballad') {
+      feedback.gain.value = 0.09;
+      wet.gain.value = 0.05;
+      reverbSend.gain.value = 0.32;
+    } else if (genre === 'ambient') {
+      feedback.gain.value = 0.28;
+      wet.gain.value = 0.14;
+      reverbSend.gain.value = 0.4;
+      predelay.delayTime.value = 0.046;
+    } else if (genre === 'dawn') {
+      reverbSend.gain.value = 0.3;
+      predelay.delayTime.value = 0.028;
+      wet.gain.value = 0.08;
+    } else if (genre === 'cinematic') {
+      warmth.gain.value = 1.1;
+      reverbSend.gain.value = 0.46;
+      predelay.delayTime.value = 0.04;
+      wet.gain.value = 0.06;
+    }
+  }
   const impulseBuffer = context.createBuffer(2, impulse[0].length, context.sampleRate);
   impulse.forEach((channel, index) => impulseBuffer.getChannelData(index).set(channel));
   convolver.buffer = impulseBuffer;
@@ -1148,7 +2617,13 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
     let wave = voice === 'saw' ? (kind === 'bass' ? 'square' : 'sawtooth')
       : voice === 'pluck' || voice === 'wide' ? 'triangle'
         : kind === 'chords' ? 'triangle' : 'sine';
-    if (voice === 'keys' || voice === '808' || voice === 'house' || voice === 'nylon' || voice === 'pulse') {
+    const conceptEngine = song.engine === 'concept';
+    if (conceptEngine && voice === 'house') {
+      attack = (kind === 'chords' ? 0.014 : kind === 'bass' ? 0.01 : 0.008) * (timbre.attackMul || 1);
+      release = kind === 'chords' ? 0.52 : kind === 'bass' ? 0.2 : 0.18;
+      amplitude = (kind === 'chords' ? 0.085 : kind === 'bass' ? 0.22 : 0.13) * event.velocity;
+      wave = kind === 'bass' ? 'sine' : 'triangle';
+    } else if (voice === 'keys' || voice === '808' || voice === 'house' || voice === 'nylon' || voice === 'pulse') {
       const shaped = voiceShape(voice, kind);
       attack = shaped.attack * (timbre.attackMul || 1);
       release = shaped.release;
@@ -1156,9 +2631,26 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
       wave = shaped.wave;
     }
     const gain = context.createGain();
+    const peak = Math.max(0.0002, amplitude);
+    const sustain = Math.max(0.0001, amplitude * (kind === 'bass' ? 0.7 : voice === 'pluck' ? 0.22 : 0.48));
+    const attackEnd = time + Math.min(attack, duration * 0.3);
     gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, amplitude), time + Math.min(attack, duration * 0.3));
-    gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, amplitude * (kind === 'bass' ? 0.7 : voice === 'pluck' ? 0.22 : 0.48)), time + duration);
+    gain.gain.exponentialRampToValueAtTime(peak, attackEnd);
+    const sidechain = conceptEngine && song.settings.genre === 'edm' && kind === 'chords';
+    if (sidechain) {
+      const step = song.beatSeconds || 0.5;
+      let cursor = attackEnd;
+      for (let beat = step; beat + 0.05 < duration; beat += step) {
+        const dipAt = Math.min(time + beat + 0.02, time + duration - 0.05);
+        const back = Math.min(time + beat + Math.min(step * 0.42, duration - beat), time + duration);
+        if (dipAt <= cursor + 0.001 || back <= dipAt + 0.015) continue;
+        gain.gain.exponentialRampToValueAtTime(peak, dipAt);
+        gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, amplitude * 0.28), dipAt + 0.012);
+        gain.gain.exponentialRampToValueAtTime(peak, back);
+        cursor = back;
+      }
+      if (cursor < time + duration - 0.001) gain.gain.exponentialRampToValueAtTime(sustain, time + duration);
+    } else gain.gain.exponentialRampToValueAtTime(sustain, time + duration);
     gain.gain.exponentialRampToValueAtTime(0.0001, time + duration + release);
     gain.connect(input);
     const source = context.createOscillator();
@@ -1172,6 +2664,32 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
     source.connect(gain);
     source.start(time);
     track(source, [gain], time + duration + release + 0.02);
+    if (conceptEngine && voice === 'saw' && kind !== 'bass') {
+      [-14, 11].forEach(cents => {
+        const stack = context.createOscillator();
+        const stackGain = context.createGain();
+        stack.type = 'sawtooth';
+        stack.frequency.value = source.frequency.value * 2 ** (cents / 1200);
+        stackGain.gain.setValueAtTime(amplitude * 0.42, time);
+        stackGain.gain.exponentialRampToValueAtTime(0.0001, time + duration + release);
+        stack.connect(stackGain);
+        stackGain.connect(input);
+        stack.start(time);
+        track(stack, [stackGain], time + duration + release + 0.02);
+      });
+    }
+    if (conceptEngine && voice === 'house' && kind === 'chords') {
+      const tine = context.createOscillator();
+      const tineGain = context.createGain();
+      tine.type = 'sine';
+      tine.frequency.value = source.frequency.value * 2;
+      tineGain.gain.setValueAtTime(amplitude * 0.18, time);
+      tineGain.gain.exponentialRampToValueAtTime(0.0001, time + Math.min(0.22, duration));
+      tine.connect(tineGain);
+      tineGain.connect(input);
+      tine.start(time);
+      track(tine, [tineGain], time + duration + 0.05);
+    }
     if (timbre.wide && kind === 'chords') {
       const detuned = context.createOscillator();
       const detuneGain = context.createGain();
@@ -1366,8 +2884,56 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
     track(source, [band, gain], time + length + 0.02);
   }
 
+  function scheduleSpace(origin) {
+    if (song.engine !== 'concept') return;
+    const base = Math.max(280, PROFILES[genre].cutoff * ((timbre && timbre.cutoffMul) || 1));
+    const now = context.currentTime;
+    if (genre === 'house') {
+      const at = Math.max(origin, now + 0.01);
+      filter.Q.setValueAtTime(0.7, at);
+      filter.frequency.setValueAtTime(base * 0.78, at);
+      filter.frequency.linearRampToValueAtTime(base * 1.08, at + song.duration * 0.55);
+      filter.frequency.linearRampToValueAtTime(base * 0.86, at + Math.max(song.duration, 0.2));
+      return;
+    }
+    if (genre !== 'edm') return;
+    let bar = 0;
+    for (const section of song.structure || []) {
+      const t0 = origin + bar * 4 * song.beatSeconds;
+      const t1 = origin + (bar + section.bars) * 4 * song.beatSeconds;
+      bar += section.bars;
+      if (t1 < now + 0.02) continue;
+      const from = Math.max(t0, now + 0.01);
+      const to = Math.max(from + 0.08, t1);
+      if (section.role === 'pre') {
+        filter.frequency.setValueAtTime(Math.max(360, base * 0.32), from);
+        filter.frequency.exponentialRampToValueAtTime(base * 1.35, to);
+        const src = context.createBufferSource();
+        src.buffer = noise;
+        src.loop = true;
+        const rise = context.createGain();
+        const band = context.createBiquadFilter();
+        band.type = 'bandpass';
+        band.Q.value = 0.7;
+        band.frequency.setValueAtTime(420, from);
+        band.frequency.exponentialRampToValueAtTime(6400, to);
+        rise.gain.setValueAtTime(0.0001, from);
+        rise.gain.exponentialRampToValueAtTime(0.07, to);
+        rise.gain.setValueAtTime(0.0001, to + 0.03);
+        src.connect(band);
+        band.connect(rise);
+        rise.connect(input);
+        src.start(from);
+        src.stop(to + 0.04);
+        track(src, [band, rise], to + 0.08);
+      } else if (section.role === 'chorus') filter.frequency.setValueAtTime(base * 1.15, from);
+      else if (section.role === 'intro' || section.role === 'verse' || section.role === 'bridge' || section.role === 'outro') filter.frequency.setValueAtTime(base * 0.4, from);
+    }
+  }
+
   return {
     master,
+    scheduleSpace,
     schedule(event, time, duration = event.duration) {
       if (['kick', 'snare', 'hat'].includes(event.instrument)) percussion(event, time);
       else if (event.instrument === 'hum') formantPad(event, time, duration);
@@ -1486,6 +3052,7 @@ export function createPlayer() {
       callbacks = handlers;
       graph = createGraph(context, song, context.destination, volume);
       startTime = context.currentTime + 0.045;
+      graph.scheduleSpace(startTime - offset);
       graph.startBed(startTime, offset, true);
       status = 'playing';
       nextEvent = song.events.findIndex(event => event.time >= offset - 0.001);
@@ -1753,6 +3320,7 @@ async function renderToChannels(song, frames, sampleRate = 44100, offsetSeconds 
   const length = Math.max(1, Math.round(frames));
   const context = new OfflineContext(2, length, sampleRate);
   const graph = createGraph(context, song, context.destination, 0.85);
+  graph.scheduleSpace(0.02);
   graph.startBed(0, offsetSeconds, false);
   const seconds = length / sampleRate;
   for (const event of song.events) {

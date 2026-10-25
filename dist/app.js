@@ -8,7 +8,7 @@ const STORAGE = 'sonori.studio.v1';
 const GENRES = {lofi:'Lo-fi',pop:'Pop',rnb:'R&B',ambient:'Ambient',ballad:'Ballad',edm:'EDM',acoustic:'Acoustic',cinematic:'Cinematic',modernrock:'Modern Rock',dawn:'Dawn',nitelofi:'Night',citypop:'City Pop',trap:'Trap',house:'House',bossa:'Bossa Nova',reggaeton:'Reggaeton'};
 const MOODS = {warm:'따뜻한',dreamy:'몽환적인',bright:'경쾌한',melancholy:'아련한'};
 const SCALES = {major:'메이저',minor:'마이너',dorian:'도리안',pentatonic:'펜타토닉'};
-const DEFAULTS = {title:'오후의 작은 쉼표',topic:'창가에 앉아 잠시 쉬어 가는 오후',genre:'lofi',mood:'warm',bpm:84,key:'C',scale:'major',bars:16,seed:20261017,vocal:'female',notes:'',instruments:{melody:true,chords:true,bass:true,drums:true,hum:false},ambience:{rain:0,vinyl:0,wind:0}};
+const DEFAULTS = {title:'오후의 작은 쉼표',topic:'창가에 앉아 잠시 쉬어 가는 오후',genre:'lofi',mood:'warm',bpm:84,key:'C',scale:'major',bars:16,seed:20261017,vocal:'female',notes:'',planner:'concept',instruments:{melody:true,chords:true,bass:true,drums:true,hum:false},ambience:{rain:0,vinyl:0,wind:0}};
 const PRESETS = {
   warm:{...DEFAULTS},
   night:{...DEFAULTS,title:'잠들지 않은 도시',topic:'늦은 밤 도시를 걷다 떠오른 작은 그리움',genre:'rnb',mood:'dreamy',bpm:76,key:'F',scale:'major',seed:240921},
@@ -17,7 +17,7 @@ const PRESETS = {
 };
 const clone = value => JSON.parse(JSON.stringify(value));
 const cleanString = (value, max) => typeof value === 'string' ? value.slice(0,max) : '';
-const FEEL = {lofi:[76,98],pop:[96,126],rnb:[72,100],ambient:[72,92],ballad:[72,88],edm:[118,140],acoustic:[84,112],cinematic:[72,98],modernrock:[72,86],dawn:[72,84],nitelofi:[72,92],citypop:[96,116],trap:[132,140],house:[118,128],bossa:[116,136],reggaeton:[88,104]};
+const FEEL = {lofi:[76,98],pop:[96,126],rnb:[72,92],ambient:[72,80],ballad:[72,84],edm:[126,128],acoustic:[88,108],cinematic:[76,92],modernrock:[72,86],dawn:[72,80],nitelofi:[72,86],citypop:[100,112],trap:[132,140],house:[120,124],bossa:[116,136],reggaeton:[90,100]};
 const KEYS = ['C','D','E','F','G','A'];
 const CONTOUR_KO = {arch:'아치',rise:'상승',fall:'하강',wave:'물결',neighbor:'인접'};
 const TEXTURE_KO = {pad:'지속음',stab:'스타브',arp:'분산',strum:'스트럼'};
@@ -40,7 +40,7 @@ function varyFeel(genre, seed, anchor) {
 }
 function normalize(value = {}) {
   const valid = (obj, key, fallback) => Object.hasOwn(obj, key) ? key : fallback;
-  return {title:cleanString(value.title,70),topic:cleanString(value.topic,600),notes:cleanString(value.notes,2000),genre:valid(GENRES,value.genre,'lofi'),mood:valid(MOODS,value.mood,'warm'),bpm:Math.max(72,Math.min(140,Math.round(Number(value.bpm)||84))),key:KEYS.includes(value.key)?value.key:'C',scale:valid(SCALES,value.scale,'major'),bars:[8,16,32].includes(Number(value.bars))?Number(value.bars):16,seed:(Number(value.seed)||20261017)>>>0,vocal:['female','male','duet','instrumental'].includes(value.vocal)?value.vocal:'female',instruments:{melody:value.instruments?.melody!==false,chords:value.instruments?.chords!==false,bass:value.instruments?.bass!==false,drums:value.instruments?.drums!==false,hum:value.instruments?.hum===true},ambience:normalizeAmbience(value.ambience),feelAnchor:feelAnchorOf(value)};
+  return {title:cleanString(value.title,70),topic:cleanString(value.topic,600),notes:cleanString(value.notes,2000),genre:valid(GENRES,value.genre,'lofi'),mood:valid(MOODS,value.mood,'warm'),bpm:Math.max(72,Math.min(140,Math.round(Number(value.bpm)||84))),key:KEYS.includes(value.key)?value.key:'C',scale:valid(SCALES,value.scale,'major'),bars:[8,16,32].includes(Number(value.bars))?Number(value.bars):16,seed:(Number(value.seed)||20261017)>>>0,vocal:['female','male','duet','instrumental'].includes(value.vocal)?value.vocal:'female',instruments:{melody:value.instruments?.melody!==false,chords:value.instruments?.chords!==false,bass:value.instruments?.bass!==false,drums:value.instruments?.drums!==false,hum:value.instruments?.hum===true},ambience:normalizeAmbience(value.ambience),feelAnchor:feelAnchorOf(value),planner:value.planner==='concept'||value.planner==='legacy'?value.planner:undefined};
 }
 let stored;
 let storageWorks = true;
@@ -197,8 +197,11 @@ function setProgress(value) {
   [...$('waveform').children].forEach((bar,index)=>bar.classList.toggle('played',index/72<progress));
   [...$('barTrack').children].forEach((bar,index)=>bar.classList.toggle('active',index/applied.bars<progress));
 }
+function engineInput(value) {
+  return {...value, planner: value.planner === 'concept' ? 'concept' : 'legacy'};
+}
 function renderSong() {
-  song=compose(applied);
+  song=compose(engineInput(applied));
   brief=createBrief(applied);
   $('songTitle').textContent=brief.title;
   $('exampleBadge').hidden=!example;
@@ -213,6 +216,8 @@ function renderSong() {
   const bedNames = [bed.rain ? '비' : '', bed.vinyl ? '바이닐' : '', bed.wind ? '바람' : ''].filter(Boolean);
   $('stageKind').textContent = applied.instruments.hum ? 'WORDLESS HUM' : 'INSTRUMENTAL DEMO';
   $('soundDescription').textContent=`${MOODS[applied.mood]} ${GENRES[applied.genre]} · ${applied.key} ${SCALES[applied.scale]||'메이저'} · ${applied.bars}마디 · ${contour} 멜로디 · ${texture} · 스윙 ${Math.round((song.swing||0)*100)} · ${humText}${bedNames.length?` · 배경 ${bedNames.join('·')}`:''}`;
+  const conceptLine = $('conceptLine');
+  if (conceptLine) conceptLine.textContent = song.concept?.summary ? `곡 콘셉트 · ${song.concept.summary}` : '이전 작곡으로 다시 연주 중 · 데모를 만들면 새 콘셉트가 적용돼요';
   const wave=Array.from({length:72},(_,i)=>{
     const bar=document.createElement('i');bar.className='wave-bar';
     const notes=song.events.filter(e=>e.time>=i/72*song.duration&&e.time<(i+1)/72*song.duration);
@@ -225,7 +230,9 @@ function renderSong() {
   const structure = song.structure?.length ? song.structure : brief.structure;
   if (song.structure?.length) {
     const line = song.structure.map(section => `${section.name} ${section.bars} bars`).join(' → ');
-    brief = {...brief, structure: song.structure, prompt: brief.prompt.replace(/Suggested sketch structure:.*?\./, `Suggested sketch structure: ${line}.`)};
+    let prompt = brief.prompt.replace(/Suggested sketch structure:.*?\./, `Suggested sketch structure: ${line}.`);
+    if (song.concept?.prompt) prompt = prompt.replace('Suggested sketch structure:', `Song concept: ${song.concept.prompt}\nSuggested sketch structure:`);
+    brief = {...brief, structure: song.structure, prompt};
   }
   $('structure').replaceChildren(...structure.map(part=>{const div=document.createElement('div');div.className='structure-part';div.style.flex=part.bars;div.title=part.description;const b=document.createElement('b');b.textContent=part.name;const span=document.createElement('span');span.textContent=`${part.bars} bars`;div.append(b,span);return div;}));
   $('structureMeta').textContent=`${applied.bars} BARS · 이 데모의 구성`;
@@ -246,14 +253,17 @@ function renderSong() {
   setProgress(0);updatePlayUI();updatePending();
 }
 function playbackHandlers() {return {onProgress:setProgress,onEnded:()=>{handleEnded();}};}
-function generate({newSeed=false,message='새로운 데모를 만들었어요. 재생해서 들어보세요.'}={}) {
+function generate({newSeed=false,keepFeel=false,message='새로운 데모를 만들었어요. 재생해서 들어보세요.'}={}) {
   player.stop();
+  settings.planner='concept';
   if(newSeed) {
     settings.seed=(settings.seed+7919)>>>0;
-    if(!settings.feelAnchor) settings.feelAnchor={bpm:settings.bpm,key:settings.key};
-    const feel=varyFeel(settings.genre,settings.seed,settings.feelAnchor);
-    settings.bpm=feel.bpm;
-    settings.key=feel.key;
+    if(!keepFeel) {
+      if(!settings.feelAnchor) settings.feelAnchor={bpm:settings.bpm,key:settings.key};
+      const feel=varyFeel(settings.genre,settings.seed,settings.feelAnchor);
+      settings.bpm=feel.bpm;
+      settings.key=feel.key;
+    }
     take++;
     fillForm();
   } else {settings.feelAnchor={bpm:settings.bpm,key:settings.key};take=1;}
@@ -611,7 +621,7 @@ function openProject(project) {
   toast('저장한 스케치를 불러왔어요.');
 }
 function showGuide() {
-  openDialog('취향에서 노래까지','<ol class="guide-steps"><li><b>이야기하며 방향 정하기</b><span>장르나 장면, 분위기, 주제를 고르세요. 장면은 기존 장르에 비, 바이닐, 바람 배경음을 더합니다. “함께 곡의 방향 정하기”에서 상담용 내용을 복사해 상의해 보세요.</span></li><li><b>데모를 듣고 취향 찾기</b><span>데모를 만들고 아래 재생 바에서 재생하세요. 허밍은 가사 없는 oo/ah 패드입니다. 배경음 슬라이더는 바로 적용돼요. 변주 버튼은 같은 이야기에서 코드, 멜로디, 그루브, 구성, 조성과 템포를 다시 뽑아요.</span></li><li><b>가사를 다듬고 다음 제작으로</b><span>템플릿 가사를 고치거나 함께 쓴 가사를 붙여 넣으세요. 내보내기에서 짧은 WAV, 이어 듣는 반복 WAV, 30분·60분 음원을 받을 수 있어요. 긴 음원은 구간마다 변주를 겹쳐 만듭니다.</span></li></ol><p class="dialog-description">연주는 브라우저의 합성 악기입니다. 배경음도 녹음된 샘플이 아니라 그 자리에서 만들어요. 프로젝트와 플레이리스트는 이 브라우저에 저장됩니다.</p><p class="dialog-description">만든 음악은 유튜브, 방송, 영상(수익이 생기는 영상 포함)에 쓰실 수 있어요. 출처는 Music: SONORI by ChamomileGrey 를 권합니다. 곡을 그대로 음원 라이브러리로 되팔지는 말아 주세요. 이 안내는 법률 자문이 아니에요. 응원은 Ko-fi에서 받을 수 있어요.</p><div class="dialog-actions"><button class="button primary" id="guideDone">좋아요, 시작할게요 →</button></div><p class="dialog-description">© 2026 캐모마일그레이 (ChamomileGrey)</p>');$('guideDone').onclick=closeDialog;
+  openDialog('취향에서 노래까지','<ol class="guide-steps"><li><b>이야기하며 방향 정하기</b><span>장르 프리셋이나 장면, 분위기, 주제를 고르세요. 장면은 그 장르에 비, 바이닐, 바람 배경음을 더합니다. 새벽 공부는 새벽 피아노, 비 오는 카페는 스윙 로파이, 밤 드라이브는 시티팝, 집중은 여백 앰비언트, 잠들기 전은 하프타임 심야입니다. “함께 곡의 방향 정하기”에서 상담용 내용을 복사해 상의해 보세요.</span></li><li><b>데모를 듣고 취향 찾기</b><span>데모를 만들고 아래 재생 바에서 재생하세요. 허밍은 가사 없는 oo/ah 패드입니다. 배경음 슬라이더는 바로 적용돼요. 변주는 같은 이야기에서 코드, 멜로디, 그루브, 구성, 조성과 템포를 다시 뽑아요. 다른 느낌으로는 템포와 조성을 둔 채 곡 콘셉트만 다시 뽑아요.</span></li><li><b>가사를 다듬고 다음 제작으로</b><span>템플릿 가사를 고치거나 함께 쓴 가사를 붙여 넣으세요. 저장한 스케치는 라이브러리와 플레이리스트로 정리할 수 있어요. 내보내기에서 짧은 WAV, 이어 듣는 반복 WAV, 30분·60분 음원을 받을 수 있어요. 긴 음원은 구간마다 변주를 겹쳐 만듭니다.</span></li></ol><p class="dialog-description">연주는 브라우저의 합성 악기입니다. 배경음도 녹음된 샘플이 아니라 그 자리에서 만들어요. 프로젝트와 플레이리스트는 이 브라우저에 저장됩니다.</p><p class="dialog-description">만든 음악은 유튜브, 방송, 영상(수익이 생기는 영상 포함)에 쓰실 수 있어요. 출처는 Music: SONORI by ChamomileGrey 를 권합니다. 곡을 그대로 음원 라이브러리로 되팔지는 말아 주세요. 이 안내는 법률 자문이 아니에요. 응원은 Ko-fi에서 받을 수 있어요.</p><div class="dialog-actions"><button class="button primary" id="guideDone">좋아요, 시작할게요 →</button></div><p class="dialog-description">© 2026 캐모마일그레이 (ChamomileGrey)</p>');$('guideDone').onclick=closeDialog;
 }
 
 $('settingsForm').addEventListener('submit',event=>{event.preventDefault();generate();});
@@ -640,6 +650,8 @@ $('shuffleBtn').onclick=()=>{shuffleOn=!shuffleOn;shuffleSeed=(shuffleSeed+Date.
 $('repeatBtn').onclick=()=>{repeatMode=nextRepeatMode(repeatMode);persist();updateTransportState();};
 $('restartBtn').onclick=async()=>{const wasPlaying=player.getState().status==='playing';player.stop();setProgress(0);updatePlayUI();if(wasPlaying)await play();};
 $('variationBtn').onclick=()=>generate({newSeed:true,message:'변주를 다시 뽑았어요. 코드, 멜로디, 그루브, 구성이 바뀌고 조성과 템포는 장르 범위 안에서 조금 움직입니다.'});
+const rerollBtn=$('rerollBtn');
+if(rerollBtn) rerollBtn.onclick=()=>generate({newSeed:true,keepFeel:true,message:'다른 느낌으로 다시 뽑았어요. 형식, 코드, 그루브가 바뀌고 템포와 조성은 그대로예요.'});
 function setVolume(value){const next=Math.max(0,Math.min(100,Number(value)||0));$('volume').value=String(next);$('playerVolume').value=String(next);player.setVolume(next/100);}
 $('volume').oninput=()=>setVolume($('volume').value);
 $('playerVolume').oninput=()=>setVolume($('playerVolume').value);

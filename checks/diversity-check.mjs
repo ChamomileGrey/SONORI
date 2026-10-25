@@ -113,8 +113,7 @@ for (const genre of ['citypop', 'trap', 'house', 'bossa', 'reggaeton']) {
   assert.ok(genreProgressions.size >= 3, `${genre} progressions ${genreProgressions.size}`);
   assert.ok(genreGrooves.size >= 3, `${genre} grooves ${genreGrooves.size}`);
   assert.ok(timbres.size >= 2, `${genre} timbres ${timbres.size}`);
-  const profileSwing = genre === 'house' ? [0, 0] : null;
-  if (profileSwing) assert.ok(set.every(song => song.swing === 0), 'house stays straight');
+  if (genre === 'house') assert.ok(set.every(song => song.swing > 0 && song.swing <= 0.06), 'house shuffles its 16ths');
 }
 const space = compose({ ...base, seed: 5, notes: '여백을 많이 두고 고요하게' });
 const lift = compose({ ...base, seed: 5, notes: '후렴을 크게, 브리지에서 전환' });
@@ -126,5 +125,89 @@ const classicSettings = { genre: 'lofi', mood: 'warm', key: 'C', bpm: 86, bars: 
 const classic = compose(classicSettings);
 assert.deepEqual(classic.chordNames, ['Cmaj7', 'Am7', 'Dm7', 'G6']);
 assert.deepEqual(classic, compose(classicSettings));
+assert.deepEqual(compose({ ...classicSettings, planner: 'legacy' }).chordNames, ['Cmaj7', 'Am7', 'Dm7', 'G6']);
+assert.equal(compose({ ...base, seed: 1, planner: 'legacy' }).concept, undefined);
+assert.ok(classic.concept?.summary);
 
+function familyOf(song) {
+  return song.concept?.family || 'verseChorus';
+}
+function edgeBars(song, role, end) {
+  const section = end ? song.structure.at(-1) : song.structure[0];
+  return section?.role === role ? section.bars : 0;
+}
+function motifId(song) {
+  return song.concept?.motif || song.variation?.contour || '';
+}
+function rootDistance(left, right) {
+  const length = Math.max(left.length, right.length) || 1;
+  let delta = 0;
+  for (let index = 0; index < length; index++) if ((left[index] ?? -1) !== (right[index] ?? -2)) delta++;
+  return delta / length;
+}
+function snapshot(planner) {
+  const flag = planner ? { planner } : {};
+  const set = seeds.map(seed => compose({ ...base, ...flag, seed }));
+  const contours = set.map(song => contour(melody(song)));
+  const steps = set.map(song => intervals(melody(song)));
+  const roots = set.map(song => song.chords.map(chord => chord.root));
+  let contourSum = 0;
+  let intervalSum = 0;
+  let harmonySum = 0;
+  let pairCount = 0;
+  for (let left = 0; left < set.length; left++) {
+    for (let right = left + 1; right < set.length; right++) {
+      contourSum += distance(contours[left], contours[right]);
+      intervalSum += intervalDistance(steps[left], steps[right]);
+      harmonySum += rootDistance(roots[left], roots[right]);
+      pairCount++;
+    }
+  }
+  return {
+    openings: new Set(set.map(song => song.chordNames.join('-'))).size,
+    full: new Set(set.map(song => song.chords.map(chord => chord.name).join('-'))).size,
+    degrees: new Set(set.map(song => song.chords.slice(0, 4).map(chord => chord.degree).join(','))).size,
+    grooves: new Set(set.map(groove)).size,
+    rhythms: new Set(set.map(melodyRhythm)).size,
+    forms: new Set(set.map(song => structureKey(song.structure))).size,
+    families: new Set(set.map(familyOf)).size,
+    motifs: new Set(set.map(motifId)).size,
+    intros: new Set(set.map(song => edgeBars(song, 'intro', false))).size,
+    outros: new Set(set.map(song => edgeBars(song, 'outro', true))).size,
+    signatures: new Set(set.map(song => song.concept?.signature || 'legacy')).size,
+    contour: contourSum / pairCount,
+    interval: intervalSum / pairCount,
+    harmony: harmonySum / pairCount,
+  };
+}
+const before = snapshot('legacy');
+const after = snapshot();
+assert.ok(after.openings >= 12 && after.openings > before.openings, `openings ${before.openings} -> ${after.openings}`);
+assert.equal(before.families, 1, 'the 1.4 planner only writes verse-chorus forms');
+assert.ok(after.families >= 4, `form families ${after.families}`);
+assert.ok(after.grooves > before.grooves, `grooves ${before.grooves} -> ${after.grooves}`);
+assert.ok(after.motifs >= 12 && after.motifs > before.motifs, `motifs ${before.motifs} -> ${after.motifs}`);
+assert.ok(after.intros > before.intros && after.outros > before.outros, `edges ${before.intros}/${before.outros} -> ${after.intros}/${after.outros}`);
+assert.ok(after.contour > before.contour, `contour ${before.contour} -> ${after.contour}`);
+assert.ok(after.interval > before.interval, `interval ${before.interval} -> ${after.interval}`);
+assert.ok(after.harmony > before.harmony, `harmony ${before.harmony} -> ${after.harmony}`);
+assert.ok(after.degrees >= 12 && after.degrees > before.degrees, `degree families ${before.degrees} -> ${after.degrees}`);
+assert.ok(after.signatures >= 20, `concept signatures ${after.signatures}`);
+const genreIds = ['lofi', 'pop', 'rnb', 'ambient', 'ballad', 'edm', 'acoustic', 'cinematic', 'modernrock', 'dawn', 'nitelofi', 'citypop', 'trap', 'house', 'bossa', 'reggaeton'];
+function grooveFloor(planner) {
+  const flag = planner ? { planner } : {};
+  let min = Infinity;
+  for (const genre of genreIds) {
+    const set = seeds.map(seed => compose({ ...base, genre, ...flag, seed }));
+    min = Math.min(min, new Set(set.map(groove)).size);
+  }
+  return min;
+}
+const beforeFloor = grooveFloor('legacy');
+const afterFloor = grooveFloor();
+assert.ok(beforeFloor <= 3, `legacy groove floor ${beforeFloor}`);
+assert.ok(afterFloor >= 5 && afterFloor > beforeFloor, `concept groove floor ${afterFloor} vs ${beforeFloor}`);
+
+console.log(`diversity-before: openings ${before.openings}, full ${before.full}, degrees ${before.degrees}, grooves ${before.grooves}, rhythms ${before.rhythms}, forms ${before.forms}, families ${before.families}, motifs ${before.motifs}, intros ${before.intros}, outros ${before.outros}, contour ${before.contour.toFixed(3)}, interval ${before.interval.toFixed(3)}, harmony ${before.harmony.toFixed(3)}, grooveFloor ${beforeFloor}`);
+console.log(`diversity-after: openings ${after.openings}, full ${after.full}, degrees ${after.degrees}, grooves ${after.grooves}, rhythms ${after.rhythms}, forms ${after.forms}, families ${after.families}, motifs ${after.motifs}, intros ${after.intros}, outros ${after.outros}, signatures ${after.signatures}, contour ${after.contour.toFixed(3)}, interval ${after.interval.toFixed(3)}, harmony ${after.harmony.toFixed(3)}, grooveFloor ${afterFloor}`);
 console.log(`diversity-check: ${progressions.size} progressions, ${openings.size} openings, ${grooves.size} grooves, ${rhythms.size} rhythms, ${structures.size} forms, contour ${contourDistance.toFixed(3)}, interval ${intervalDistanceMean.toFixed(3)}`);

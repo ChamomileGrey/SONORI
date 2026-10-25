@@ -2,10 +2,10 @@
   "name": "sonori-studio",
   "private": true,
   "type": "module",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "scripts": {
     "build": "node build-standalone.mjs",
-    "check": "node checks/audio-check.mjs && node checks/brief-check.mjs && node checks/library-check.mjs && node checks/preset-check.mjs && node checks/diversity-check.mjs && node checks/ambience-check.mjs && node checks/export-check.mjs && node checks/standalone-check.mjs && node checks/launch-check.mjs"
+    "check": "node checks/audio-check.mjs && node checks/brief-check.mjs && node checks/library-check.mjs && node checks/preset-check.mjs && node checks/diversity-check.mjs && node checks/distinct-check.mjs && node checks/ambience-check.mjs && node checks/export-check.mjs && node checks/standalone-check.mjs && node checks/launch-check.mjs"
   },
   "author": "ChamomileGrey",
   "license": "UNLICENSED"

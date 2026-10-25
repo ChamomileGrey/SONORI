@@ -16,7 +16,7 @@
 
 1. “함께 곡의 방향 정하기”의 상담용 내용을 ChatGPT 대화에 붙여 넣고 상의하세요.
 2. 정한 장르·분위기·템포·조성·주제를 입력하고 “데모 만들기”를 누르세요.
-3. 연주 데모를 재생하고 멜로디·코드·베이스·드럼을 켜고 끄며 다듬으세요. 화면 아래 재생 바에서 일시정지, 이전·다음, 반복, 셔플을 쓸 수 있어요. 같은 이야기가 너무 비슷하면 **변주**를 눌러 코드·멜로디·그루브·구성을 다시 뽑으세요.
+3. 연주 데모를 재생하고 멜로디·코드·베이스·드럼을 켜고 끄며 다듬으세요. 화면 아래 재생 바에서 일시정지, 이전·다음, 반복, 셔플을 쓸 수 있어요. 곡 콘셉트 줄에 형식, 코드, 그루브가 보입니다. **다른 느낌으로**는 템포와 조성을 두고 콘셉트만 다시 뽑고, **변주**는 거기에 더해 장르 범위 안에서 조성과 템포도 조금 옮깁니다.
 4. 가사 노트에 초안을 고치거나 함께 쓴 가사를 붙여 넣으세요.
 5. 마음에 드는 버전은 라이브러리에 저장하고, 플레이리스트로 순서를 정하세요.
 6. 제작 프롬프트를 복사하거나 WAV·MIDI·TXT·프로젝트 JSON으로 내보내세요. WAV는 짧은 데모, 끝과 시작을 겹친 반복 파일, 30분·60분 긴 음원 중에서 고를 수 있어요.
@@ -27,10 +27,10 @@
 - 장르 · 무드 선택 하나: Lo-fi, Pop, R&B, Ambient, Ballad, EDM, Acoustic, Cinematic, 감성 모던 록, 새벽 감성, 심야 로파이, City Pop, Trap, House, Bossa Nova, Reggaeton. 하나를 고르면 새 스케치의 장르와 함께 템포, 조성, 스케일 색채, 신스 보이싱, 드럼 패턴이 맞춰짐. 분위기는 그 장르 안에서 조정
 - 감성 모던 록은 78 BPM 근처에서 피아노, 클린 기타풍 아르페지오, 따뜻한 패드, 여린 드럼으로 벌스에서 후렴으로 넓어짐
 - 선택 레이어인 허밍은 가사 없는 oo/ah 포먼트 패드. 단어 보컬은 만들지 않음
-- 트랩은 140 BPM의 하프타임 808과 하이햇 롤, 하우스는 124 BPM의 4/4와 오프비트 오픈햇, 보사노바는 싱코페이션과 ii–V, 레게톤은 뎀보우, 시티팝은 스윙 범위 안의 코드 텍스처
+- 트랩은 140 BPM의 하프타임 808과 하이햇 롤, 하우스는 124 BPM의 도리안 루프와 셔플 16분음·오프비트 오픈햇, EDM은 128 BPM의 빌드와 드롭, 보사노바는 싱코페이션과 ii–V, 레게톤은 뎀보우, 시티팝은 스윙 범위 안의 코드 텍스처
 - 72~140 BPM, 6개 조성, 메이저·마이너·도리안·펜타토닉 색채, 8/16/32마디 데모
 - 재생·일시정지·처음부터·변주 다시 뽑기·음량·악기별 켜기/끄기
-- 시드로 고정되는 코드 진행, 곡 구성, 모티프 변주, 드럼 그루브, 스윙, 신스 색. 같은 시드는 항상 같은 스케치
+- 시드로 고정되는 곡 콘셉트: 벌스-후렴, AABA, 통절, 빌드-드롭 형식, 무드별 코드 풀, 모티프의 전위·역행·리듬 이동, 그루브, 반주, 인트로·아웃트로, 다이내믹. 같은 시드와 같은 설정은 항상 같은 스케치
 - 주제와 메모의 후렴·여백·브리지·상승 표현이 구성과 에너지에 반영됨
 - 항상 보이는 하단 재생 바: 재생/일시정지, 이전·다음, 위치, 반복(끔/전체/한 곡), 셔플, 현재 제목
 - 라이브러리: 저장한 스케치 카드(제목, 날짜, 템포, 조성, 장르), 검색, 정렬
@@ -38,7 +38,7 @@
 - 편집 가능한 템플릿 가사, 영어 음악 제작 프롬프트, 곡 구성 제안
 - 최대 30개 프로젝트 버전과 플레이리스트의 브라우저 저장, JSON 내보내기/불러오기
 - 이전 버전에서 저장한 `sonori.studio.v1` 스케치는 그대로 라이브러리에 나타남
-- 장면: 새벽 공부, 비 오는 카페, 밤 드라이브, 집중 작업, 잠들기 전. 기존 장르 프리셋에 배경음을 더함
+- 장면: 새벽 공부→새벽 피아노, 비 오는 카페→스윙 로파이, 밤 드라이브→시티팝, 집중 작업→여백 앰비언트, 잠들기 전→하프타임 심야. 기존 장르 프리셋에 배경음을 더함
 - 비, 바이닐 잡음, 부드러운 바람(룸톤). 각각 음량 슬라이더가 있고, 샘플 없이 합성함. 음량을 0으로 두면 예전과 같은 연주
 - 44.1 kHz stereo PCM WAV 및 각 파트가 나뉜 MIDI 파일
 - 반복 WAV: 한 사이클 길이로, 끝의 여운을 시작에 겹쳐 이어서 재생
@@ -53,7 +53,8 @@
 가사는 로컬 템플릿 초안이며, AI API를 호출하지 않습니다.
 보컬 및 완성 음원을 만들려면 프롬프트와 가사를 별도의 음악 제작 서비스로 가져가세요.
 이 도구 자체에는 ChatGPT 채팅이나 외부 음악 생성 서비스가 연결되어 있지 않습니다.
-곡의 흐름은 그 데모가 실제로 연주하는 구성입니다. 시드가 코드, 모티프, 그루브, 스윙, 음색을 고르고, 변주 버튼은 장르 범위 안에서 조성과 템포도 조금 옮깁니다.
+곡의 흐름은 그 데모가 실제로 연주하는 구성입니다. 시드가 곡 콘셉트(형식, 코드, 모티프, 그루브, 반주, 인트로·아웃트로)를 고르고, 다른 느낌으로는 그 콘셉트만 다시 뽑습니다. 변주 버튼은 장르 범위 안에서 조성과 템포도 조금 옮깁니다.
+1.6 이전에 저장한 프로젝트에는 `planner:"concept"`가 없습니다. 그 파일은 1.4 작곡으로 다시 연주되어 예전 소리에 가깝습니다. 데모 만들기, 변주, 다른 느낌으로를 누르면 1.6 콘셉트로 다시 쓰고, 그때는 같은 시드라도 1.4.1과 같지 않습니다. 프로젝트 JSON 버전은 1입니다.
 프로젝트와 플레이리스트는 브라우저의 localStorage에 저장됩니다. 파일 주소, 브라우저, 기기가 바뀌면 보이지 않을 수 있습니다.
 중요한 버전은 항상 JSON으로 보관하세요. 브라우저 데이터를 지우면 로컬 저장도 지워집니다.
 브라우저가 로컬 파일 저장 또는 클립보드를 차단하면 JSON 내보내기와 수동 복사를 사용하세요.
@@ -68,7 +69,7 @@
 
 ```bash
 npm run build   # release/SONORI.html 과 release/site 재생성
-npm run check   # 작곡, 제작안, 라이브러리, 프리셋, 다양성, 단독 번들, 공개 페이지 검사
+npm run check   # 작곡, 제작안, 라이브러리, 프리셋, 다양성, 장르 거리, 배경음, 내보내기, 단독 번들, 공개 페이지 검사
 ```
 
 개발 중 `dist/index.html`을 볼 때는 정적 HTTP 서버로 제공하세요. 단독 HTML로 묶을 때 외부 글꼴 불러오기는 제거됩니다.
@@ -97,9 +98,9 @@ Copyright © 2026 캐모마일그레이 (ChamomileGrey). All rights reserved.
 
 SONORI is a single-file browser studio for sketching a song from a mood. Open the [live site](https://chamomilegrey.github.io/SONORI/) or `release/SONORI.html` in a current desktop browser. There is no install, account, API key, or server.
 
-Choose one genre and mood — Lo-fi, Pop, R&B, Ambient, Ballad, EDM, Acoustic, Cinematic, Modern Rock, Dawn, Night, City Pop, Trap, House, Bossa Nova, or Reggaeton — and the next sketch uses that choice together with its tempo, key, scale color, synth voicing, and drum pattern. Mood can still be adjusted inside the chosen genre. Modern Rock sits near 78 BPM, with piano, clean-guitar-style arpeggios, warm pads, and a quiet verse that opens into a fuller chorus. Trap is a half-time 808 at 140 BPM with hi-hat rolls, House is 4/4 near 124 with offbeat open hats, Bossa Nova is a light syncopated nylon voice with ii–V color near 130, and Reggaeton uses a dembow. Generate an instrumental demo, then use the bottom player for play/pause, previous/next, seek, repeat, and shuffle. Press **변주** to re-roll the seed: harmony, motif, groove, form, swing, and synth color change, and tempo and key move a little inside that genre’s range. The same seed always rebuilds the same sketch, including seeds from earlier genres. Words such as chorus, space, or bridge in the topic and notes steer the form. Toggle melody, chords, bass, drums, and an optional wordless oo/ah hum. The hum is formant synthesis, not sung lyrics. Edit the lyric draft, copy an English production prompt, and export WAV, MIDI, text, or project JSON. Audio is synthesized in the browser, including a convolution reverb from a generated impulse. Nothing is streamed, and the app does not call an AI or music-generation API.
+Choose one genre and mood — Lo-fi, Pop, R&B, Ambient, Ballad, EDM, Acoustic, Cinematic, Modern Rock, Dawn, Night, City Pop, Trap, House, Bossa Nova, or Reggaeton — and the next sketch uses that choice together with its tempo, key, scale color, synth voicing, and drum pattern. Mood can still be adjusted inside the chosen genre. Modern Rock sits near 78 BPM, with piano, clean-guitar-style arpeggios, warm pads, and a quiet verse that opens into a fuller chorus. Trap is a half-time 808 at 140 BPM with hi-hat rolls, House is a 124 BPM dorian loop with shuffled 16th hats and offbeat open hats, EDM is a straight 128 BPM build and drop, Bossa Nova is a light syncopated nylon voice with ii–V color near 130, and Reggaeton uses a dembow. Generate an instrumental demo, then use the bottom player for play/pause, previous/next, seek, repeat, and shuffle. Each new sketch gets a song concept: form (verse-chorus, AABA, through-composed, or build/drop), a mood-weighted progression, a motif developed by inversion, retrograde, and rhythmic displacement, a groove, and its own intro, outro, and dynamic arc. The stage summarizes that concept. **다른 느낌으로** re-rolls only the concept. **변주** also moves tempo and key a little inside that genre’s range. The same seed and planner always rebuild the same sketch. Projects saved before 1.6 omit `planner:"concept"` and play back on the 1.4 composer; making a demo upgrades them to the 1.6 concept, which will not match the 1.4.1 performance of that seed. Project JSON stays version 1. Words such as chorus, space, or bridge in the topic and notes steer the form. Toggle melody, chords, bass, drums, and an optional wordless oo/ah hum. The hum is formant synthesis, not sung lyrics. Edit the lyric draft, copy an English production prompt, and export WAV, MIDI, text, or project JSON. Audio is synthesized in the browser, including a convolution reverb from a generated impulse. Nothing is streamed, and the app does not call an AI or music-generation API.
 
-All data stays in this browser. There are no analytics, cookies, or network calls. On the public site, only this site’s own files may be saved on the device so the app can open offline. Songs and settings are never sent. The downloadable HTML file does not register a service worker. The footer shows v1.5.0, a short what’s-new line, the privacy note, and a Support / 후원 link to the external Ko-fi page. Scene choices (dawn study, rainy café, night drive, focus, bedtime) map onto existing genre presets and add synthesized rain, vinyl crackle, and soft wind, each with its own slider. Export a seamless loop, or a 30- or 60-minute WAV rendered in crossfaded variations with progress and cancel. A short creator note says the music may be used in videos and streams, including monetized ones; attribution such as “Music: SONORI by ChamomileGrey” is appreciated; please don’t resell the raw tracks as a sample library. That note is not legal advice.
+All data stays in this browser. There are no analytics, cookies, or network calls. On the public site, only this site’s own files may be saved on the device so the app can open offline. Songs and settings are never sent. The downloadable HTML file does not register a service worker. The footer shows v1.6.0, a short what’s-new line, the privacy note, and a Support / 후원 link to the external Ko-fi page. Scene choices (dawn study, rainy café, night drive, focus, bedtime) map onto the now-distinct genre presets — dawn piano, swung lo-fi, city pop, spacious ambient, and half-time night — and add synthesized rain, vinyl crackle, and soft wind, each with its own slider. Export a seamless loop, or a 30- or 60-minute WAV rendered in crossfaded variations with progress and cancel. A short creator note says the music may be used in videos and streams, including monetized ones; attribution such as “Music: SONORI by ChamomileGrey” is appreciated; please don’t resell the raw tracks as a sample library. That note is not legal advice.
 
 Projects and playlists are stored in this browser’s localStorage (up to 30 sketch versions). Sketches saved by version 1.0 stay in the library. Export JSON for any version you want to keep. A full storage quota or private mode shows a notice instead of failing silently, and destructive deletes ask for confirmation.
 

@@ -112,7 +112,7 @@ assert.equal(genreProfile('bossa').voice, 'nylon');
 assert.equal(genreProfile('reggaeton').voice, 'pulse');
 assert.deepEqual(genreProfile('citypop').swingRange, [0.04, 0.1]);
 assert.deepEqual(genreProfile('trap').swingRange, [0, 0.02]);
-assert.deepEqual(genreProfile('house').swingRange, [0, 0]);
+assert.deepEqual(genreProfile('house').swingRange, [0.02, 0.06]);
 assert.deepEqual(genreProfile('bossa').swingRange, [0.01, 0.05]);
 assert.deepEqual(genreProfile('reggaeton').swingRange, [0, 0.02]);
 assert.equal(genreProfile('lofi').cutoff, 3400);

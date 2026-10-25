@@ -6,7 +6,7 @@ export const LAYER_HINTS = {
   rnb: { melody: 'Smooth lead', chords: 'Soul keys', bass: 'Syncopated bass', drums: 'Laid-back kit' },
   ambient: { melody: 'Air lead', chords: 'Slow keys', bass: 'Soft foundation', drums: 'Minimal pulse' },
   ballad: { melody: 'Warm lead', chords: 'Long pads', bass: 'Slow bass', drums: 'Half-time' },
-  edm: { melody: 'Saw lead', chords: 'Chord stabs', bass: 'Pulse bass', drums: 'Four-on-floor' },
+  edm: { melody: 'Supersaw lead', chords: 'Anthem triads', bass: 'Drop sub', drums: 'Build and drop' },
   acoustic: { melody: 'Pluck lead', chords: 'Strum keys', bass: 'Upright feel', drums: 'Brush kit' },
   cinematic: { melody: 'Wide lead', chords: 'Wide pads', bass: 'Low drone', drums: 'Sparse hits' },
   modernrock: { melody: 'Soft lead', chords: 'Piano · arp', bass: 'Warm bass', drums: 'Soft kit', hum: 'Oo · Ah' },
@@ -14,7 +14,7 @@ export const LAYER_HINTS = {
   nitelofi: { melody: 'Hushed lead', chords: 'Night keys', bass: 'Round bass', drums: 'Slow pocket', hum: 'Oo · Ah' },
   citypop: { melody: 'Keys lead', chords: 'Electric piano', bass: 'Octave bass', drums: 'Light swing kit' },
   trap: { melody: 'Sparse lead', chords: 'Dark stabs', bass: '808 bass', drums: 'Half-time hats' },
-  house: { melody: 'Dance lead', chords: 'Offbeat stabs', bass: 'Pulse bass', drums: 'Four-on-the-floor' },
+  house: { melody: 'Short motif', chords: 'Rhodes stabs', bass: 'Syncopated bass', drums: 'Offbeat hats' },
   bossa: { melody: 'Nylon lead', chords: 'Syncopated comps', bass: 'Bossa bass', drums: 'Soft rim pattern' },
   reggaeton: { melody: 'Hook lead', chords: 'Minor stabs', bass: 'Dembow bass', drums: 'Dembow kit' },
 };
@@ -42,7 +42,7 @@ export const GENRE_PRESETS = [
   },
   {
     id: 'edm', label: 'EDM', ko: 'EDM', genre: 'edm', mood: 'bright', bpm: 128, key: 'A', scale: 'minor', scaleLabel: '마이너',
-    drums: '포 온 더 플로어 · 오프비트 햇', voice: '소우 리드 · 펄스 베이스', blurb: '밝은 에너지의 댄스 스케치',
+    drums: '빌드업 스네어 롤 · 드롭', voice: '슈퍼소 리드 · 서브 베이스', blurb: '128 BPM, 빌드와 드롭',
   },
   {
     id: 'acoustic', label: 'Acoustic', ko: '어쿠스틱', genre: 'acoustic', mood: 'warm', bpm: 96, key: 'G', scale: 'pentatonic', scaleLabel: '펜타토닉',
@@ -73,8 +73,8 @@ export const GENRE_PRESETS = [
     drums: '하프타임 808 · 하이햇 롤', voice: '서브 808 · 짧은 리드', blurb: '140 BPM의 느린 그루브',
   },
   {
-    id: 'house', label: 'House', ko: '하우스', genre: 'house', mood: 'bright', bpm: 124, key: 'A', scale: 'minor', scaleLabel: '마이너',
-    drums: '포 온 더 플로어 · 오프비트 오픈햇', voice: '짧은 스탭 · 펄스 베이스', blurb: '124 BPM의 곧은 4/4',
+    id: 'house', label: 'House', ko: '하우스', genre: 'house', mood: 'bright', bpm: 124, key: 'A', scale: 'dorian', scaleLabel: '도리안',
+    drums: '포 온 더 플로어 · 오프비트 오픈햇 · 셔플 16분음', voice: '로즈 · 오르간 스탭 · 싱코페이션 베이스', blurb: '124 BPM의 따뜻한 하우스 루프',
   },
   {
     id: 'bossa', label: 'Bossa Nova', ko: '보사노바', genre: 'bossa', mood: 'warm', bpm: 130, key: 'C', scale: 'major', scaleLabel: '메이저',
@@ -116,12 +116,12 @@ export const SCENE_PRESETS = [
   {
     id: 'dawn-study', label: '새벽 공부', preset: 'dawn',
     ambience: { rain: 0, vinyl: 0, wind: 46 },
-    blurb: '새벽 감성 · 낮은 바람',
+    blurb: '새벽 피아노 · 낮은 바람',
   },
   {
     id: 'rain-cafe', label: '비 오는 카페', preset: 'lofi',
     ambience: { rain: 62, vinyl: 34, wind: 10 },
-    blurb: '로파이 · 비와 바이닐',
+    blurb: '스윙 로파이 · 비와 바이닐',
   },
   {
     id: 'night-drive', label: '밤 드라이브', preset: 'citypop',
@@ -131,12 +131,12 @@ export const SCENE_PRESETS = [
   {
     id: 'focus', label: '집중 작업', preset: 'ambient',
     ambience: { rain: 18, vinyl: 0, wind: 36 },
-    blurb: '앰비언트 · 방음과 얇은 비',
+    blurb: '여백 앰비언트 · 얇은 비',
   },
   {
     id: 'bedtime', label: '잠들기 전', preset: 'nitelofi',
     ambience: { rain: 12, vinyl: 24, wind: 50 },
-    blurb: '심야 로파이 · 바람과 작은 잡음',
+    blurb: '하프타임 심야 · 바람과 잡음',
   },
 ];
 
