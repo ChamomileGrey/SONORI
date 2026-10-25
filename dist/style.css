@@ -102,4 +102,21 @@ input::placeholder,textarea::placeholder{color:#5c5666}
 @media(max-width:620px){.preset-picks{grid-template-columns:repeat(2,minmax(0,1fr))}.preset-pick{min-height:48px;padding:10px 12px}.preset-pick b{font-size:13px}.preset-pick small{font-size:11px}.choice-grid{grid-template-columns:1fr 1fr}.choice{font-size:12px;padding:10px 8px}}
 @media(min-width:480px) and (max-width:620px){.preset-picks{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:380px){.preset-pick{padding:10px 8px}.preset-pick b{font-size:12px}.preset-pick small{font-size:10px}}
+.scene-picks{display:grid;gap:7px}
+.scene-pick{min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;text-align:left;background:#fff;color:#3f364c}
+.scene-pick b{display:block;font-size:12px;font-weight:650}
+.scene-pick small{display:block;margin-top:2px;color:#534960;font-size:10px;line-height:1.4}
+.scene-pick.selected,.scene-pick[aria-pressed="true"]{background:#f3eefb;border-color:#c9bddc;color:#4f4464}
+.ambience-sliders{display:grid;gap:8px;margin:0 0 22px}
+.ambience-slider{display:grid;grid-template-columns:58px minmax(0,1fr);gap:8px;align-items:center;color:#3f364c;font-size:12px}
+.ambience-slider input{width:100%}
+.creator-note{margin:28px 0 8px;padding:22px 22px 18px;border:1px solid var(--line);border-radius:13px;background:#fff;box-shadow:var(--shadow)}
+.creator-note-head{display:flex;align-items:center;gap:13px}
+.creator-copy{display:grid;gap:8px;margin-top:12px;color:#3a3444;font-size:13px;line-height:1.75}
+.creator-copy a{text-decoration:underline;text-underline-offset:3px;font-weight:650}
+.creator-soft{color:#514a5c;font-size:12px}
+.export-progress{margin-top:16px;display:grid;gap:8px}
+.export-progress p{margin:0;color:#3a3444;font-size:12px;line-height:1.6}
+.export-track{height:8px;border-radius:99px;background:#e7e1ee;overflow:hidden}
+.export-track i{display:block;height:100%;width:0;background:#7d6b96}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.waveform.playing .wave-bar{animation:none!important}}

@@ -19,7 +19,7 @@
 3. 연주 데모를 재생하고 멜로디·코드·베이스·드럼을 켜고 끄며 다듬으세요. 화면 아래 재생 바에서 일시정지, 이전·다음, 반복, 셔플을 쓸 수 있어요. 같은 이야기가 너무 비슷하면 **변주**를 눌러 코드·멜로디·그루브·구성을 다시 뽑으세요.
 4. 가사 노트에 초안을 고치거나 함께 쓴 가사를 붙여 넣으세요.
 5. 마음에 드는 버전은 라이브러리에 저장하고, 플레이리스트로 순서를 정하세요.
-6. 제작 프롬프트를 복사하거나 WAV·MIDI·TXT·프로젝트 JSON으로 내보내세요.
+6. 제작 프롬프트를 복사하거나 WAV·MIDI·TXT·프로젝트 JSON으로 내보내세요. WAV는 짧은 데모, 끝과 시작을 겹친 반복 파일, 30분·60분 긴 음원 중에서 고를 수 있어요.
 
 ## 지원 기능
 
@@ -38,7 +38,12 @@
 - 편집 가능한 템플릿 가사, 영어 음악 제작 프롬프트, 곡 구성 제안
 - 최대 30개 프로젝트 버전과 플레이리스트의 브라우저 저장, JSON 내보내기/불러오기
 - 이전 버전에서 저장한 `sonori.studio.v1` 스케치는 그대로 라이브러리에 나타남
+- 장면: 새벽 공부, 비 오는 카페, 밤 드라이브, 집중 작업, 잠들기 전. 기존 장르 프리셋에 배경음을 더함
+- 비, 바이닐 잡음, 부드러운 바람(룸톤). 각각 음량 슬라이더가 있고, 샘플 없이 합성함. 음량을 0으로 두면 예전과 같은 연주
 - 44.1 kHz stereo PCM WAV 및 각 파트가 나뉜 MIDI 파일
+- 반복 WAV: 한 사이클 길이로, 끝의 여운을 시작에 겹쳐 이어서 재생
+- 30분·60분 WAV: OfflineAudioContext로 구간을 하나씩 만들고, 시드가 다른 변주를 크로스페이드로 겹침. 진행 표시와 취소. 구간은 WAV 조각으로 이어 붙여 전체를 한 번에 들고 있지 않음
+- 크리에이터 이용 안내: 유튜브·방송·영상(수익이 생기는 영상 포함)에 사용 가능. 크레딧 예는 `Music: SONORI by ChamomileGrey`. 만든 곡 그대로를 음원 라이브러리로 되팔지 말아 달라는 짧은 안내이며, 법률 자문은 아님. 응원은 Ko-fi
 
 ## 범위와 보관
 
@@ -94,7 +99,7 @@ SONORI is a single-file browser studio for sketching a song from a mood. Open th
 
 Choose one genre and mood — Lo-fi, Pop, R&B, Ambient, Ballad, EDM, Acoustic, Cinematic, Modern Rock, Dawn, Night, City Pop, Trap, House, Bossa Nova, or Reggaeton — and the next sketch uses that choice together with its tempo, key, scale color, synth voicing, and drum pattern. Mood can still be adjusted inside the chosen genre. Modern Rock sits near 78 BPM, with piano, clean-guitar-style arpeggios, warm pads, and a quiet verse that opens into a fuller chorus. Trap is a half-time 808 at 140 BPM with hi-hat rolls, House is 4/4 near 124 with offbeat open hats, Bossa Nova is a light syncopated nylon voice with ii–V color near 130, and Reggaeton uses a dembow. Generate an instrumental demo, then use the bottom player for play/pause, previous/next, seek, repeat, and shuffle. Press **변주** to re-roll the seed: harmony, motif, groove, form, swing, and synth color change, and tempo and key move a little inside that genre’s range. The same seed always rebuilds the same sketch, including seeds from earlier genres. Words such as chorus, space, or bridge in the topic and notes steer the form. Toggle melody, chords, bass, drums, and an optional wordless oo/ah hum. The hum is formant synthesis, not sung lyrics. Edit the lyric draft, copy an English production prompt, and export WAV, MIDI, text, or project JSON. Audio is synthesized in the browser, including a convolution reverb from a generated impulse. Nothing is streamed, and the app does not call an AI or music-generation API.
 
-All data stays in this browser. There are no analytics, cookies, or network calls. On the public site, only this site’s own files may be saved on the device so the app can open offline. Songs and settings are never sent. The downloadable HTML file does not register a service worker. The footer shows v1.4.1, a short what’s-new line, the privacy note, and a Support / 후원 link to the external Ko-fi page.
+All data stays in this browser. There are no analytics, cookies, or network calls. On the public site, only this site’s own files may be saved on the device so the app can open offline. Songs and settings are never sent. The downloadable HTML file does not register a service worker. The footer shows v1.5.0, a short what’s-new line, the privacy note, and a Support / 후원 link to the external Ko-fi page. Scene choices (dawn study, rainy café, night drive, focus, bedtime) map onto existing genre presets and add synthesized rain, vinyl crackle, and soft wind, each with its own slider. Export a seamless loop, or a 30- or 60-minute WAV rendered in crossfaded variations with progress and cancel. A short creator note says the music may be used in videos and streams, including monetized ones; attribution such as “Music: SONORI by ChamomileGrey” is appreciated; please don’t resell the raw tracks as a sample library. That note is not legal advice.
 
 Projects and playlists are stored in this browser’s localStorage (up to 30 sketch versions). Sketches saved by version 1.0 stay in the library. Export JSON for any version you want to keep. A full storage quota or private mode shows a notice instead of failing silently, and destructive deletes ask for confirmation.
 
