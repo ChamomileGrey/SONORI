@@ -264,6 +264,23 @@ const MIDI_TRACKS = [
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const round = (value) => Math.round(value * 1e6) / 1e6;
+const AMBIENCE_SECONDS = 4;
+const AMBIENCE_GAIN = { rain: 0.18, vinyl: 0.1, wind: 0.16 };
+
+/** 0–100 sliders. Missing values stay off so older projects keep the dry mix. */
+export function normalizeAmbience(value) {
+  const source = value && typeof value === 'object' ? value : {};
+  const level = key => {
+    const number = Math.round(Number(source[key]));
+    return Math.max(0, Math.min(100, Number.isFinite(number) ? number : 0));
+  };
+  return { rain: level('rain'), vinyl: level('vinyl'), wind: level('wind') };
+}
+
+function ambienceAmount(levels, key) {
+  const raw = clamp(finite(levels?.[key], 0), 0, 100) / 100;
+  return AMBIENCE_GAIN[key] * raw ** 1.4;
+}
 
 export function seededRandom(seed) {
   let state = seed >>> 0;
@@ -293,6 +310,7 @@ export function normalizeSettings(input = {}) {
       drums: layers.drums !== false,
       hum: layers.hum === true,
     },
+    ambience: normalizeAmbience(input.ambience),
   };
 }
 
@@ -327,6 +345,112 @@ export function createImpulseChannels(sampleRate, seconds, decay, seed) {
     });
   }
   return channels;
+}
+
+function peakNormalize(channels, peak = 0.9) {
+  let max = 0;
+  for (const channel of channels) for (const value of channel) max = Math.max(max, Math.abs(value));
+  if (max < 1e-5) return;
+  const scale = peak / max;
+  for (const channel of channels) for (let index = 0; index < channel.length; index++) channel[index] *= scale;
+}
+
+/**
+ * Looping rain, vinyl crackle, and wind/room tone.
+ * Built from noise and envelopes only. The same seed rebuilds the same buffers.
+ */
+export function createAmbienceBuffers(sampleRate, seconds = AMBIENCE_SECONDS, seed = 1) {
+  const rate = Math.max(8000, Math.round(finite(sampleRate, 44100)));
+  const span = clamp(finite(seconds, AMBIENCE_SECONDS), 0.5, 8);
+  const fade = Math.max(8, Math.round(rate * 0.03));
+  const body = Math.max(fade * 4, Math.round(rate * span));
+  const length = body + fade;
+  const random = seededRandom(mix(finite(seed, 1) >>> 0, 0xA4B1E));
+  const rain = [new Float32Array(length), new Float32Array(length)];
+  const vinyl = [new Float32Array(length), new Float32Array(length)];
+  const wind = [new Float32Array(length), new Float32Array(length)];
+
+  let left = 0;
+  let right = 0;
+  let lowLeft = 0;
+  let lowRight = 0;
+  for (let index = 0; index < length; index++) {
+    const noiseLeft = random() * 2 - 1;
+    const noiseRight = random() * 2 - 1;
+    left += (noiseLeft - left) * 0.012;
+    right += (noiseRight - right) * 0.012;
+    lowLeft += (left - lowLeft) * 0.02;
+    lowRight += (right - lowRight) * 0.02;
+    const breathe = 0.72 + 0.28 * Math.sin((index / rate) * Math.PI * 2 * 0.07);
+    wind[0][index] = lowLeft * breathe;
+    wind[1][index] = lowRight * breathe;
+  }
+
+  left = 0;
+  right = 0;
+  for (let index = 0; index < length; index++) {
+    const noiseLeft = random() * 2 - 1;
+    const noiseRight = random() * 2 - 1;
+    left += (noiseLeft - left) * 0.35;
+    right += (noiseRight - right) * 0.35;
+    rain[0][index] = (noiseLeft - left) * 0.42;
+    rain[1][index] = (noiseRight - right) * 0.42;
+  }
+  const drops = Math.max(4, Math.round(span * 42));
+  for (let drop = 0; drop < drops; drop++) {
+    const at = Math.floor(random() * body);
+    const pan = random();
+    const decay = Math.max(2, Math.round(rate * (0.01 + random() * 0.045)));
+    const amp = 0.28 + random() * 0.72;
+    const tone = 0.25 + random() * 0.75;
+    let color = random() * 2 - 1;
+    for (let index = 0; index < decay && at + index < length; index++) {
+      color = color * 0.52 + (random() * 2 - 1) * tone;
+      const env = (1 - index / decay) ** 2;
+      const tap = color * env * amp;
+      rain[0][at + index] += tap * (1 - pan * 0.85);
+      rain[1][at + index] += tap * (0.15 + pan * 0.85);
+    }
+  }
+
+  left = 0;
+  right = 0;
+  for (let index = 0; index < length; index++) {
+    const noiseLeft = random() * 2 - 1;
+    const noiseRight = random() * 2 - 1;
+    left += (noiseLeft - left) * 0.006;
+    right += (noiseRight - right) * 0.006;
+    vinyl[0][index] = left;
+    vinyl[1][index] = right;
+  }
+  let cursor = Math.round(rate * (0.02 + random() * 0.08));
+  while (cursor < body) {
+    const pop = random() < 0.16;
+    const amp = pop ? 0.62 + random() * 0.38 : 0.14 + random() * 0.32;
+    const decay = Math.max(1, Math.round(rate * (pop ? 0.006 + random() * 0.018 : 0.001 + random() * 0.003)));
+    const pan = 0.32 + random() * 0.36;
+    for (let index = 0; index < decay && cursor + index < length; index++) {
+      const env = (1 - index / decay) ** (pop ? 1.3 : 3);
+      const tap = (random() * 2 - 1) * env * amp;
+      vinyl[0][cursor + index] += tap * (1 - pan);
+      vinyl[1][cursor + index] += tap * pan;
+    }
+    cursor += Math.max(1, Math.round(rate * (0.04 + random() * 0.2)));
+  }
+
+  const loopSeconds = body / rate;
+  const fadeSeconds = fade / rate;
+  const looped = {
+    rain: foldLoop(rain, rate, loopSeconds, fadeSeconds),
+    vinyl: foldLoop(vinyl, rate, loopSeconds, fadeSeconds),
+    wind: foldLoop(wind, rate, loopSeconds, fadeSeconds),
+    sampleRate: rate,
+    seconds: loopSeconds,
+  };
+  peakNormalize(looped.rain, 0.9);
+  peakNormalize(looped.vinyl, 0.9);
+  peakNormalize(looped.wind, 0.9);
+  return looped;
 }
 
 function chordForDegree(degree, key, closing, style) {  const root = key + SCALE[degree];
@@ -993,7 +1117,8 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
   const noise = context.createBuffer(1, context.sampleRate, context.sampleRate);
   const noiseData = noise.getChannelData(0);
   for (let i = 0; i < noiseData.length; i++) noiseData[i] = random() * 2 - 1;
-  const graphNodes = [input, warmth, shaper, filter, compressor, limiter, master, delay, feedback, wet, echoFilter, reverbSend, reverbHighpass, predelay, convolver, damp, reverbReturn];
+  const bed = createAmbienceBed(context, song, input);
+  const graphNodes = [input, warmth, shaper, filter, compressor, limiter, master, delay, feedback, wet, echoFilter, reverbSend, reverbHighpass, predelay, convolver, damp, reverbReturn, ...bed.nodes];
 
   const track = (source, nodes, stop) => {
     active.add(source);
@@ -1249,7 +1374,10 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
       else if (PROFILES[genre].voice === 'band') bandVoice(event, time, duration);
       else tonal(event, time, duration);
     },
+    startBed(time = 0, offsetSeconds = 0, fadeIn = false) { bed.start(time, offsetSeconds, fadeIn); },
+    setAmbience(levels) { bed.setLevels(levels, context.currentTime, false, true); },
     dispose() {
+      bed.stop();
       for (const source of active) {
         try { source.stop(); } catch { /* Already ended. */ }
         source.disconnect();
@@ -1258,6 +1386,63 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
       graphNodes.forEach(node => node.disconnect());
     },
     get activeSources() { return active.size; },
+  };
+}
+
+function createAmbienceBed(context, song, destination) {
+  const buffers = createAmbienceBuffers(context.sampleRate, AMBIENCE_SECONDS, song.ambienceSeed ?? song.seed);
+  const gains = {};
+  const sources = [];
+  const nodes = [];
+  for (const name of ['rain', 'vinyl', 'wind']) {
+    const gain = context.createGain();
+    gain.gain.value = 0;
+    const buffer = context.createBuffer(2, buffers[name][0].length, context.sampleRate);
+    buffers[name].forEach((channel, index) => buffer.getChannelData(index).set(channel));
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.connect(gain);
+    gain.connect(destination);
+    gains[name] = gain;
+    sources.push(source);
+    nodes.push(gain);
+  }
+  const loopSeconds = buffers.seconds || AMBIENCE_SECONDS;
+  let started = false;
+  function setLevels(levels, time, fadeIn = false, smooth = false) {
+    const normalized = normalizeAmbience(levels?.ambience || levels);
+    for (const name of ['rain', 'vinyl', 'wind']) {
+      const target = ambienceAmount(normalized, name);
+      const param = gains[name].gain;
+      param.cancelScheduledValues(time);
+      if (fadeIn) {
+        param.setValueAtTime(0, time);
+        param.linearRampToValueAtTime(target, time + 0.03);
+      } else if (smooth) {
+        param.setTargetAtTime(target, time, 0.05);
+      } else {
+        param.setValueAtTime(target, time);
+      }
+    }
+  }
+  setLevels(song.settings?.ambience, 0, false);
+  return {
+    nodes,
+    setLevels,
+    start(time, offsetSeconds = 0, fadeIn = false) {
+      if (started) return;
+      started = true;
+      const offset = ((Number(offsetSeconds) % loopSeconds) + loopSeconds) % loopSeconds;
+      if (fadeIn) setLevels(song.settings?.ambience, time, true);
+      for (const source of sources) source.start(time, offset);
+    },
+    stop() {
+      for (const source of sources) {
+        try { source.stop(); } catch { /* Already ended. */ }
+        source.disconnect();
+      }
+    },
   };
 }
 
@@ -1281,7 +1466,9 @@ export function createPlayer() {
 
   return {
     async play(nextSong, handlers = {}) {
-      if (!nextSong?.events?.length) throw new Error('재생할 악기를 하나 이상 선택해 주세요.');
+      const bed = normalizeAmbience(nextSong?.settings?.ambience);
+      const bedOn = bed.rain + bed.vinyl + bed.wind > 0;
+      if (!nextSong?.events?.length && !bedOn) throw new Error('재생할 악기를 하나 이상 선택해 주세요.');
       const AudioContextClass = globalThis.AudioContext || globalThis.webkitAudioContext;
       if (!AudioContextClass) throw new Error('이 브라우저는 오디오 재생을 지원하지 않습니다. 최신 Chrome 또는 Safari를 사용해 주세요.');
       const ticket = ++generation;
@@ -1299,6 +1486,7 @@ export function createPlayer() {
       callbacks = handlers;
       graph = createGraph(context, song, context.destination, volume);
       startTime = context.currentTime + 0.045;
+      graph.startBed(startTime, offset, true);
       status = 'playing';
       nextEvent = song.events.findIndex(event => event.time >= offset - 0.001);
       if (nextEvent < 0) nextEvent = song.events.length;
@@ -1346,6 +1534,10 @@ export function createPlayer() {
     setVolume(value) {
       volume = clamp(finite(value, 0.8), 0, 1);
       if (graph) graph.master.gain.setTargetAtTime(volume, context.currentTime, 0.02);
+    },
+    setAmbience(levels) {
+      if (song?.settings) song.settings.ambience = normalizeAmbience(levels);
+      if (graph) graph.setAmbience(song?.settings?.ambience || levels);
     },
     /** Move within the loaded sketch. Returns true when playback must be restarted by play(). */
     seek(ratio) {
@@ -1405,16 +1597,261 @@ export function encodeWav(channels, sampleRate = 44100) {
   return new Blob([buffer], { type: 'audio/wav' });
 }
 
-export async function renderWav(song) {
+function cancelError() {
+  const error = new Error('내보내기를 취소했어요.');
+  error.name = 'AbortError';
+  return error;
+}
+
+function yieldNow() {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+/** Section seeds for a long export. Index 0 keeps the sketch the listener already has. */
+export function variationSeed(seed, index) {
+  const base = finite(seed, 1) >>> 0;
+  const step = Math.max(0, Math.round(finite(index, 0)));
+  if (step === 0) return base;
+  let value = base ^ Math.imul(step + 1, 0x9E3779B1);
+  value = Math.imul(value ^ value >>> 16, 0x7FEB352D);
+  value = Math.imul(value ^ value >>> 15, 0x846CA68B);
+  value ^= value >>> 16;
+  return value >>> 0;
+}
+
+/**
+ * Place full sketches back to back, overlapping by a crossfade, until the timeline is filled.
+ * The last section is shortened so the covered frames match the request.
+ */
+export function planLongform({ duration, totalSeconds, fadeSeconds = 2.4, seed = 1, sampleRate = 44100 } = {}) {
+  const rate = Math.max(1000, Math.round(finite(sampleRate, 44100)));
+  const durationFrames = Math.max(1, Math.round(Math.max(0.5, finite(duration, 0.5)) * rate));
+  const totalFrames = Math.max(durationFrames, Math.round(Math.max(0.5, finite(totalSeconds, duration)) * rate));
+  let fadeFrames = Math.round(clamp(finite(fadeSeconds, 2.4), 0.2, 4) * rate);
+  fadeFrames = Math.min(fadeFrames, Math.max(1, Math.floor(durationFrames * 0.3)));
+  const minSection = Math.max(fadeFrames + Math.round(rate * 0.5), Math.min(durationFrames, Math.round(rate * 4)));
+  const sections = [];
+  let start = 0;
+  let index = 0;
+  while (start < totalFrames && index < 1000) {
+    const room = totalFrames - start;
+    const canFitAnother = room > durationFrames + minSection;
+    if (canFitAnother) {
+      sections.push({ index, seed: variationSeed(seed, index), startFrame: start, frames: durationFrames, overlapFrames: fadeFrames });
+      start += durationFrames - fadeFrames;
+      index += 1;
+      continue;
+    }
+    sections.push({ index, seed: variationSeed(seed, index), startFrame: start, frames: room, overlapFrames: 0 });
+    break;
+  }
+  const last = sections.at(-1);
+  return { sampleRate: rate, fadeFrames, sections, totalFrames, coveredFrames: last.startFrame + last.frames, durationFrames };
+}
+
+/** Fold the render tail into the head so a file of exactly one cycle loops without a click. */
+export function foldLoop(channels, sampleRate, durationSeconds, fadeSeconds) {
+  const rate = Math.max(1, Math.round(finite(sampleRate, 44100)));
+  const loopFrames = Math.max(1, Math.round(finite(durationSeconds, 0) * rate));
+  const fade = Math.max(1, Math.min(Math.max(1, loopFrames - 1), Math.round(Math.max(0, finite(fadeSeconds, 0)) * rate)));
+  return channels.map(channel => {
+    const out = new Float32Array(loopFrames);
+    for (let index = 0; index < loopFrames; index++) {
+      const current = index < channel.length && Number.isFinite(channel[index]) ? channel[index] : 0;
+      if (index < fade && fade > 1) {
+        const tailIndex = loopFrames + index;
+        const tail = tailIndex < channel.length && Number.isFinite(channel[tailIndex]) ? channel[tailIndex] : 0;
+        const mixAmount = index / (fade - 1);
+        out[index] = current * Math.sin(mixAmount * Math.PI / 2) + tail * Math.cos(mixAmount * Math.PI / 2);
+      } else out[index] = current;
+    }
+    return out;
+  });
+}
+
+/** Equal-power blend. The first sample is the outgoing tail and the last sample is the incoming head. */
+export function mixCrossfade(tail, head, frames = tail[0]?.length || 0) {
+  const count = Math.max(0, Math.min(frames, tail[0]?.length || 0, head[0]?.length || 0));
+  return tail.map((channel, channelIndex) => {
+    const mixed = new Float32Array(count);
+    const incoming = head[channelIndex] || [];
+    for (let index = 0; index < count; index++) {
+      const mixAmount = count <= 1 ? 1 : index / (count - 1);
+      const outgoing = Number.isFinite(channel[index]) ? channel[index] : 0;
+      const next = Number.isFinite(incoming[index]) ? incoming[index] : 0;
+      mixed[index] = outgoing * Math.cos(mixAmount * Math.PI / 2) + next * Math.sin(mixAmount * Math.PI / 2);
+    }
+    return mixed;
+  });
+}
+
+export function wavHeaderBytes(dataBytes, sampleRate = 44100, channelCount = 2) {
+  const buffer = new ArrayBuffer(44);
+  const view = new DataView(buffer);
+  const text = (offset, value) => { for (let index = 0; index < value.length; index++) view.setUint8(offset + index, value.charCodeAt(index)); };
+  const block = channelCount * 2;
+  text(0, 'RIFF');
+  view.setUint32(4, 36 + dataBytes, true);
+  text(8, 'WAVE');
+  text(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channelCount, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * block, true);
+  view.setUint16(32, block, true);
+  view.setUint16(34, 16, true);
+  text(36, 'data');
+  view.setUint32(40, dataBytes, true);
+  return new Uint8Array(buffer);
+}
+
+function fitChannels(channels, frames) {
+  return channels.map(channel => {
+    if (channel.length === frames) return channel;
+    const next = new Float32Array(frames);
+    next.set(channel.subarray(0, Math.min(frames, channel.length)));
+    return next;
+  });
+}
+
+function sliceChannels(channels, start, end) {
+  return channels.map(channel => channel.slice(start, end));
+}
+
+function fadeEdge(channels, from, to, direction) {
+  const length = Math.max(1, to - from);
+  for (const channel of channels) {
+    for (let index = 0; index < length; index++) {
+      const at = from + index;
+      if (at < 0 || at >= channel.length) continue;
+      const amount = index / length;
+      const gain = direction === 'out' ? Math.cos(amount * Math.PI / 2) : Math.sin(amount * Math.PI / 2);
+      channel[at] *= gain;
+    }
+  }
+}
+
+function interleavePcm16(channels) {
+  const frames = channels[0].length;
+  const channelCount = channels.length;
+  const bytes = new Uint8Array(frames * channelCount * 2);
+  const view = new DataView(bytes.buffer);
+  for (let frame = 0; frame < frames; frame++) {
+    for (let channel = 0; channel < channelCount; channel++) {
+      const raw = channels[channel][frame];
+      const value = Number.isFinite(raw) ? clamp(raw, -1, 1) : 0;
+      view.setInt16((frame * channelCount + channel) * 2, Math.round(value * (value < 0 ? 32768 : 32767)), true);
+    }
+  }
+  return bytes;
+}
+
+async function renderToChannels(song, frames, sampleRate = 44100, offsetSeconds = 0) {
   const OfflineContext = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
   if (!OfflineContext) throw new Error('이 브라우저는 WAV 내보내기를 지원하지 않습니다. MIDI로 저장하거나 최신 브라우저를 사용해 주세요.');
-  const sampleRate = 44100;
-  const context = new OfflineContext(2, Math.ceil((song.duration + 0.8) * sampleRate), sampleRate);
+  const length = Math.max(1, Math.round(frames));
+  const context = new OfflineContext(2, length, sampleRate);
   const graph = createGraph(context, song, context.destination, 0.85);
-  for (const event of song.events) graph.schedule(event, event.time + 0.02);
+  graph.startBed(0, offsetSeconds, false);
+  const seconds = length / sampleRate;
+  for (const event of song.events) {
+    if (event.time >= seconds) break;
+    graph.schedule(event, event.time + 0.02);
+  }
   const audio = await context.startRendering();
+  const left = new Float32Array(audio.length);
+  const right = new Float32Array(audio.length);
+  left.set(audio.getChannelData(0));
+  right.set(audio.getChannelData(1));
   graph.dispose();
-  return encodeWav([audio.getChannelData(0), audio.getChannelData(1)], sampleRate);
+  return [left, right];
+}
+
+export async function renderWav(song) {
+  const sampleRate = 44100;
+  const frames = Math.ceil((song.duration + 0.8) * sampleRate);
+  return encodeWav(await renderToChannels(song, frames, sampleRate, 0), sampleRate);
+}
+
+/** One cycle, with the decay folded into the start so the file can repeat. */
+export async function renderLoopWav(song, options = {}) {
+  const render = options.renderChannels || renderToChannels;
+  const sampleRate = 44100;
+  if (options.shouldCancel?.()) throw cancelError();
+  const fadeSeconds = Math.min(Math.max(0.4, finite(options.fadeSeconds, 1.2)), Math.max(0.4, song.duration * 0.22));
+  const frames = Math.ceil((song.duration + fadeSeconds + 0.05) * sampleRate);
+  const channels = await render(song, frames, sampleRate, 0);
+  if (options.shouldCancel?.()) throw cancelError();
+  return encodeWav(foldLoop(channels, sampleRate, song.duration, fadeSeconds), sampleRate);
+}
+
+/**
+ * Render variation sections one at a time and append 16-bit frames.
+ * Only the current render and the crossfade tail are kept as float audio.
+ */
+export async function renderLongformWav(settings = {}, options = {}) {
+  const render = options.renderChannels || renderToChannels;
+  const sampleRate = options.sampleRate || 44100;
+  const probe = options.probeSong || compose(settings);
+  const totalSeconds = options.totalSeconds ?? (Number(options.minutes) || 30) * 60;
+  const plan = planLongform({
+    duration: probe.duration,
+    totalSeconds,
+    fadeSeconds: options.fadeSeconds ?? 2.4,
+    seed: probe.seed,
+    sampleRate,
+  });
+  const parts = [];
+  let pending = null;
+  let emitted = 0;
+  for (let index = 0; index < plan.sections.length; index++) {
+    if (options.shouldCancel?.()) throw cancelError();
+    options.onProgress?.({ index, count: plan.sections.length, ratio: index / plan.sections.length, emitted, totalFrames: plan.totalFrames });
+    await yieldNow();
+    if (options.shouldCancel?.()) throw cancelError();
+    const section = plan.sections[index];
+    const song = compose({ ...settings, seed: section.seed });
+    song.ambienceSeed = probe.seed;
+    let channels = fitChannels(await render(song, section.frames, sampleRate, section.startFrame / sampleRate), section.frames);
+    if (options.shouldCancel?.()) throw cancelError();
+    let bodyFrom = 0;
+    if (!pending) fadeEdge(channels, 0, Math.min(Math.round(sampleRate * 0.015), Math.max(1, section.frames >> 3)), 'in');
+    if (pending) {
+      const mixed = mixCrossfade(pending, channels, pending[0].length);
+      if (mixed[0].length) {
+        parts.push(interleavePcm16(mixed));
+        emitted += mixed[0].length;
+      }
+      bodyFrom = pending[0].length;
+      pending = null;
+    }
+    if (section.overlapFrames > 0) {
+      const holdFrom = section.frames - section.overlapFrames;
+      if (holdFrom > bodyFrom) {
+        const body = sliceChannels(channels, bodyFrom, holdFrom);
+        parts.push(interleavePcm16(body));
+        emitted += body[0].length;
+      }
+      pending = sliceChannels(channels, Math.max(bodyFrom, holdFrom), section.frames);
+    } else {
+      const fadeFrames = Math.min(section.frames - bodyFrom, Math.max(1, Math.min(Math.round(sampleRate * 2.5), Math.floor(section.frames / 4))));
+      fadeEdge(channels, section.frames - fadeFrames, section.frames, 'out');
+      const body = sliceChannels(channels, bodyFrom, section.frames);
+      if (body[0].length) {
+        parts.push(interleavePcm16(body));
+        emitted += body[0].length;
+      }
+    }
+    channels = null;
+  }
+  if (pending?.[0]?.length) {
+    parts.push(interleavePcm16(pending));
+    emitted += pending[0].length;
+  }
+  const dataBytes = parts.reduce((sum, part) => sum + part.byteLength, 0);
+  options.onProgress?.({ index: plan.sections.length, count: plan.sections.length, ratio: 1, emitted, totalFrames: plan.totalFrames });
+  return new Blob([wavHeaderBytes(dataBytes, sampleRate, 2), ...parts], { type: 'audio/wav' });
 }
 
 function variableLength(value) {

@@ -14,7 +14,7 @@ const pkg = JSON.parse(pkgText);
 const manifest = JSON.parse(manifestText);
 const standalone = await read('release/SONORI.html');
 
-assert.equal(pkg.version, '1.4.1');
+assert.equal(pkg.version, '1.5.0');
 assert.match(index, /name="sonori-sw" content="on"/);
 assert.match(index, /worker-src 'self'/);
 assert.match(index, /manifest-src 'self'/);
@@ -28,7 +28,9 @@ assert.match(index, /모든 데이터는 이 브라우저 안에만 있습니다
 assert.match(index, /All data stays in this browser/);
 assert.match(privacy, /분석 도구, 쿠키, 네트워크 호출은 없습니다/);
 assert.match(privacy, /no analytics, cookies, or network calls/);
-assert.match(sw, /sonori-v1\.4\.1/);
+assert.match(sw, /sonori-v1\.5\.0/);
+assert.match(index, /크리에이터 이용 안내/);
+assert.match(index, /Music: SONORI by ChamomileGrey/);
 assert.match(sw, /skipWaiting/);
 assert.equal(manifest.display, 'standalone');
 assert.equal(manifest.theme_color, '#f4f3ee');
