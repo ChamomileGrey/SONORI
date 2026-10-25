@@ -103,3 +103,6 @@ input::placeholder,textarea::placeholder{color:#5c5666}
 @media(min-width:480px) and (max-width:620px){.preset-picks{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:380px){.preset-pick{padding:10px 8px}.preset-pick b{font-size:12px}.preset-pick small{font-size:10px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.waveform.playing .wave-bar{animation:none!important}}
+.concept-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0 0;flex-wrap:wrap}
+.concept-line{margin:0;color:#53485f;font-size:12px;line-height:1.5;flex:1 1 180px}
+.concept-row .text-link{white-space:nowrap}

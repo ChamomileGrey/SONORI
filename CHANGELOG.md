@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.6.0 — 2026-10-25
+
+스케치마다 다른 곡 콘셉트.
+
+1.4의 작곡은 무드당 예닐곱 개의 4마디 다이아토닉 루프, 벌스-후렴 형식 여덟 개, 코드톤에 붙인 윤곽 다섯 개, 곡 전체의 텍스처·베이스 하나, 그루브 네 개 안쪽으로 모여 있었다. 시드는 그 작은 풀 안의 자리와 한두 마디의 색채만 바꿨다. 코드 이름 문자열이 달라도 진행의 뼈대는 같은 경우가 많았다. 템포와 조성은 프리셋에 고정이다.
+
+### 추가
+
+- 곡 콘셉트. 시드가 형식(벌스-후렴, AABA, 통절, 빌드-드롭), 무드별 가중 코드 풀, 모티프와 그 전위·역행·리듬 이동·음정 도약, 그루브, 반주 질감, 베이스, 인트로·아웃트로, 다이내믹 호를 함께 고름
+- 차용 코드와 관계조·딸림조·버금딸림조로의 브리지 전조. 스케일 검사가 고정된 시드 42와 99는 조 안의 음만 사용
+- 화면의 곡 콘셉트 한 줄(형식, 진행, 그루브)과 **다른 느낌으로**. 템포와 조성은 두고 콘셉트만 다시 뽑음
+- 다양성 검사가 1.4 작곡과 1.6 콘셉트의 수치를 나란히 출력
+
+### 재생
+
+- `planner`가 `"concept"`가 아닌 저장본은 1.4 작곡으로 다시 연주함. 저장 키는 `sonori.studio.v1`, 프로젝트 JSON은 버전 1
+- 데모 만들기, 변주, 다른 느낌으로를 누르면 1.6 콘셉트로 다시 씀. 같은 시드라도 1.4.1의 연주와 같지 않음
+- 변주는 예전처럼 장르 범위 안에서 조성과 템포를 조금 옮김
+
+### 유지
+
+- 같은 시드와 같은 설정, 같은 작곡 방식은 같은 스케치
+- 단일 HTML, 엄격한 CSP(`connect-src 'none'`), 외부 의존성·샘플·네트워크 없음
+- 브랜드 캐모마일그레이 (ChamomileGrey), Ko-fi https://ko-fi.com/chamomilegrey, 라이선스
+
+## English
+
+Sketches were clustering on a handful of four-bar diatonic loops, eight verse-chorus forms, five snapped contours, and one texture and bass line per song. 1.6 plans a song concept per seed: form, a larger mood-weighted progression, a motif developed by inversion, retrograde, displacement, and leap, plus groove, arrangement, intro, outro, and a dynamic arc. The stage shows that concept and can re-roll it with 다른 느낌으로 without moving tempo or key. Saved projects that do not set `planner` to `"concept"` still play through the 1.4 composer. Making a demo, a variation, or another feel writes the 1.6 concept and will not match the 1.4.1 performance of that seed. Storage stays `sonori.studio.v1` and project JSON stays version 1. Seeds 42 and 99 stay inside the preset scale.
+
 ## 1.4.1 — 2026-10-24
 
 장르를 고르는 곳이 하나.

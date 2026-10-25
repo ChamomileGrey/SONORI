@@ -153,16 +153,81 @@ const SECTION_META = {
   outro: ['아웃트로', '여운을 남기며 으뜸화음으로 닫습니다.'],
   motif: ['핵심 모티프', '짧은 아이디어를 확인하는 단일 구간입니다.'],
 };
-const STRUCTURES = [
-  ['intro', 'verse', 'chorus', 'outro'],
-  ['verse', 'pre', 'chorus', 'outro'],
-  ['intro', 'verse', 'chorus', 'bridge', 'outro'],
-  ['verse', 'chorus', 'verse', 'chorus', 'outro'],
-  ['intro', 'verse', 'pre', 'chorus', 'outro'],
-  ['intro', 'verse', 'chorus', 'bridge', 'chorus', 'outro'],
-  ['verse', 'pre', 'chorus', 'bridge', 'chorus', 'outro'],
-  ['intro', 'verse', 'pre', 'chorus', 'bridge', 'chorus', 'outro'],
-];
+const FORM_BOOK = {
+  verseChorus: [
+    ['intro', 'verse', 'chorus', 'outro'],
+    ['verse', 'pre', 'chorus', 'outro'],
+    ['intro', 'verse', 'chorus', 'bridge', 'outro'],
+    ['verse', 'chorus', 'verse', 'chorus', 'outro'],
+    ['intro', 'verse', 'pre', 'chorus', 'outro'],
+    ['intro', 'verse', 'chorus', 'bridge', 'chorus', 'outro'],
+    ['verse', 'pre', 'chorus', 'bridge', 'chorus', 'outro'],
+    ['intro', 'verse', 'pre', 'chorus', 'bridge', 'chorus', 'outro'],
+  ],
+  aaba: [
+    ['intro', 'verse', 'verse', 'bridge', 'verse', 'outro'],
+    ['verse', 'verse', 'bridge', 'verse', 'outro'],
+    ['intro', 'verse', 'bridge', 'verse', 'chorus', 'outro'],
+    ['verse', 'verse', 'bridge', 'verse', 'chorus', 'outro'],
+  ],
+  through: [
+    ['intro', 'verse', 'pre', 'bridge', 'chorus', 'outro'],
+    ['verse', 'pre', 'bridge', 'chorus', 'outro'],
+    ['intro', 'verse', 'bridge', 'pre', 'outro'],
+    ['intro', 'verse', 'pre', 'bridge', 'outro'],
+    ['verse', 'bridge', 'pre', 'chorus', 'outro'],
+  ],
+  build: [
+    ['intro', 'verse', 'pre', 'chorus', 'outro'],
+    ['intro', 'verse', 'pre', 'chorus', 'bridge', 'outro'],
+    ['intro', 'pre', 'chorus', 'outro'],
+    ['intro', 'verse', 'chorus', 'outro'],
+    ['intro', 'verse', 'pre', 'chorus', 'verse', 'outro'],
+  ],
+};
+
+function formWeights(genre, mood, cues) {
+  const ambientish = genre === 'ambient' || genre === 'cinematic' || genre === 'dawn';
+  const dance = genre === 'edm' || genre === 'house' || genre === 'reggaeton';
+  const lyrical = genre === 'ballad' || genre === 'modernrock' || genre === 'bossa' || genre === 'citypop' || genre === 'nitelofi';
+  const weights = ambientish
+    ? { build: 5, through: 4, aaba: 2, verseChorus: 2 }
+    : dance
+      ? { build: 4, verseChorus: 5, through: 2, aaba: 1 }
+      : lyrical
+        ? { aaba: 4, verseChorus: 5, through: 2, build: 2 }
+        : { verseChorus: 4, aaba: 3, through: 3, build: 2 };
+  if (mood === 'bright') { weights.verseChorus += 2; weights.build += 1; }
+  if (mood === 'melancholy') { weights.aaba += 1; weights.through += 1; }
+  if (mood === 'dreamy') { weights.through += 1; weights.build += 1; }
+  if (cues.wantBridge) return { verseChorus: 2, aaba: 4, through: 4, build: 2 };
+  if (cues.wantSpace) return ambientish ? { build: 5, through: 4, aaba: 1, verseChorus: 1 } : { through: 4, build: 4, aaba: 2, verseChorus: 1 };
+  if (cues.wantChorus || cues.wantLift) { weights.verseChorus += 3; weights.build += 1; }
+  return weights;
+}
+
+function templateAllowed(template, cues) {
+  if (cues.wantBridge) return template.includes('bridge');
+  if (cues.wantSpace) return template[0] === 'intro' && !template.includes('bridge') && template.filter(role => role === 'chorus').length <= 1;
+  return true;
+}
+
+function allocateSectionBars(template, count, weight) {
+  const totalWeight = template.reduce((sum, role) => sum + weight[role], 0) || 1;
+  const left = count - template.length;
+  const fractions = template.map(role => left * weight[role] / totalWeight);
+  const extras = fractions.map(value => Math.floor(value));
+  let used = extras.reduce((sum, value) => sum + value, 0);
+  const order = fractions.map((value, index) => ({ index, frac: value - Math.floor(value) })).sort((a, b) => b.frac - a.frac || a.index - b.index);
+  for (const item of order) {
+    if (used >= left) break;
+    extras[item.index] += 1;
+    used += 1;
+  }
+  return extras.map(extra => 1 + extra);
+}
+
+
 
 function mix(seed, salt) {
   let hash = Math.imul((seed >>> 0) ^ Math.imul((salt >>> 0) || 1, 0x9E3779B1), 0x85EBCA77);
@@ -194,46 +259,65 @@ function arrangementCues(input = {}) {
 }
 
 /** Keep this allocation identical to planStructure in audio.js. */
+/** Section lengths for a sketch. The same inputs are used by the lyric brief. */
 function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cues = {}) {
   const count = Math.max(1, Math.round(Number(bars) || 1));
+  const hint = cues || {};
   if (count < 4) {
     const [name, description] = SECTION_META.motif;
-    return [{ role: 'motif', name, bars: count, description }];
+    return [{ role: 'motif', name, bars: count, description, family: 'motif' }];
   }
-  let choices = STRUCTURES.filter(template => template.length <= count);
-  if (!choices.length) choices = [STRUCTURES[0]];
-  if (cues.wantBridge) {
-    const bridged = choices.filter(template => template.includes('bridge'));
-    if (bridged.length) choices = bridged;
-  } else if (cues.wantSpace) {
-    const spacious = choices.filter(template => template[0] === 'intro' && template.filter(role => role === 'chorus').length <= 1);
-    if (spacious.length) choices = spacious;
-  } else if (cues.wantChorus || cues.wantLift || mood === 'bright') {
-    const hooks = choices.filter(template => template.includes('pre') || template.filter(role => role === 'chorus').length >= 2);
-    if (hooks.length) choices = hooks;
-  } else if (genre === 'ambient' || genre === 'cinematic' || genre === 'dawn' || mood === 'melancholy') {
-    const spacious = choices.filter(template => template[0] === 'intro');
-    if (spacious.length) choices = spacious;
+  const weights = formWeights(genre, mood, hint);
+  let options = [];
+  for (const family of Object.keys(FORM_BOOK)) {
+    const weight = weights[family] || 0;
+    if (weight <= 0) continue;
+    for (const template of FORM_BOOK[family]) {
+      if (template.length > count) continue;
+      if (!templateAllowed(template, hint)) continue;
+      options.push({ family, template, weight });
+    }
   }
-  const template = choices[mix(seed, 0x517) % choices.length];
+  if (!options.length) {
+    options = [];
+    for (const family of Object.keys(FORM_BOOK)) {
+      for (const template of FORM_BOOK[family]) {
+        if (template.length <= count) options.push({ family, template, weight: 1 });
+      }
+    }
+  }
+  const chosen = options.length ? (() => {
+    const total = options.reduce((sum, option) => sum + option.weight, 0);
+    let roll = mix(seed, 0x517) % total;
+    for (const option of options) {
+      roll -= option.weight;
+      if (roll < 0) return option;
+    }
+    return options[0];
+  })() : { family: 'verseChorus', template: ['verse', 'chorus', 'outro'].slice(0, Math.min(3, count)) };
+  const template = chosen.template.length <= count ? chosen.template : ['verse', 'chorus', 'outro'].slice(0, count);
   const weight = { intro: 1, verse: 2, pre: 1, chorus: 3, bridge: 2, outro: 1, motif: 1 };
-  if (genre === 'ambient' || genre === 'cinematic' || genre === 'dawn' || cues.wantSpace) { weight.intro = 2; weight.verse = 2; weight.chorus = 2; }
-  if (genre === 'edm' || genre === 'pop' || genre === 'modernrock' || genre === 'house' || genre === 'citypop' || genre === 'reggaeton' || cues.wantLift) weight.chorus = 4;
-  const totalWeight = template.reduce((sum, role) => sum + weight[role], 0);
-  const left = count - template.length;
-  const fractions = template.map(role => left * weight[role] / totalWeight);
-  const extras = fractions.map(value => Math.floor(value));
-  let used = extras.reduce((sum, value) => sum + value, 0);
-  const order = fractions.map((value, index) => ({ index, frac: value - Math.floor(value) })).sort((a, b) => b.frac - a.frac || a.index - b.index);
-  for (const item of order) {
-    if (used >= left) break;
-    extras[item.index] += 1;
-    used += 1;
-  }
+  if (genre === 'ambient' || genre === 'cinematic' || genre === 'dawn' || hint.wantSpace) { weight.intro = 2; weight.verse = 2; weight.chorus = 2; }
+  if (genre === 'edm' || genre === 'pop' || genre === 'modernrock' || genre === 'house' || genre === 'citypop' || genre === 'reggaeton' || hint.wantLift) weight.chorus = 4;
+  if (chosen.family === 'build') { weight.intro += 1; weight.pre += 1; }
+  if (chosen.family === 'through') { weight.verse += 1; weight.bridge += 1; weight.chorus = Math.max(1, weight.chorus - 1); }
+  if (chosen.family === 'aaba') { weight.verse += 1; weight.bridge += 1; }
+  weight.intro += mix(seed, 0xA17) % 3;
+  weight.outro += mix(seed, 0xA18) % 3;
+  weight.verse += mix(seed, 0xA19) % 2;
+  weight.bridge += mix(seed, 0xA1A) % 2;
+  const barsEach = allocateSectionBars(template, count, weight);
   return template.map((role, index) => {
-    const [name, description] = SECTION_META[role];
-    const ambient = genre === 'ambient' && role === 'verse' ? '성긴 모티프와 긴 잔향으로 공간을 넓힙니다.' : genre === 'ambient' && role === 'chorus' ? '질감의 밀도를 높이며 중심 장면을 만듭니다.' : description;
-    return { role, name, bars: 1 + extras[index], description: ambient };
+    const [name, fallback] = SECTION_META[role];
+    let description = fallback;
+    if (genre === 'ambient' && role === 'verse') description = '성긴 모티프와 긴 잔향으로 공간을 넓힙니다.';
+    else if (genre === 'ambient' && role === 'chorus') description = '질감의 밀도를 높이며 중심 장면을 만듭니다.';
+    else if (chosen.family === 'through' && role !== 'intro' && role !== 'outro') description = '앞 구간을 반복하지 않고 모티프를 새 위치로 이어 갑니다.';
+    else if (chosen.family === 'aaba' && role === 'verse') description = 'A 구간입니다. 같은 모티프를 두고, 두 번째 A는 한 단계 올려 변주합니다.';
+    else if (chosen.family === 'aaba' && role === 'bridge') description = 'B 구간입니다. 모티프를 뒤집고 화성을 돌려 대비를 만듭니다.';
+    else if (chosen.family === 'build' && role === 'pre') description = '에너지를 모아 다음 장면으로 넘깁니다.';
+    else if (chosen.family === 'build' && role === 'chorus') description = genre === 'edm' || genre === 'house' || genre === 'reggaeton' ? '모아 둔 에너지를 드롭으로 엽니다.' : '쌓아 올린 텍스처를 넓은 공간으로 내려놓습니다.';
+    return { role, name, bars: barsEach[index], description, family: chosen.family };
   });
 }
 

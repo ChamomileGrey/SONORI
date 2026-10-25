@@ -1,5 +1,5 @@
 /* Same-origin app shell only. The cache name changes with the release. */
-const CACHE = 'sonori-v1.4.1';
+const CACHE = 'sonori-v1.6.0';
 const ASSETS = [
   './',
   './index.html',
