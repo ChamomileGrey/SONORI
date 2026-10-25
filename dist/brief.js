@@ -1,20 +1,20 @@
 /** Local, deterministic writing helpers. No model or external service is called. */
 
 const GENRES = {
-  lofi: { ko: '로파이', en: 'lo-fi chillhop', lead: 'a soft, rounded bell lead', chords: 'warm electric piano', bass: 'a mellow rounded bass', drums: 'dusty, restrained drums', feel: 'gentle swing, intimate room texture, and a relaxed pocket' },
-  pop: { ko: '팝', en: 'melodic indie pop', lead: 'a clear, soft synth lead', chords: 'bright electric piano', bass: 'a steady melodic bass', drums: 'a clean pop drum groove', feel: 'a memorable melodic motif, clear phrasing, and light dynamic contrast' },
-  ambient: { ko: '앰비언트', en: 'melodic ambient', lead: 'a sparse, airy lead', chords: 'slow, spacious electric-piano chords', bass: 'a soft low bass foundation', drums: 'minimal, soft percussion', feel: 'long decays, generous space, and slowly evolving texture' },
-  rnb: { ko: 'R&B', en: 'contemporary mellow R&B', lead: 'a smooth, understated lead', chords: 'soulful electric-piano chords', bass: 'a rounded syncopated bass', drums: 'a restrained R&B drum groove', feel: 'a laid-back pocket, flowing phrases, and subtle syncopation' },
-  ballad: { ko: '발라드', en: 'intimate piano ballad', lead: 'a warm, close lead', chords: 'slow sustained pads and piano', bass: 'a soft sparse bass', drums: 'a gentle half-time drum pulse', feel: 'long phrases, quiet space, and a tender dynamic arc' },
-  edm: { ko: 'EDM', en: 'melodic electronic dance', lead: 'a bright saw-style synth lead', chords: 'rhythmic chord stabs', bass: 'a pulsing synth bass', drums: 'a four-on-the-floor dance beat', feel: 'forward motion, a clear downbeat, and energetic lifts' },
+  lofi: { ko: '로파이', en: 'lo-fi chillhop', lead: 'a soft, rounded bell lead', chords: 'warm electric piano stabs', bass: 'a mellow rounded bass', drums: 'swung dusty hats on the offbeat', feel: 'a relaxed afternoon pocket, gentle swing, and close room texture' },
+  pop: { ko: '팝', en: 'melodic indie pop', lead: 'a clear, soft synth lead', chords: 'bright anthem triads', bass: 'a steady pulsing bass', drums: 'a straight pop backbeat', feel: 'a chorus lift near 112 BPM, straight time, and a singable hook' },
+  ambient: { ko: '앰비언트', en: 'melodic ambient', lead: 'a two-note airy motif', chords: 'slow, spacious pads', bass: 'a soft low bass foundation', drums: 'almost no drums, a distant tick', feel: 'a through-composed line, long decays, and a wide still room' },
+  rnb: { ko: 'R&B', en: 'contemporary mellow R&B', lead: 'a smooth, understated lead', chords: 'soulful 9th chords', bass: 'a rounded syncopated bass', drums: 'late 16th hats and a laid-back snare', feel: 'an AABA soul pocket, swung sixteenths, and a quiet ebb' },
+  ballad: { ko: '발라드', en: 'intimate piano ballad', lead: 'a warm, close lead', chords: 'slow sustained dorian pads', bass: 'a soft sparse bass', drums: 'a half-time kick and one brush after the snare', feel: 'long phrases, a slow bloom, and a close tender room' },
+  edm: { ko: 'EDM', en: 'big-room and future-bass sketch', lead: 'a bright supersaw lead', chords: 'wide minor anthem triads', bass: 'a drop sub on beats one and three', drums: 'a snare-roll build into a drop', feel: '128 BPM straight time, a riser, and a wide drop' },
   acoustic: { ko: '어쿠스틱', en: 'warm acoustic sketch', lead: 'a soft plucked lead', chords: 'gentle strummed harmonic beds', bass: 'a rounded upright-style bass', drums: 'brushed sparse drums', feel: 'close-mic intimacy, natural space, and an easy singable line' },
-  cinematic: { ko: '시네마틱', en: 'wide cinematic score sketch', lead: 'an airy distant lead', chords: 'wide sustained pads', bass: 'a low foundation', drums: 'sparse wide percussion hits', feel: 'slow-building space, broad harmony, and a restrained pulse' },
+  cinematic: { ko: '시네마틱', en: 'wide cinematic score sketch', lead: 'an airy distant lead', chords: 'wide pads with a low hit', bass: 'a low drone', drums: 'a single low hit and almost no hats', feel: 'a build into a scene, a large energy gap, and a long score tail' },
   modernrock: { ko: '감성 모던 록', en: 'warm wistful modern-rock ballad', lead: 'a close, unhurried lead', chords: 'soft piano, clean-guitar arpeggios, and a warm pad', bass: 'a round supportive bass', drums: 'soft drums that stay quiet in the verse', feel: 'a hushed verse that opens into a fuller chorus, with sus4 and add9 color and plenty of room' },
-  dawn: { ko: '새벽 감성', en: 'pre-dawn ballad', lead: 'a sparse airy lead', chords: 'soft piano and distant pads', bass: 'a quiet low foundation', drums: 'a barely-there pulse', feel: 'still air, slow phrases, and a tender lift from verse to chorus' },
-  nitelofi: { ko: '심야 로파이', en: 'late-night lo-fi ballad', lead: 'a hushed rounded lead', chords: 'warm close electric piano', bass: 'a mellow rounded bass', drums: 'a slow dusty pocket', feel: 'intimate night space, gentle swing, and a soft dynamic bloom' },
+  dawn: { ko: '새벽 감성', en: 'pre-dawn ballad', lead: 'a sparse piano motif', chords: 'soft piano arpeggios', bass: 'a quiet low foundation', drums: 'a hat on the downbeat', feel: 'an AABA piano song, a hummed vowel, and a slow bloom' },
+  nitelofi: { ko: '심야 로파이', en: 'late-night lo-fi ballad', lead: 'a hushed rounded lead', chords: 'warm close pads', bass: 'a mellow rounded bass', drums: 'a half-time kick with the snare on beat three', feel: 'a swung night pocket, a soft hum, and a flat quiet arc' },
   citypop: { ko: '시티팝', en: 'original city-pop sketch', lead: 'a soft electric-piano lead', chords: 'major-seventh electric piano', bass: 'a melodic octave bass', drums: 'a light swung disco kit', feel: 'evening-drive warmth, major-seventh color, and a gentle shuffle' },
   trap: { ko: '트랩', en: 'half-time trap sketch', lead: 'a short sparse lead', chords: 'dark sustained stabs', bass: 'a long 808-style sub bass', drums: 'half-time drums with hi-hat rolls', feel: 'a 140 BPM half-time pocket, wide space, and accelerating hats' },
-  house: { ko: '하우스', en: 'four-on-the-floor house sketch', lead: 'a bright dance lead', chords: 'offbeat chord stabs', bass: 'a pulsing synth bass', drums: 'a four-on-the-floor kick with offbeat open hats', feel: 'straight 4/4 motion around 124 BPM and an open offbeat' },
+  house: { ko: '하우스', en: 'warm deep-house sketch', lead: 'a short three-note motif', chords: 'Rhodes and organ stabs with minor-9 color', bass: 'a syncopated bassline', drums: 'four-on-the-floor, shuffled 16th hats, and offbeat open hats', feel: 'a 124 BPM hypnotic loop, low drama, and a slow filter sweep' },
   bossa: { ko: '보사노바', en: 'light bossa nova sketch', lead: 'a soft nylon-style plucked lead', chords: 'syncopated ii-V comps', bass: 'a light root-and-fifth bass', drums: 'soft syncopated rim clicks', feel: 'an easy tempo near 130, syncopation, and jazz ii-V harmony' },
   reggaeton: { ko: '레게톤', en: 'reggaeton sketch', lead: 'a short hook lead', chords: 'minor chord stabs', bass: 'a syncopated synth bass', drums: 'a dembow kick and snare pattern', feel: 'a dembow pocket, minor harmony, and a forward hook' },
 };
@@ -188,21 +188,31 @@ const FORM_BOOK = {
 
 function formWeights(genre, mood, cues) {
   const ambientish = genre === 'ambient' || genre === 'cinematic' || genre === 'dawn';
-  const dance = genre === 'edm' || genre === 'house' || genre === 'reggaeton';
-  const lyrical = genre === 'ballad' || genre === 'modernrock' || genre === 'bossa' || genre === 'citypop' || genre === 'nitelofi';
-  const weights = ambientish
-    ? { build: 5, through: 4, aaba: 2, verseChorus: 2 }
-    : dance
-      ? { build: 4, verseChorus: 5, through: 2, aaba: 1 }
-      : lyrical
-        ? { aaba: 4, verseChorus: 5, through: 2, build: 2 }
-        : { verseChorus: 4, aaba: 3, through: 3, build: 2 };
-  if (mood === 'bright') { weights.verseChorus += 2; weights.build += 1; }
+  const table = {
+    lofi: { verseChorus: 6, aaba: 3, through: 3, build: 2 },
+    pop: { verseChorus: 8, build: 2, aaba: 1, through: 1 },
+    rnb: { aaba: 10, verseChorus: 2, through: 1, build: 1 },
+    ambient: { through: 8, build: 2, aaba: 1, verseChorus: 1 },
+    ballad: { aaba: 8, verseChorus: 2, through: 1, build: 1 },
+    edm: { build: 10, verseChorus: 2, through: 1, aaba: 1 },
+    acoustic: { aaba: 5, verseChorus: 3, through: 2, build: 1 },
+    cinematic: { build: 8, through: 2, aaba: 1, verseChorus: 1 },
+    modernrock: { verseChorus: 8, aaba: 2, build: 1, through: 1 },
+    dawn: { aaba: 14, through: 1, build: 1, verseChorus: 1 },
+    nitelofi: { through: 6, aaba: 4, verseChorus: 1, build: 1 },
+    citypop: { aaba: 5, verseChorus: 3, build: 2, through: 1 },
+    trap: { build: 5, verseChorus: 4, aaba: 1, through: 1 },
+    house: { verseChorus: 9, aaba: 2, through: 1, build: 1 },
+    bossa: { aaba: 6, verseChorus: 3, through: 2, build: 1 },
+    reggaeton: { verseChorus: 5, build: 5, aaba: 1, through: 1 },
+  };
+  const weights = { ...(table[genre] || { verseChorus: 4, aaba: 3, through: 3, build: 2 }) };
+  if (mood === 'bright') { weights.verseChorus += 1; weights.build += 1; }
   if (mood === 'melancholy') { weights.aaba += 1; weights.through += 1; }
-  if (mood === 'dreamy') { weights.through += 1; weights.build += 1; }
+  if (mood === 'dreamy') { weights.through += 1; }
   if (cues.wantBridge) return { verseChorus: 2, aaba: 4, through: 4, build: 2 };
-  if (cues.wantSpace) return ambientish ? { build: 5, through: 4, aaba: 1, verseChorus: 1 } : { through: 4, build: 4, aaba: 2, verseChorus: 1 };
-  if (cues.wantChorus || cues.wantLift) { weights.verseChorus += 3; weights.build += 1; }
+  if (cues.wantSpace) return ambientish ? { build: 4, through: 6, aaba: 1, verseChorus: 1 } : { through: 5, build: 3, aaba: 2, verseChorus: 1 };
+  if (cues.wantChorus || cues.wantLift) { weights.verseChorus += 3; if (genre === 'edm') weights.build += 2; }
   return weights;
 }
 
@@ -297,8 +307,12 @@ function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cues = {})
   })() : { family: 'verseChorus', template: ['verse', 'chorus', 'outro'].slice(0, Math.min(3, count)) };
   const template = chosen.template.length <= count ? chosen.template : ['verse', 'chorus', 'outro'].slice(0, count);
   const weight = { intro: 1, verse: 2, pre: 1, chorus: 3, bridge: 2, outro: 1, motif: 1 };
-  if (genre === 'ambient' || genre === 'cinematic' || genre === 'dawn' || hint.wantSpace) { weight.intro = 2; weight.verse = 2; weight.chorus = 2; }
-  if (genre === 'edm' || genre === 'pop' || genre === 'modernrock' || genre === 'house' || genre === 'citypop' || genre === 'reggaeton' || hint.wantLift) weight.chorus = 4;
+  if (genre === 'ambient' || genre === 'dawn' || hint.wantSpace) { weight.intro = 3; weight.verse = 3; weight.chorus = 1; }
+  if (genre === 'cinematic') { weight.intro = 3; weight.verse = 1; weight.pre = 2; weight.chorus = 3; }
+  if (genre === 'edm' || genre === 'pop' || genre === 'modernrock' || genre === 'citypop' || genre === 'reggaeton' || hint.wantLift) weight.chorus = 4;
+  if (genre === 'house') { weight.verse += 2; weight.chorus = 2; weight.intro = 1; }
+  if (genre === 'ballad') { weight.verse += 2; weight.bridge += 1; weight.chorus = 2; }
+  if (genre === 'nitelofi' || genre === 'rnb') { weight.verse += 2; weight.chorus = 2; }
   if (chosen.family === 'build') { weight.intro += 1; weight.pre += 1; }
   if (chosen.family === 'through') { weight.verse += 1; weight.bridge += 1; weight.chorus = Math.max(1, weight.chorus - 1); }
   if (chosen.family === 'aaba') { weight.verse += 1; weight.bridge += 1; }
@@ -316,7 +330,12 @@ function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cues = {})
     else if (chosen.family === 'aaba' && role === 'verse') description = 'A 구간입니다. 같은 모티프를 두고, 두 번째 A는 한 단계 올려 변주합니다.';
     else if (chosen.family === 'aaba' && role === 'bridge') description = 'B 구간입니다. 모티프를 뒤집고 화성을 돌려 대비를 만듭니다.';
     else if (chosen.family === 'build' && role === 'pre') description = '에너지를 모아 다음 장면으로 넘깁니다.';
-    else if (chosen.family === 'build' && role === 'chorus') description = genre === 'edm' || genre === 'house' || genre === 'reggaeton' ? '모아 둔 에너지를 드롭으로 엽니다.' : '쌓아 올린 텍스처를 넓은 공간으로 내려놓습니다.';
+    else if (genre === 'house' && (role === 'verse' || role === 'chorus')) description = '같은 루프를 유지하고 필터와 그루브만 조금씩 움직입니다.';
+    else if (genre === 'edm' && role === 'pre') description = '스네어 롤과 라이저, 필터가 열리며 드롭을 준비합니다.';
+    else if (genre === 'edm' && role === 'chorus') description = '큰 리드와 서브가 드롭을 엽니다.';
+    else if (genre === 'dawn' && role === 'verse') description = '짧은 피아노 모티프가 먼 공간에 남습니다.';
+    else if (genre === 'cinematic' && role === 'chorus') description = '낮은 타격과 넓은 화음이 장면을 엽니다.';
+    else if (chosen.family === 'build' && role === 'chorus') description = genre === 'edm' || genre === 'reggaeton' ? '모아 둔 에너지를 드롭으로 엽니다.' : '쌓아 올린 텍스처를 넓은 공간으로 내려놓습니다.';
     return { role, name, bars: barsEach[index], description, family: chosen.family };
   });
 }

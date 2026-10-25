@@ -113,8 +113,7 @@ for (const genre of ['citypop', 'trap', 'house', 'bossa', 'reggaeton']) {
   assert.ok(genreProgressions.size >= 3, `${genre} progressions ${genreProgressions.size}`);
   assert.ok(genreGrooves.size >= 3, `${genre} grooves ${genreGrooves.size}`);
   assert.ok(timbres.size >= 2, `${genre} timbres ${timbres.size}`);
-  const profileSwing = genre === 'house' ? [0, 0] : null;
-  if (profileSwing) assert.ok(set.every(song => song.swing === 0), 'house stays straight');
+  if (genre === 'house') assert.ok(set.every(song => song.swing > 0 && song.swing <= 0.06), 'house shuffles its 16ths');
 }
 const space = compose({ ...base, seed: 5, notes: '여백을 많이 두고 고요하게' });
 const lift = compose({ ...base, seed: 5, notes: '후렴을 크게, 브리지에서 전환' });

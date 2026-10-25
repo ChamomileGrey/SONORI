@@ -17,7 +17,7 @@ const PRESETS = {
 };
 const clone = value => JSON.parse(JSON.stringify(value));
 const cleanString = (value, max) => typeof value === 'string' ? value.slice(0,max) : '';
-const FEEL = {lofi:[76,98],pop:[96,126],rnb:[72,100],ambient:[72,92],ballad:[72,88],edm:[118,140],acoustic:[84,112],cinematic:[72,98],modernrock:[72,86],dawn:[72,84],nitelofi:[72,92],citypop:[96,116],trap:[132,140],house:[118,128],bossa:[116,136],reggaeton:[88,104]};
+const FEEL = {lofi:[76,98],pop:[96,126],rnb:[72,92],ambient:[72,80],ballad:[72,84],edm:[126,128],acoustic:[88,108],cinematic:[76,92],modernrock:[72,86],dawn:[72,80],nitelofi:[72,86],citypop:[100,112],trap:[132,140],house:[120,124],bossa:[116,136],reggaeton:[90,100]};
 const KEYS = ['C','D','E','F','G','A'];
 const CONTOUR_KO = {arch:'아치',rise:'상승',fall:'하강',wave:'물결',neighbor:'인접'};
 const TEXTURE_KO = {pad:'지속음',stab:'스타브',arp:'분산',strum:'스트럼'};

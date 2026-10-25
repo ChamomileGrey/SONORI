@@ -12,7 +12,7 @@ assert.match(brief.prompt, /84 BPM/);
 assert.match(brief.prompt, /Key: A minor/);
 assert.match(brief.prompt, /female lead vocal/);
 assert.match(brief.prompt, /warm electric piano/);
-assert.match(brief.prompt, /dusty, restrained drums/);
+assert.match(brief.prompt, /swung dusty hats/);
 assert.doesNotMatch(brief.prompt, /a mellow rounded bass/);
 assert.match(brief.lyrics, /템플릿 기반/);
 assert.match(brief.lyrics, /서울의 늦은 퇴근길/);
