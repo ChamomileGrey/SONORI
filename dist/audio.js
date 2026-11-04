@@ -1,4 +1,5 @@
 /** Original, deterministic instrumental sketches. No network or audio samples. */
+import { composeV16 } from './engine-v16.js';
 const KEYS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9 };
 const SCALE = [0, 2, 4, 5, 7, 9, 11];
 export const SCALE_SETS = {
@@ -1724,6 +1725,10 @@ function composeConcept(input = {}) {
   let lastLeap = 0;
   let lastLeapSize = 0;
   let currentRole = 'verse';
+  let glideFrom = 1;
+  let glideTo = 1;
+  let sectionBar = 0;
+  let sectionEdge = false;
 
   function add(instrument, beat, length, midi, velocity, humanize = true, extra, color) {
     const driftScale = instrument === 'melody' ? 0.02 : instrument === 'chords' ? 0.008 : 0.012;
@@ -1731,8 +1736,15 @@ function composeConcept(input = {}) {
     const time = Math.max(0, beat * beatSeconds + drift);
     const duration = Math.min(length * beatSeconds, bars * 4 * beatSeconds - time);
     if (duration <= 0 || !Number.isInteger(midi)) return;
+    const barStart = Math.floor(beat / 4) * 4;
+    const barPos = clamp(beat - barStart, 0, 4);
+    const glided = glideFrom + (glideTo - glideFrom) * (barPos / 4) * 0.7;
+    const glideScale = glideFrom ? glided / glideFrom : 1;
+    let edge = 1;
+    if (sectionBar === 0 && barStart > 0) edge = 0.88 + 0.12 * clamp(barPos / 1.5, 0, 1);
+    else if (sectionEdge && barPos > 2.5) edge = 1 - 0.08 * clamp((barPos - 2.5) / 1.5, 0, 1);
     const feel = 0.9 + random() * 0.18;
-    const event = { instrument, time: round(time), duration: round(duration), midi, velocity: round(clamp(velocity * feel, 0.1, 0.95)), role: currentRole };
+    const event = { instrument, time: round(time), duration: round(duration), midi, velocity: round(clamp(velocity * glideScale * edge * feel, 0.1, 0.95)), role: currentRole };
     if (color) event.color = color;
     if (extra) {
       event.vowelFrom = round(clamp(extra.vowelFrom, 0, 1));
@@ -1769,11 +1781,11 @@ function composeConcept(input = {}) {
     return best ?? midi;
   }
 
-  function walk(midi, steps) {
+  function walk(midi, steps, high = 88) {
     let note = midi;
     const dir = steps < 0 ? -1 : 1;
     for (let index = 0; index < Math.abs(steps); index++) note = scaleStep(note, dir);
-    while (note > 88) note -= 12;
+    while (note > high) note -= 12;
     while (note < 60) note += 12;
     return note;
   }
@@ -2033,6 +2045,10 @@ function composeConcept(input = {}) {
       const levelMul = [0.7, 0.85, 1, 1.08, 1.18][settings.energy - 1] || 1;
       energy = clamp(energy * shape * levelMul, 0.16, 1);
     }
+    glideFrom = bar === 0 ? energy : glideTo;
+    glideTo = energy;
+    sectionBar = barInSection;
+    sectionEdge = sectionEnd;
     const texture = (finalBar || role === 'outro' || role === 'break' || (role === 'intro' && (concept.intro === 'space' || concept.intro === 'chords'))) ? 'pad'
       : (genre === 'ambient' || genre === 'dawn') && concept.texture === 'stab' ? 'pad'
         : concept.texture;
@@ -2057,11 +2073,12 @@ function composeConcept(input = {}) {
       lastLeap = 0;
       lastLeapSize = 0;
     } else if (layerGate(role, concept.intro, barInSection, span.bars, 'melody') && sectionPlays(mask, role, 'melody')) {
-      const center = (ROLE_CENTER[role] || 74) + (role === 'chorus' || role === 'chorus2' ? 2 : 0);
+      const climax = role === 'chorus' || role === 'chorus2';
+      const center = (ROLE_CENTER[role] || 74) + (role === 'chorus2' ? 8 : role === 'chorus' ? 6 : role === 'pre' ? 3 : 0);
       const inKey = [chord.root, ...chord.intervals.map(interval => (chord.root + interval) % 12)].filter(pc => pitchInScale(pc, key, activeScale));
-      const anchor = nearestPitch(inKey.length ? inKey[0] : key, center, 64, 84);
+      const anchor = nearestPitch(inKey.length ? inKey[0] : key, center, climax ? 70 : 64, climax || role === 'pre' ? 93 : 84);
       let shape = developShape(concept.motif, role, span.occurrence || 1, concept.family, barInSection);
-      if (barInSection % 2 === 1 && (role === 'verse' || role === 'chorus' || role === 'pre' || role === 'verse2' || role === 'chorus2')) {
+      if (barInSection % 2 === 1 && (role === 'verse' || role === 'verse2' || role === 'pre')) {
         shape = shape.map((step, index) => {
           if (!index) return 0;
           const mag = Math.min(5, Math.abs(step) + 1);
@@ -2080,19 +2097,29 @@ function composeConcept(input = {}) {
         if (moved.length >= 2) rhythm = moved;
       }
       const count = Math.min(8, Math.max(shape.length, rhythm.length));
+      const ceiling = climax || role === 'pre' ? 96 : 88;
       let cursor = anchor;
       for (let index = 0; index < count; index++) {
         const at = index % shape.length;
         let degree = shape[at];
         if (at === concept.motifAccent) degree += concept.motifLift;
-        if (index === 0) cursor = walk(anchor, degree + concept.motifRegister);
+        if (index === 0) cursor = walk(anchor, degree + concept.motifRegister, ceiling);
         else {
           const prevAt = (index - 1) % shape.length;
           let previous = shape[prevAt];
           if (prevAt === concept.motifAccent) previous += concept.motifLift;
-          cursor = walk(cursor, degree - previous);
+          cursor = walk(cursor, degree - previous, ceiling);
         }
         cursor = clampMelody(lastMelody, cursor);
+        if (climax && index === count - 1) {
+          let peak = cursor;
+          for (let step = 0; step < (role === 'chorus2' ? 5 : 4); step++) {
+            const next = scaleStep(peak, 1);
+            if (next === peak || next > 96 || Math.abs(next - lastMelody) > 7) break;
+            peak = next;
+          }
+          cursor = peak;
+        }
         const position = rhythm[index % rhythm.length];
         if ((role === 'intro' || role === 'outro' || role === 'break') && position > 2.8 && index > 0) continue;
         const next = rhythm[(index + 1) % rhythm.length];
@@ -2814,6 +2841,7 @@ function composeLegacy(input = {}) {
 
 export function compose(input = {}) {
   if (input && input.planner === 'legacy') return composeLegacy(input);
+  if (input && input.engineVersion === '1.6.0') return composeV16(input);
   return composeConcept(input);
 }
 
@@ -2855,7 +2883,10 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
   limiter.release.value = SPACE.limiter.release;
   const master = context.createGain();
   master.gain.value = initialVolume;
-  input.connect(warmth);
+  const sectionGain = context.createGain();
+  sectionGain.gain.value = 1;
+  input.connect(sectionGain);
+  sectionGain.connect(warmth);
   warmth.connect(shaper);
   shaper.connect(filter);
   filter.connect(compressor);
@@ -2947,7 +2978,7 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
   const noiseData = noise.getChannelData(0);
   for (let i = 0; i < noiseData.length; i++) noiseData[i] = random() * 2 - 1;
   const bed = createAmbienceBed(context, song, input);
-  const graphNodes = [input, warmth, shaper, filter, compressor, limiter, master, delay, feedback, wet, echoFilter, reverbSend, reverbHighpass, predelay, convolver, damp, reverbReturn, ...bed.nodes];
+  const graphNodes = [input, sectionGain, warmth, shaper, filter, compressor, limiter, master, delay, feedback, wet, echoFilter, reverbSend, reverbHighpass, predelay, convolver, damp, reverbReturn, ...bed.nodes];
 
   const track = (source, nodes, stop) => {
     active.add(source);
@@ -3249,12 +3280,42 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
     if (song.engine !== 'concept') return;
     const base = Math.max(280, PROFILES[genre].cutoff * ((timbre && timbre.cutoffMul) || 1));
     const now = context.currentTime;
+    let cursor = 0;
+    let gainArmed = false;
+    for (const section of song.structure || []) {
+      if (cursor > 0) {
+        const boundary = Math.max(origin + cursor * 4 * song.beatSeconds, now + 0.001);
+        const dip = Math.max(origin + 0.001, boundary - 0.024);
+        if (!gainArmed) {
+          sectionGain.gain.setValueAtTime(1, dip);
+          gainArmed = true;
+        }
+        sectionGain.gain.linearRampToValueAtTime(0.9, boundary);
+        sectionGain.gain.linearRampToValueAtTime(1, boundary + 0.028);
+      }
+      cursor += section.bars;
+    }
+    let held = filter.frequency.value;
+    let filterArmed = false;
+    const approach = (value, time, seconds = 0.02) => {
+      const at = Math.max(time, now + 0.001);
+      const span = clamp(seconds, 0.01, 0.03);
+      if (!filterArmed) {
+        filter.frequency.setValueAtTime(held, at);
+        filterArmed = true;
+      }
+      filter.frequency.linearRampToValueAtTime(value, at + span);
+      held = value;
+      return at + span;
+    };
     if (genre === 'house') {
       const at = Math.max(origin, now + 0.01);
       filter.Q.setValueAtTime(0.7, at);
-      filter.frequency.setValueAtTime(base * 0.78, at);
-      filter.frequency.linearRampToValueAtTime(base * 1.08, at + song.duration * 0.55);
-      filter.frequency.linearRampToValueAtTime(base * 0.86, at + Math.max(song.duration, 0.2));
+      const landed = approach(base * 0.78, at, 0.02);
+      const mid = Math.max(landed + 0.05, at + song.duration * 0.55);
+      const end = Math.max(mid + 0.05, at + Math.max(song.duration, 0.2));
+      filter.frequency.linearRampToValueAtTime(base * 1.08, mid);
+      filter.frequency.linearRampToValueAtTime(base * 0.86, end);
       return;
     }
     if (genre !== 'edm') return;
@@ -3267,8 +3328,10 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
       const from = Math.max(t0, now + 0.01);
       const to = Math.max(from + 0.08, t1);
       if (section.role === 'pre') {
-        filter.frequency.setValueAtTime(Math.max(360, base * 0.32), from);
-        filter.frequency.exponentialRampToValueAtTime(base * 1.35, to);
+        const open = Math.max(360, base * 0.32);
+        const landed = approach(open, from, 0.02);
+        filter.frequency.exponentialRampToValueAtTime(Math.max(open + 1, base * 1.35), Math.max(landed + 0.05, to));
+        held = base * 1.35;
         const src = context.createBufferSource();
         src.buffer = noise;
         src.loop = true;
@@ -3278,17 +3341,18 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
         band.Q.value = 0.7;
         band.frequency.setValueAtTime(420, from);
         band.frequency.exponentialRampToValueAtTime(6400, to);
+        const peakAt = Math.max(from + 0.02, to - 0.02);
         rise.gain.setValueAtTime(0.0001, from);
-        rise.gain.exponentialRampToValueAtTime(0.07, to);
-        rise.gain.setValueAtTime(0.0001, to + 0.03);
+        rise.gain.exponentialRampToValueAtTime(0.07, peakAt);
+        rise.gain.exponentialRampToValueAtTime(0.0001, peakAt + 0.02);
         src.connect(band);
         band.connect(rise);
         rise.connect(input);
         src.start(from);
-        src.stop(to + 0.04);
-        track(src, [band, rise], to + 0.08);
-      } else if (section.role === 'chorus') filter.frequency.setValueAtTime(base * 1.15, from);
-      else if (section.role === 'intro' || section.role === 'verse' || section.role === 'bridge' || section.role === 'outro') filter.frequency.setValueAtTime(base * 0.4, from);
+        src.stop(peakAt + 0.04);
+        track(src, [band, rise], peakAt + 0.08);
+      } else if (section.role === 'chorus' || section.role === 'chorus2') approach(base * 1.15, from, 0.02);
+      else if (section.role === 'intro' || section.role === 'verse' || section.role === 'verse2' || section.role === 'bridge' || section.role === 'break' || section.role === 'outro') approach(base * 0.4, from, 0.025);
     }
   }
 

@@ -1,8 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-
-const source = await readFile(new URL('../dist/audio.js', import.meta.url), 'utf8');
-const { compose, normalizeSettings, createMidi, encodeWav, createPlayer, vowelFormants, createImpulseChannels, SPACE } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+import { compose, normalizeSettings, createMidi, encodeWav, createPlayer, vowelFormants, createImpulseChannels, SPACE } from '../dist/audio.js';
 const settings = { genre: 'lofi', mood: 'warm', key: 'C', bpm: 86, bars: 16, seed: 42 };
 const song = compose(settings);
 assert.deepEqual(song, compose(settings), 'The same brief and seed reproduce the same music.');
