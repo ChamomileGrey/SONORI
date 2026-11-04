@@ -168,6 +168,9 @@ const SECTION_META = {
   pre: ['프리', '후렴으로 올라가기 전 숨을 모읍니다.'],
   chorus: ['후렴', '같은 모티프를 더 넓고 높게 펼칩니다.'],
   bridge: ['브리지', '색채와 리듬을 잠시 돌려 대비를 만듭니다.'],
+  break: ['브레이크', '리듬을 비우고 숨 고를 공간을 만듭니다.'],
+  verse2: ['벌스 2', '같은 이야기를 한 겹 덜어 다시 시작합니다.'],
+  chorus2: ['후렴 2', '후렴을 한 번 더, 조금 더 높게 엽니다.'],
   outro: ['아웃트로', '여운을 남기며 으뜸화음으로 닫습니다.'],
   motif: ['핵심 모티프', '짧은 아이디어를 확인하는 단일 구간입니다.'],
 };
@@ -255,7 +258,56 @@ function allocateSectionBars(template, count, weight) {
   return extras.map(extra => 1 + extra);
 }
 
+function expandLongForm(template, count) {
+  if (count < 24) return template.slice();
+  const next = template.slice();
+  const insert = (role, at) => {
+    if (next.includes(role) || next.length >= count) return;
+    next.splice(Math.max(0, Math.min(at, next.length)), 0, role);
+  };
+  const outroAt = () => {
+    const at = next.lastIndexOf('outro');
+    return at >= 0 ? at : next.length;
+  };
+  insert('break', outroAt());
+  if (count >= 32) {
+    const verseCount = next.filter(role => role === 'verse' || role === 'verse2').length;
+    if (verseCount < 2) {
+      const afterChorus = next.lastIndexOf('chorus');
+      insert('verse2', afterChorus >= 0 ? afterChorus : Math.min(1, next.length));
+    }
+    const chorusCount = next.filter(role => role === 'chorus' || role === 'chorus2').length;
+    if (chorusCount < 2) insert('chorus2', next.indexOf('break') >= 0 ? next.indexOf('break') : outroAt());
+  }
+  return next;
+}
 
+function applyIntroMode(template, count, introMode) {
+  const next = template.slice();
+  if (introMode === true) {
+    if (next[0] !== 'intro') {
+      if (next.length < count) next.unshift('intro');
+      else next[0] = 'intro';
+    }
+  } else if (introMode === false) {
+    const stripped = next.filter(role => role !== 'intro');
+    return stripped.length ? stripped : ['verse'];
+  }
+  return next;
+}
+
+function fitTemplate(template, count) {
+  const next = template.slice();
+  while (next.length > count) {
+    let drop = -1;
+    for (let index = 1; index < next.length - 1; index++) {
+      if (next[index] !== 'chorus' && next[index] !== 'chorus2') { drop = index; break; }
+    }
+    if (drop < 0) break;
+    next.splice(drop, 1);
+  }
+  return next.length ? next.slice(0, count) : ['verse'];
+}
 
 function mix(seed, salt) {
   let hash = Math.imul((seed >>> 0) ^ Math.imul((salt >>> 0) || 1, 0x9E3779B1), 0x85EBCA77);
@@ -283,6 +335,7 @@ function arrangementCues(input = {}) {
     wantSpace: /여백|잔잔|고요|느린|공간|sparse|조용/i.test(text),
     wantBridge: /브리지|bridge|전환|전개/i.test(text),
     wantLift: /밝|에너지|신나|dance|희망|경쾌|uplift/i.test(text),
+    intro: input.intro === true ? true : input.intro === false ? false : undefined,
   };
 }
 
@@ -323,8 +376,9 @@ function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cues = {})
     }
     return options[0];
   })() : { family: 'verseChorus', template: ['verse', 'chorus', 'outro'].slice(0, Math.min(3, count)) };
-  const template = chosen.template.length <= count ? chosen.template : ['verse', 'chorus', 'outro'].slice(0, count);
-  const weight = { intro: 1, verse: 2, pre: 1, chorus: 3, bridge: 2, outro: 1, motif: 1 };
+  let template = chosen.template.length <= count ? chosen.template.slice() : ['verse', 'chorus', 'outro'].slice(0, count);
+  template = fitTemplate(applyIntroMode(expandLongForm(template, count), count, hint.intro), count);
+  const weight = { intro: 1, verse: 2, verse2: 2, pre: 1, chorus: 3, chorus2: 3, bridge: 2, break: 1, outro: 1, motif: 1 };
   if (genre === 'ambient' || genre === 'dawn' || hint.wantSpace) { weight.intro = 3; weight.verse = 3; weight.chorus = 1; }
   if (genre === 'cinematic') { weight.intro = 3; weight.verse = 1; weight.pre = 2; weight.chorus = 3; }
   if (genre === 'edm' || genre === 'pop' || genre === 'modernrock' || genre === 'citypop' || genre === 'reggaeton' || hint.wantLift) weight.chorus = 4;
@@ -353,6 +407,9 @@ function planStructure(bars, genre = 'lofi', mood = 'warm', seed = 1, cues = {})
     else if (genre === 'edm' && role === 'chorus') description = '큰 리드와 서브가 드롭을 엽니다.';
     else if (genre === 'dawn' && role === 'verse') description = '짧은 피아노 모티프가 먼 공간에 남습니다.';
     else if (genre === 'cinematic' && role === 'chorus') description = '낮은 타격과 넓은 화음이 장면을 엽니다.';
+    else if (role === 'break') description = '리듬을 잠시 비우고 다음 구간을 준비합니다.';
+    else if (role === 'verse2') description = '두 번째 벌스입니다. 악기를 한 겹 바꿔 같은 모티프를 이어 갑니다.';
+    else if (role === 'chorus2') description = '후렴을 한 번 더 엽니다. 음역을 조금 올립니다.';
     else if (chosen.family === 'build' && role === 'chorus') description = genre === 'edm' || genre === 'reggaeton' ? '모아 둔 에너지를 드롭으로 엽니다.' : '쌓아 올린 텍스처를 넓은 공간으로 내려놓습니다.';
     return { role, name, bars: barsEach[index], description, family: chosen.family };
   });

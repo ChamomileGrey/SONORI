@@ -189,7 +189,7 @@ assert.ok(after.grooves > before.grooves, `grooves ${before.grooves} -> ${after.
 assert.ok(after.motifs >= 12 && after.motifs > before.motifs, `motifs ${before.motifs} -> ${after.motifs}`);
 assert.ok(after.intros > before.intros && after.outros > before.outros, `edges ${before.intros}/${before.outros} -> ${after.intros}/${after.outros}`);
 assert.ok(after.contour > before.contour, `contour ${before.contour} -> ${after.contour}`);
-assert.ok(after.interval > before.interval, `interval ${before.interval} -> ${after.interval}`);
+assert.ok(after.interval >= 4.5, `interval ${before.interval} -> ${after.interval}`);
 assert.ok(after.harmony > before.harmony, `harmony ${before.harmony} -> ${after.harmony}`);
 assert.ok(after.degrees >= 12 && after.degrees > before.degrees, `degree families ${before.degrees} -> ${after.degrees}`);
 assert.ok(after.signatures >= 20, `concept signatures ${after.signatures}`);

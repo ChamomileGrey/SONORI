@@ -13,9 +13,11 @@ await new Promise((resolve, reject) => {
 });
 
 const read = file => fs.readFile(path.join(root, 'dist', file), 'utf8');
-const [html, css, audio, brief, presets, library, app, icon] = await Promise.all(['index.html', 'style.css', 'audio.js', 'brief.js', 'presets.js', 'library.js', 'app.js', 'icon.svg'].map(read));
+const [html, css, audioSource, engineSource, brief, presets, library, app, icon] = await Promise.all(['index.html', 'style.css', 'audio.js', 'engine-v16.js', 'brief.js', 'presets.js', 'library.js', 'app.js', 'icon.svg'].map(read));
+const audio = audioSource.replace(/import \{ composeV16 \} from '\.\/engine-v16\.js';\n/, '');
 const moduleWrap = (source, names) => `const {${names.join(',')}} = (() => {\n${source.replace(/^export /gm, '')}\nreturn {${names.join(',')}};\n})();`;
 const code = [
+  moduleWrap(engineSource, ['composeV16']),
   moduleWrap(audio, ['compose', 'createPlayer', 'renderWav', 'renderLoopWav', 'renderLongformWav', 'normalizeAmbience', 'createMidi']),
   moduleWrap(brief, ['createBrief', 'formatBrief']),
   moduleWrap(presets, ['GENRE_PRESETS', 'LAYER_HINTS', 'applyPresetToSettings', 'detailForGenre', 'presetById', 'SCENE_PRESETS', 'applySceneToSettings', 'sceneById']),

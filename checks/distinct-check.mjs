@@ -58,7 +58,7 @@ function fingerprint(song) {
   for (let bar = 0; bar < bars; bar++) {
     const start = bar * 4 * beat;
     const end = start + 4 * beat;
-    const notes = song.events.filter(event => event.time >= start - 1e-6 && event.time < end - 1e-6 && !['kick', 'snare', 'hat'].includes(event.instrument));
+    const notes = song.events.filter(event => event.time >= start - 1e-6 && event.time < end - 1e-6 && !['kick', 'snare', 'hat', 'clap', 'shaker'].includes(event.instrument));
     if (notes.length) barEnergy.push(mean(notes.map(event => event.velocity)));
   }
   const snareOff = snares.length

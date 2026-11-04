@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.7.0 — 2026-11-04
+
+같은 시드가 같은 곡을 유지한 채로, 편곡과 에너지가 더 움직인다.
+
+### 추가
+
+- 장르마다 시드가 고르는 편성 후보. 구간마다 멜로디, 코드, 베이스, 드럼이 들어오고 빠지며, 마디마다 악센트와 필이 달라짐
+- 에너지 1–5. 레이어 수, 리듬 밀도, 위 옥타브, 필터에 연결되고, 같은 시드의 음과 타이밍은 에너지가 달라도 맞춰 둠. 곡선은 점점 상승, 중간 피크, 잔잔
+- 브레이크. 24마디 이상에는 브레이크가 들어가고, 32마디 이상에는 벌스 2와 후렴 2가 더해짐. 인트로는 켜고 끌 수 있음
+- 멜로디 도약 상한과 반대 방향 회복, 모티프와 응답. 첫 4코드 풀을 넓힘. 변주와 다른 느낌으로는 직전 곡과 비슷하면 다시 뽑음
+- 더 넓은 음색 풀과 악기 계열(건반, 패드, 플럭, 리드)
+- 템포 60–160, 데모 길이 24마디와 48마디
+- 모바일 재생 바를 접을 수 있음. 펼친 상태도 한 줄에 제목과 음량이 놓임. 터치 대상은 44px 이상. 대화상자는 제목과 연결됨
+- 프로젝트와 JSON에 `engineVersion`. 버전이 없는 저장본은 1.6 작곡으로 재생하고, 데모를 다시 만들면 1.7이 됨
+- 후렴과 프리의 음역을 도약 상한 안에서 넓힘. EDM 필터와 라이저, 구간 음량은 10–30ms 동안 움직음
+
+### 유지
+
+- 같은 시드와 같은 설정은 같은 스케치. 에너지만 바꾸면 멜로디의 음과 시간은 그대로
+- 저장 키 `sonori.studio.v1`, 프로젝트 JSON 버전 1. `planner`가 `"concept"`가 아닌 저장본은 1.4 작곡
+- 서비스 워커 캐시 `sonori-v1.7.0`
+- 단일 HTML, 엄격한 CSP, 외부 의존성·샘플·네트워크 없음
+- 후원 https://ko-fi.com/chamomilegrey, All rights reserved
+
+## English
+
+Arrangement now changes inside a song: each genre has a few instrumentation candidates, layers enter and leave by section, and bars get accents and fills. An energy control from 1 to 5 changes layer count, rhythm density, an upper octave, and the filter, with a rising, mid-peak, or calm curve. The same seed keeps melody notes and timing across energy levels. Longer sketches add a break, and 32 bars also add a second verse and chorus. An intro can be forced on or off. Melody leaps are capped, with a contrary-motion recovery and motif-answer phrases. The opening chord pool is larger, especially for EDM, and variation re-rolls when the result is too close to the previous sketch. The timbre pool is larger, with a keys, pad, pluck, or lead choice. Tempo runs from 60 to 160, and demos can be 24 or 48 bars. On a phone the player bar collapses, touch targets are at least 44px, and dialogs name their titles. The same seed and settings still rebuild the same sketch. Storage stays `sonori.studio.v1`, project JSON stays version 1, and the service worker cache is `sonori-v1.7.0`.
+
 ## 1.6.0 — 2026-10-25
 
 스케치마다 다른 곡 콘셉트.

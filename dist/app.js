@@ -8,7 +8,8 @@ const STORAGE = 'sonori.studio.v1';
 const GENRES = {lofi:'Lo-fi',pop:'Pop',rnb:'R&B',ambient:'Ambient',ballad:'Ballad',edm:'EDM',acoustic:'Acoustic',cinematic:'Cinematic',modernrock:'Modern Rock',dawn:'Dawn',nitelofi:'Night',citypop:'City Pop',trap:'Trap',house:'House',bossa:'Bossa Nova',reggaeton:'Reggaeton'};
 const MOODS = {warm:'따뜻한',dreamy:'몽환적인',bright:'경쾌한',melancholy:'아련한'};
 const SCALES = {major:'메이저',minor:'마이너',dorian:'도리안',pentatonic:'펜타토닉'};
-const DEFAULTS = {title:'오후의 작은 쉼표',topic:'창가에 앉아 잠시 쉬어 가는 오후',genre:'lofi',mood:'warm',bpm:84,key:'C',scale:'major',bars:16,seed:20261017,vocal:'female',notes:'',planner:'concept',instruments:{melody:true,chords:true,bass:true,drums:true,hum:false},ambience:{rain:0,vinyl:0,wind:0}};
+const ENGINE = '1.7.0';
+const DEFAULTS = {title:'오후의 작은 쉼표',topic:'창가에 앉아 잠시 쉬어 가는 오후',genre:'lofi',mood:'warm',bpm:84,key:'C',scale:'major',bars:16,seed:20261017,vocal:'female',notes:'',planner:'concept',engineVersion:ENGINE,instruments:{melody:true,chords:true,bass:true,drums:true,hum:false},ambience:{rain:0,vinyl:0,wind:0}};
 const PRESETS = {
   warm:{...DEFAULTS},
   night:{...DEFAULTS,title:'잠들지 않은 도시',topic:'늦은 밤 도시를 걷다 떠오른 작은 그리움',genre:'rnb',mood:'dreamy',bpm:76,key:'F',scale:'major',seed:240921},
@@ -18,6 +19,9 @@ const PRESETS = {
 const clone = value => JSON.parse(JSON.stringify(value));
 const cleanString = (value, max) => typeof value === 'string' ? value.slice(0,max) : '';
 const FEEL = {lofi:[76,98],pop:[96,126],rnb:[72,92],ambient:[72,80],ballad:[72,84],edm:[126,128],acoustic:[88,108],cinematic:[76,92],modernrock:[72,86],dawn:[72,80],nitelofi:[72,86],citypop:[100,112],trap:[132,140],house:[120,124],bossa:[116,136],reggaeton:[90,100]};
+const BARS = [8,16,24,32,48];
+const FAMILIES = ['auto','keys','pad','pluck','lead'];
+const CURVES = ['rise','peak','calm'];
 const KEYS = ['C','D','E','F','G','A'];
 const CONTOUR_KO = {arch:'아치',rise:'상승',fall:'하강',wave:'물결',neighbor:'인접'};
 const TEXTURE_KO = {pad:'지속음',stab:'스타브',arp:'분산',strum:'스트럼'};
@@ -26,12 +30,12 @@ function feelAnchorOf(value) {
   if (!anchor || typeof anchor !== 'object') return null;
   const bpm = Math.round(Number(anchor.bpm));
   if (!Number.isFinite(bpm) || !KEYS.includes(anchor.key)) return null;
-  return {bpm:Math.max(72,Math.min(140,bpm)),key:anchor.key};
+  return {bpm:Math.max(60,Math.min(160,bpm)),key:anchor.key};
 }
 function varyFeel(genre, seed, anchor) {
-  const [lo, hi] = FEEL[genre] || [72, 140];
-  const min = Math.max(72, lo);
-  const max = Math.min(140, hi);
+  const [lo, hi] = FEEL[genre] || [60, 160];
+  const min = Math.max(60, lo);
+  const max = Math.min(160, hi);
   const center = Math.max(min, Math.min(max, Math.round(Number(anchor?.bpm) || 84)));
   const bpm = Math.max(min, Math.min(max, center + ((seed % 11) - 5)));
   const index = Math.max(0, KEYS.indexOf(anchor?.key));
@@ -40,7 +44,10 @@ function varyFeel(genre, seed, anchor) {
 }
 function normalize(value = {}) {
   const valid = (obj, key, fallback) => Object.hasOwn(obj, key) ? key : fallback;
-  return {title:cleanString(value.title,70),topic:cleanString(value.topic,600),notes:cleanString(value.notes,2000),genre:valid(GENRES,value.genre,'lofi'),mood:valid(MOODS,value.mood,'warm'),bpm:Math.max(72,Math.min(140,Math.round(Number(value.bpm)||84))),key:KEYS.includes(value.key)?value.key:'C',scale:valid(SCALES,value.scale,'major'),bars:[8,16,32].includes(Number(value.bars))?Number(value.bars):16,seed:(Number(value.seed)||20261017)>>>0,vocal:['female','male','duet','instrumental'].includes(value.vocal)?value.vocal:'female',instruments:{melody:value.instruments?.melody!==false,chords:value.instruments?.chords!==false,bass:value.instruments?.bass!==false,drums:value.instruments?.drums!==false,hum:value.instruments?.hum===true},ambience:normalizeAmbience(value.ambience),feelAnchor:feelAnchorOf(value),planner:value.planner==='concept'||value.planner==='legacy'?value.planner:undefined};
+  const energy = [1,2,3,4,5].includes(Number(value.energy)) ? Number(value.energy) : 3;
+  const intro = value.intro === true ? true : value.intro === false ? false : 'auto';
+  const engineVersion = value.engineVersion === '1.7.0' || value.engineVersion === '1.6.0' ? value.engineVersion : undefined;
+  return {title:cleanString(value.title,70),topic:cleanString(value.topic,600),notes:cleanString(value.notes,2000),genre:valid(GENRES,value.genre,'lofi'),mood:valid(MOODS,value.mood,'warm'),bpm:Math.max(60,Math.min(160,Math.round(Number(value.bpm)||84))),key:KEYS.includes(value.key)?value.key:'C',scale:valid(SCALES,value.scale,'major'),bars:BARS.includes(Number(value.bars))?Number(value.bars):16,seed:(Number(value.seed)||20261017)>>>0,vocal:['female','male','duet','instrumental'].includes(value.vocal)?value.vocal:'female',energy,energyCurve:CURVES.includes(value.energyCurve)?value.energyCurve:'rise',family:FAMILIES.includes(value.family)?value.family:'auto',intro,engineVersion,instruments:{melody:value.instruments?.melody!==false,chords:value.instruments?.chords!==false,bass:value.instruments?.bass!==false,drums:value.instruments?.drums!==false,hum:value.instruments?.hum===true},ambience:normalizeAmbience(value.ambience),feelAnchor:feelAnchorOf(value),planner:value.planner==='concept'||value.planner==='legacy'?value.planner:undefined};
 }
 let stored;
 let storageWorks = true;
@@ -130,8 +137,10 @@ function syncAmbienceControls() {
   }
 }
 function fillForm() {
-  for(const id of ['title','topic','bpm','key','bars','vocal','notes']) $(id).value=settings[id];
+  for(const id of ['title','topic','bpm','key','bars','vocal','notes','energy','energyCurve','family']) $(id).value=settings[id];
   $('bpmOutput').innerHTML=`${settings.bpm} <span>BPM</span>`;
+  if($('energyOutput')) $('energyOutput').textContent=String(settings.energy);
+  if($('introToggle')) $('introToggle').checked=settings.intro===true;
   document.querySelectorAll('[data-mood]').forEach(button=>{const selected=button.dataset.mood===settings.mood;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
   document.querySelectorAll('[data-genre-preset]').forEach(button=>{const preset=presetById(button.dataset.genrePreset);const selected=preset?.genre===settings.genre;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
   document.querySelectorAll('[data-scene]').forEach(button=>{const scene=sceneById(button.dataset.scene);const selected=Boolean(scene&&sceneMatches(scene));button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
@@ -198,7 +207,9 @@ function setProgress(value) {
   [...$('barTrack').children].forEach((bar,index)=>bar.classList.toggle('active',index/applied.bars<progress));
 }
 function engineInput(value) {
-  return {...value, planner: value.planner === 'concept' ? 'concept' : 'legacy'};
+  const planner = value.planner === 'concept' ? 'concept' : 'legacy';
+  const engineVersion = planner === 'concept' && value.engineVersion !== '1.7.0' ? '1.6.0' : value.engineVersion;
+  return {...value, planner, engineVersion};
 }
 function renderSong() {
   song=compose(engineInput(applied));
@@ -253,11 +264,32 @@ function renderSong() {
   setProgress(0);updatePlayUI();updatePending();
 }
 function playbackHandlers() {return {onProgress:setProgress,onEnded:()=>{handleEnded();}};}
+function sketchMark(value) {
+  if(!value) return '';
+  const open=(value.chordNames||[]).join('-');
+  const beat=value.beatSeconds||1;
+  const hits=(value.events||[]).filter(event=>['kick','snare','hat','clap','shaker'].includes(event.instrument)&&event.time<beat*4).map(event=>`${event.instrument}@${Math.round(event.time/beat*4)/4}`);
+  return `${open}|${[...new Set(hits)].sort().join('|')}`;
+}
+function retargetSeed(nextSettings, previous) {
+  let seed=nextSettings.seed>>>0;
+  if(!previous) return seed;
+  const prior=sketchMark(previous);
+  for(let attempt=0;attempt<8;attempt++){
+    const trial=compose({...nextSettings,seed,planner:'concept'});
+    if(sketchMark(trial)!==prior) return seed;
+    seed=(seed+7919)>>>0;
+  }
+  return seed;
+}
 function generate({newSeed=false,keepFeel=false,message='새로운 데모를 만들었어요. 재생해서 들어보세요.'}={}) {
   player.stop();
   settings.planner='concept';
+  settings.engineVersion=ENGINE;
+  const previous=newSeed?song:null;
   if(newSeed) {
     settings.seed=(settings.seed+7919)>>>0;
+    settings.seed=retargetSeed(settings, previous);
     if(!keepFeel) {
       if(!settings.feelAnchor) settings.feelAnchor={bpm:settings.bpm,key:settings.key};
       const feel=varyFeel(settings.genre,settings.seed,settings.feelAnchor);
@@ -378,7 +410,10 @@ function download(blob,filename) {
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 function filename(ext, suffix='') {const base=(brief.title||'sonori').replace(/[<>:"/\\|?*\u0000-\u001f]/g,'_').slice(0,54);return `${suffix?`${base}-${suffix}`:base}.${ext}`;}
-function projectData() {return {format:'sonori-project',version:1,settings:clone(settings),applied:clone(applied),customLyrics,take};}
+function projectData() {
+  const engineVersion = settings.engineVersion === '1.7.0' || applied.engineVersion === '1.7.0' ? '1.7.0' : '1.6.0';
+  return {format:'sonori-project',version:1,engineVersion,settings:clone(settings),applied:clone(applied),customLyrics,take};
+}
 let exportToken=0;
 function exportDialog() {
   openDialog('이 곡, 다음 작업으로 가져가기','<p class="dialog-description">현재 들리는 데모와 적용된 설정을 내보냅니다. JSON에는 아직 적용하지 않은 설정도 함께 보관됩니다.</p><div class="download-grid"><button class="download-option" id="downloadWav"><b>WAV <span>↘</span></b><small>연주 데모 음원<br>44.1 kHz · Stereo</small></button><button class="download-option" id="downloadLoop"><b>반복 WAV <span>↘</span></b><small>끝과 시작을 겹친 루프<br>같은 길이로 이어 재생</small></button><button class="download-option" id="download30"><b>30분 WAV <span>↘</span></b><small>변주를 겹쳐 이어 붙인 긴 음원<br>약 300MB</small></button><button class="download-option" id="download60"><b>60분 WAV <span>↘</span></b><small>변주를 겹쳐 이어 붙인 긴 음원<br>약 600MB</small></button><button class="download-option" id="downloadMidi"><b>MIDI <span>↘</span></b><small>멜로디·코드·베이스·드럼·허밍<br>DAW에서 계속 편집</small></button><button class="download-option" id="downloadBrief"><b>제작안 TXT <span>↘</span></b><small>가사·스타일 프롬프트<br>곡 구성과 상의할 내용</small></button><button class="download-option" id="downloadJson"><b>프로젝트 JSON <span>↘</span></b><small>현재 설정과 편집한 가사<br>다른 브라우저에서 불러오기</small></button></div><div id="exportProgress" class="export-progress" hidden><p id="exportProgressText">음원을 준비하는 중이에요.</p><div class="export-track" aria-hidden="true"><i id="exportProgressBar"></i></div><div id="exportProgressMeter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="음원 만들기 진행"></div><button type="button" class="button small ghost" id="cancelExport">취소</button></div><p class="dialog-description" style="margin:18px 0 0">짧은 WAV는 기기에 따라 잠시 걸릴 수 있어요. 30분과 60분은 구간마다 다른 변주를 만들어 겹칩니다. 취소하면 지금 구간이 끝난 뒤에 멈춰요. 이 탭을 닫지 마세요. MIDI의 악기 음색은 사용하는 음악 프로그램에 따라 달라집니다.</p>');
@@ -443,8 +478,18 @@ function saveProject() {
   if(document.body.classList.contains('view-library')) renderLibrary();
   toast(storageWorks?'현재 버전을 라이브러리에 저장했어요.':'브라우저 저장이 막혀 있어요. 내보내기에서 JSON으로 보관해 주세요.');
 }
+function withEngine(source, fallback) {
+  if (!source || typeof source !== 'object') return source;
+  if (source.engineVersion === '1.7.0' || source.engineVersion === '1.6.0') return source;
+  if (fallback === '1.7.0' || fallback === '1.6.0') return {...source, engineVersion: fallback};
+  return source;
+}
 function loadData(data,options={}) {
-  player.stop();settings=normalize(data.settings);applied=normalize(data.applied||data.settings);customLyrics=typeof data.customLyrics==='string'?data.customLyrics.slice(0,16000):null;take=Math.max(1,Math.min(999,Number(data.take)||1));example=false;
+  player.stop();
+  const marked = data.engineVersion === '1.7.0' || data.engineVersion === '1.6.0' ? data.engineVersion : undefined;
+  settings=normalize(withEngine(data.settings, marked));
+  applied=normalize(withEngine(data.applied||data.settings, marked));
+  customLyrics=typeof data.customLyrics==='string'?data.customLyrics.slice(0,16000):null;take=Math.max(1,Math.min(999,Number(data.take)||1));example=false;
   if('projectId' in options) currentProjectId=options.projectId;
   fillForm();renderSong();persist();
 }
@@ -621,11 +666,12 @@ function openProject(project) {
   toast('저장한 스케치를 불러왔어요.');
 }
 function showGuide() {
-  openDialog('취향에서 노래까지','<ol class="guide-steps"><li><b>이야기하며 방향 정하기</b><span>장르 프리셋이나 장면, 분위기, 주제를 고르세요. 장면은 그 장르에 비, 바이닐, 바람 배경음을 더합니다. 새벽 공부는 새벽 피아노, 비 오는 카페는 스윙 로파이, 밤 드라이브는 시티팝, 집중은 여백 앰비언트, 잠들기 전은 하프타임 심야입니다. “함께 곡의 방향 정하기”에서 상담용 내용을 복사해 상의해 보세요.</span></li><li><b>데모를 듣고 취향 찾기</b><span>데모를 만들고 아래 재생 바에서 재생하세요. 허밍은 가사 없는 oo/ah 패드입니다. 배경음 슬라이더는 바로 적용돼요. 변주는 같은 이야기에서 코드, 멜로디, 그루브, 구성, 조성과 템포를 다시 뽑아요. 다른 느낌으로는 템포와 조성을 둔 채 곡 콘셉트만 다시 뽑아요.</span></li><li><b>가사를 다듬고 다음 제작으로</b><span>템플릿 가사를 고치거나 함께 쓴 가사를 붙여 넣으세요. 저장한 스케치는 라이브러리와 플레이리스트로 정리할 수 있어요. 내보내기에서 짧은 WAV, 이어 듣는 반복 WAV, 30분·60분 음원을 받을 수 있어요. 긴 음원은 구간마다 변주를 겹쳐 만듭니다.</span></li></ol><p class="dialog-description">연주는 브라우저의 합성 악기입니다. 배경음도 녹음된 샘플이 아니라 그 자리에서 만들어요. 프로젝트와 플레이리스트는 이 브라우저에 저장됩니다.</p><p class="dialog-description">만든 음악은 유튜브, 방송, 영상(수익이 생기는 영상 포함)에 쓰실 수 있어요. 출처는 Music: SONORI by ChamomileGrey 를 권합니다. 곡을 그대로 음원 라이브러리로 되팔지는 말아 주세요. 이 안내는 법률 자문이 아니에요. 응원은 Ko-fi에서 받을 수 있어요.</p><div class="dialog-actions"><button class="button primary" id="guideDone">좋아요, 시작할게요 →</button></div><p class="dialog-description">© 2026 캐모마일그레이 (ChamomileGrey)</p>');$('guideDone').onclick=closeDialog;
+  openDialog('취향에서 노래까지','<ol class="guide-steps"><li><b>이야기하며 방향 정하기</b><span>장르 프리셋이나 장면, 분위기, 주제를 고르세요. 장면은 그 장르에 비, 바이닐, 바람 배경음을 더합니다. 새벽 공부는 새벽 피아노, 비 오는 카페는 스윙 로파이, 밤 드라이브는 시티팝, 집중은 여백 앰비언트, 잠들기 전은 하프타임 심야입니다. “함께 곡의 방향 정하기”에서 상담용 내용을 복사해 상의해 보세요.</span></li><li><b>데모를 듣고 취향 찾기</b><span>데모를 만들고 아래 재생 바에서 재생하세요. 허밍은 가사 없는 oo/ah 패드입니다. 배경음 슬라이더는 바로 적용돼요. 변주는 직전 곡과 비슷하면 코드나 그루브가 달라질 때까지 다시 뽑고, 조성과 템포도 장르 안에서 조금 움직입니다. 다른 느낌으로는 템포와 조성을 둔 채 곡 콘셉트만 다시 뽑아요. 에너지는 같은 음의 세기와 겹만 바꿉니다.</span></li><li><b>가사를 다듬고 다음 제작으로</b><span>템플릿 가사를 고치거나 함께 쓴 가사를 붙여 넣으세요. 저장한 스케치는 라이브러리와 플레이리스트로 정리할 수 있어요. 내보내기에서 짧은 WAV, 이어 듣는 반복 WAV, 30분·60분 음원을 받을 수 있어요. 긴 음원은 구간마다 변주를 겹쳐 만듭니다.</span></li></ol><p class="dialog-description">연주는 브라우저의 합성 악기입니다. 배경음도 녹음된 샘플이 아니라 그 자리에서 만들어요. 프로젝트와 플레이리스트는 이 브라우저에 저장됩니다.</p><p class="dialog-description">만든 음악은 유튜브, 방송, 영상(수익이 생기는 영상 포함)에 쓰실 수 있어요. 출처는 Music: SONORI by ChamomileGrey 를 권합니다. 곡을 그대로 음원 라이브러리로 되팔지는 말아 주세요. 이 안내는 법률 자문이 아니에요. 응원은 Ko-fi에서 받을 수 있어요.</p><div class="dialog-actions"><button class="button primary" id="guideDone">좋아요, 시작할게요 →</button></div><p class="dialog-description">© 2026 캐모마일그레이 (ChamomileGrey)</p>');$('guideDone').onclick=closeDialog;
 }
 
 $('settingsForm').addEventListener('submit',event=>{event.preventDefault();generate();});
-for(const id of ['title','topic','bpm','key','bars','vocal','notes']) $(id).addEventListener('input',()=>{settings[id]=['bpm','bars'].includes(id)?Number($(id).value):$(id).value;if(id==='bpm'||id==='key'){settings.feelAnchor=null;updatePresetHint();}if(id==='bpm')$('bpmOutput').innerHTML=`${settings.bpm} <span>BPM</span>`;updatePending();scheduleSave();});
+for(const id of ['title','topic','bpm','key','bars','vocal','notes','energy','energyCurve','family']) $(id).addEventListener('input',()=>{settings[id]=['bpm','bars','energy'].includes(id)?Number($(id).value):$(id).value;if(id==='bpm'||id==='key'){settings.feelAnchor=null;updatePresetHint();}if(id==='bpm')$('bpmOutput').innerHTML=`${settings.bpm} <span>BPM</span>`;if(id==='energy'&&$('energyOutput'))$('energyOutput').textContent=String(settings.energy);updatePending();scheduleSave();});
+if($('introToggle')) $('introToggle').addEventListener('change',()=>{settings.intro=$('introToggle').checked;updatePending();scheduleSave();});
 document.querySelectorAll('[data-mood]').forEach(button=>button.onclick=()=>{settings.mood=button.dataset.mood;fillForm();scheduleSave();});
 document.querySelectorAll('[data-genre-preset]').forEach(button=>button.onclick=()=>{const preset=presetById(button.dataset.genrePreset);if(!preset) return;settings=normalize(applyPresetToSettings(settings,preset.id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};fillForm();scheduleSave();});
 document.querySelectorAll('[data-scene]').forEach(button=>button.onclick=()=>{const scene=sceneById(button.dataset.scene);if(!scene) return;settings=normalize(applySceneToSettings(settings,scene.id));settings.feelAnchor={bpm:settings.bpm,key:settings.key};applied.ambience=normalizeAmbience(settings.ambience);if(song){song.settings.ambience=applied.ambience;player.setAmbience(applied.ambience);}fillForm();scheduleSave();toast(`“${scene.label}” 장면을 넣었어요. 데모 만들기를 누르면 곡도 이 장르로 바뀌어요.`);});
@@ -649,9 +695,9 @@ $('nextBtn').onclick=()=>{goQueue(1);};
 $('shuffleBtn').onclick=()=>{shuffleOn=!shuffleOn;shuffleSeed=(shuffleSeed+Date.now())>>>0;shuffleOrder=[];persist();updateTransportState();};
 $('repeatBtn').onclick=()=>{repeatMode=nextRepeatMode(repeatMode);persist();updateTransportState();};
 $('restartBtn').onclick=async()=>{const wasPlaying=player.getState().status==='playing';player.stop();setProgress(0);updatePlayUI();if(wasPlaying)await play();};
-$('variationBtn').onclick=()=>generate({newSeed:true,message:'변주를 다시 뽑았어요. 코드, 멜로디, 그루브, 구성이 바뀌고 조성과 템포는 장르 범위 안에서 조금 움직입니다.'});
+$('variationBtn').onclick=()=>generate({newSeed:true,message:'변주를 다시 뽑았어요. 직전 곡과 코드나 그루브가 겹치면 달라질 때까지 한 번 더 고르고, 조성과 템포는 장르 범위 안에서 조금 움직입니다.'});
 const rerollBtn=$('rerollBtn');
-if(rerollBtn) rerollBtn.onclick=()=>generate({newSeed:true,keepFeel:true,message:'다른 느낌으로 다시 뽑았어요. 형식, 코드, 그루브가 바뀌고 템포와 조성은 그대로예요.'});
+if(rerollBtn) rerollBtn.onclick=()=>generate({newSeed:true,keepFeel:true,message:'다른 느낌으로 다시 뽑았어요. 직전 곡과 비슷하면 코드나 그루브가 달라질 때까지 다시 고르고, 템포와 조성은 그대로예요.'});
 function setVolume(value){const next=Math.max(0,Math.min(100,Number(value)||0));$('volume').value=String(next);$('playerVolume').value=String(next);player.setVolume(next/100);}
 $('volume').oninput=()=>setVolume($('volume').value);
 $('playerVolume').oninput=()=>setVolume($('playerVolume').value);
@@ -681,6 +727,19 @@ dialog.addEventListener('click',event=>{if(event.target===dialog){const rect=dia
 dialog.addEventListener('close',()=>{exportToken++;});
 $('studioNav').onclick=()=>{showView('studio');scrollToElement(document.querySelector('.workspace-heading'));};
 $('playerTitleBtn').onclick=()=>{showView('studio');scrollToElement(document.querySelector('.studio'));};
+function setPlayerCollapsed(collapsed) {
+  const bar = $('playerBar');
+  const button = $('playerCollapse');
+  if (!bar || !button) return;
+  bar.classList.toggle('is-collapsed', collapsed);
+  document.body.classList.toggle('player-collapsed', collapsed);
+  button.setAttribute('aria-expanded', String(!collapsed));
+  button.textContent = collapsed ? '재생 바 펼치기' : '재생 바 접기';
+}
+const narrowPlayer = window.matchMedia('(max-width: 800px)');
+setPlayerCollapsed(narrowPlayer.matches);
+narrowPlayer.addEventListener('change', event => setPlayerCollapsed(event.matches));
+$('playerCollapse').onclick = () => setPlayerCollapsed(!$('playerBar').classList.contains('is-collapsed'));
 $('playerContext').onclick=()=>showView('library');
 function startNewProject() {if(!confirm('현재 작업은 JSON으로 내보내거나 프로젝트에 저장했나요? 새 작업을 시작하면 현재 작업 중인 내용이 바뀝니다.'))return;showView('studio');playContext='studio';loadData({settings:{...DEFAULTS,title:'새로운 나의 노래',topic:'',notes:'',seed:Date.now()>>>0},customLyrics:null},{projectId:null});if(dialog.open)closeDialog();$('title').focus();toast('새 작업실을 준비했어요. 함께 곡의 방향을 정해 보세요.');}
 $('newBtn').onclick=startNewProject;

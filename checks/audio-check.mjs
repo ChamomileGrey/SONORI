@@ -1,8 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-
-const source = await readFile(new URL('../dist/audio.js', import.meta.url), 'utf8');
-const { compose, normalizeSettings, createMidi, encodeWav, createPlayer, vowelFormants, createImpulseChannels, SPACE } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+import { compose, normalizeSettings, createMidi, encodeWav, createPlayer, vowelFormants, createImpulseChannels, SPACE } from '../dist/audio.js';
 const settings = { genre: 'lofi', mood: 'warm', key: 'C', bpm: 86, bars: 16, seed: 42 };
 const song = compose(settings);
 assert.deepEqual(song, compose(settings), 'The same brief and seed reproduce the same music.');
@@ -12,9 +9,10 @@ assert.deepEqual(song.chordNames, ['Cmaj7', 'Am7', 'Dm7', 'G6']);
 assert.equal(song.chords.at(-1).root, song.chords[0].root, 'The final bar resolves to the home chord.');
 assert.equal(song.events.findLast(event => event.instrument === 'melody').midi % 12, song.chords[0].root);
 
+const DRUMS = new Set(['kick', 'snare', 'hat', 'clap', 'shaker']);
 for (const instrument of ['melody', 'chords', 'bass', 'drums']) {
   const muted = compose({ ...settings, instruments: { [instrument]: false } });
-  const expected = song.events.filter(event => instrument === 'drums' ? !['kick', 'snare', 'hat'].includes(event.instrument) : event.instrument !== instrument);
+  const expected = song.events.filter(event => instrument === 'drums' ? !DRUMS.has(event.instrument) : event.instrument !== instrument);
   assert.deepEqual(muted.events, expected, 'Muting a layer must preserve the remaining arrangement.');
 }
 assert.equal(compose({ ...settings, instruments: { melody: false, chords: false, bass: false, drums: false } }).events.length, 0);
@@ -52,8 +50,12 @@ for (const genre of ['lofi', 'pop', 'ambient', 'rnb', 'modernrock', 'dawn', 'nit
   }
 }
 assert.deepEqual(normalizeSettings({ bpm: Infinity, bars: 3, genre: 'invalid', key: 'invalid', seed: -1 }).bpm, 86);
-assert.equal(normalizeSettings({ bpm: 800 }).bpm, 140);
-assert.equal(normalizeSettings({ bpm: 1 }).bpm, 72);
+assert.equal(normalizeSettings({ bpm: 800 }).bpm, 160);
+assert.equal(normalizeSettings({ bpm: 1 }).bpm, 60);
+assert.equal(normalizeSettings({ bars: 24 }).bars, 24);
+assert.equal(normalizeSettings({ bars: 48 }).bars, 48);
+assert.equal(normalizeSettings({ energy: 9 }).energy, 3);
+assert.equal(normalizeSettings({ energy: 4, energyCurve: 'peak', family: 'pad', intro: false }).energyCurve, 'peak');
 
 // Parse the MIDI independently: track chunk sizes, tempo, deltas, balanced note pairs.
 const midi = Buffer.from(await createMidi(song).arrayBuffer());
@@ -160,6 +162,34 @@ const withoutHum = compose({ ...settings, instruments: { melody: true, chords: t
 assert.deepEqual(withHum.events.filter(event => event.instrument !== 'hum'), withoutHum.events, 'The hum toggle must leave the other layers unchanged.');
 const hums = withHum.events.filter(event => event.instrument === 'hum');
 assert.ok(hums.length >= withHum.bars);
+
+const lowEnergy = compose({ ...settings, seed: 7, energy: 1, energyCurve: 'calm' });
+const highEnergy = compose({ ...settings, seed: 7, energy: 5, energyCurve: 'peak' });
+const pitched = (song, instrument) => song.events.filter(event => event.instrument === instrument).map(event => `${event.time}:${event.midi}`);
+assert.deepEqual(pitched(lowEnergy, 'melody'), pitched(highEnergy, 'melody'), 'Energy keeps the melody notes and timing.');
+const highChords = new Set(pitched(highEnergy, 'chords'));
+assert.ok(pitched(lowEnergy, 'chords').every(note => highChords.has(note)), 'Lower energy chords stay inside the higher-energy chord notes.');
+assert.ok(highEnergy.events.filter(event => DRUMS.has(event.instrument)).length > lowEnergy.events.filter(event => DRUMS.has(event.instrument)).length);
+const longForm = compose({ ...settings, bars: 32, seed: 4 });
+assert.ok(longForm.structure.some(section => section.role === 'break'));
+assert.ok(longForm.structure.some(section => section.role === 'verse2' || section.role === 'chorus2'));
+assert.equal(longForm.structure.reduce((sum, section) => sum + section.bars, 0), 32);
+assert.equal(compose({ ...settings, bars: 16, seed: 8, intro: true }).structure[0].role, 'intro');
+assert.ok(compose({ ...settings, bars: 16, seed: 8, intro: false }).structure.every(section => section.role !== 'intro'));
+const keysSong = compose({ ...settings, seed: 5, family: 'keys' });
+const padSong = compose({ ...settings, seed: 5, family: 'pad' });
+assert.notEqual(keysSong.timbre.id, padSong.timbre.id);
+assert.deepEqual(pitched(keysSong, 'melody'), pitched(padSong, 'melody'));
+let wideLeaps = 0;
+let leapSteps = 0;
+for (let seed = 1; seed <= 12; seed++) {
+  const melody = compose({ ...settings, genre: 'ballad', seed }).events.filter(event => event.instrument === 'melody').map(event => event.midi);
+  for (let index = 1; index < melody.length; index++) {
+    leapSteps++;
+    if (Math.abs(melody[index] - melody[index - 1]) >= 8) wideLeaps++;
+  }
+}
+assert.ok(wideLeaps / leapSteps < 0.08, `ballad leaps of 8+ semitones are ${wideLeaps}/${leapSteps}`);
 for (const event of hums) {
   assert.ok(event.vowelFrom >= 0 && event.vowelFrom <= 1 && event.vowelTo >= 0 && event.vowelTo <= 1);
   assert.ok([0, 2, 4, 5, 7, 9, 11].includes(event.midi % 12));
