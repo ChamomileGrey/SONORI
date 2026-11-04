@@ -48,7 +48,7 @@ for (const preset of GENRE_PRESETS) {
   const scale = SCALE_SETS[preset.scale];
   const root = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9 }[preset.key];
   for (const event of song.events) {
-    if (['kick', 'snare', 'hat'].includes(event.instrument)) continue;
+    if (['kick', 'snare', 'hat', 'clap', 'shaker'].includes(event.instrument)) continue;
     assert.ok(scale.includes((event.midi - root + 120) % 12), `${preset.id} ${event.instrument} leaves the ${preset.scale} collection`);
   }
   const brief = createBrief(settings);

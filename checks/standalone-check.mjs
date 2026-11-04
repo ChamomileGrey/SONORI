@@ -35,7 +35,7 @@ assert.match(html, /data-genre-preset="cinematic"/);
 assert.match(html, /data-genre-preset="modernrock"/);
 assert.match(html, /data-layer="hum"/);
 assert.match(html, /ko-fi\.com\/chamomilegrey/);
-assert.match(html, /v1\.6\.0/);
+assert.match(html, /v1\.7\.0/);
 assert.match(html, /id="conceptLine"/);
 assert.match(html, /id="rerollBtn"/);
 assert.match(html, /다른 느낌으로/);
