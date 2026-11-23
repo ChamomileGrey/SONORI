@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.8.0 — 2026-11-23
+
+실제 악기 샘플과 공간 울림, 살짝 인간적인 연주.
+
+### 추가
+
+- 같은 주소에서 불러오는 소형 32 kHz MP3 악기 팩(`dist/samples/`, 약 0.83 MiB): 피아노(Salamander Grand Piano V3), 기타(FreePats), 현악(VSCO 2 CE), 베이스(FreePats), 드럼 6종(VCSL), 실제 스튜디오 임펄스 응답(OpenAIR Dixon Studio Theatre). 출처와 라이선스는 `LICENSES.md`에 정리
+- `dist/sampler.js`: 장르와 음색 계열에 맞춰 필요한 악기만 지연 로드하고 `AudioContext`별로 디코드·캐시. 가장 가까운 음 샘플로 피치 시프트하고, 긴 현악 패드는 겹쳐 이어 재생. 불러오지 못하면 기존 합성 악기와 합성 리버브로 자동 대체
+- 1.8.0 재생·렌더 전용 시드 휴머니제이션: 저장된 이벤트 배열은 바꾸지 않고 재생·WAV 렌더 시점에 멜로디·코드·베이스·드럼에 미세한 타이밍·세기 변화를 적용
+- 실제 공간 임펄스를 `ConvolverNode`에 연결. 1.8.0 재생과 짧은·반복·긴 WAV 내보내기 모두 샘플과 IR 로드를 기다린 뒤 시작
+- `checks/samples-check.mjs` 검사 추가, 서비스 워커 캐시 `sonori-v1.8.0`(샘플은 첫 재생 시 런타임 캐시)
+
+### 유지
+
+- 예전 저장본 호환: 1.7.0 스케치는 기존 1.7 작곡 + 합성 악기·합성 IR 그대로, 1.6.0과 버전 없는 콘셉트 저장본은 1.6 작곡 + 합성 악기 그대로, `planner:"legacy"`는 1.4 작곡 그대로
+- 같은 시드의 `compose()` 이벤트 결과는 1.8.0과 1.7.0이 동일
+- 허밍은 기존 포먼트 합성, 배경음(비·바이닐·바람)은 기존 합성 유지
+- 저장 키 `sonori.studio.v1`, 프로젝트 JSON 버전 1
+- 단일 HTML(`release/SONORI.html`)은 샘플을 넣지 않아 500 KB 아래와 `connect-src 'none'`을 유지하며 기존 합성 악기로 재생
+- 공개 사이트 바닥글·개인정보 페이지와 `release/site/LICENSES.md`에 CC BY 출처(Salamander Grand Piano V3, OpenAIR Dixon Studio Theatre)를 표시
+- 개인정보 안내를 공개 사이트의 같은 주소 악기 샘플 로드에 맞게 갱신. 분석 도구·쿠키·외부 CDN 없음
+- 후원 https://ko-fi.com/chamomilegrey, All rights reserved
+
+## English
+
+New 1.8.0 sketches play back with a compact same-origin 32 kHz MP3 instrument pack (piano, guitar, strings, bass, and six drum hits), a recorded studio impulse response (OpenAIR Dixon Studio Theatre), and seeded playback-time humanization that leaves stored `song.events` untouched. Samples lazy-load per genre and fall back cleanly to the existing oscillator voices and synthetic IR if unavailable (including in the offline single-file `release/SONORI.html`, which stays under 500 KB with `connect-src 'none'`). Saved 1.7.0, 1.6.0, unversioned concept, and legacy sketches continue playing on their original engines. See `LICENSES.md` for upstream sample credits and licenses. Storage stays `sonori.studio.v1`, project JSON stays version 1, and the service worker cache is `sonori-v1.8.0`.
+
 ## 1.7.0 — 2026-11-04
 
 같은 시드가 같은 곡을 유지한 채로, 편곡과 에너지가 더 움직인다.

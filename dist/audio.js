@@ -1,5 +1,7 @@
-/** Original, deterministic instrumental sketches. No network or audio samples. */
+/** Original, deterministic instrumental sketches. 1.8.0 uses same-origin samples with synth fallback. */
 import { composeV16 } from './engine-v16.js';
+import { ensureSamples, sampleStatus, pickSampleNote, resolveSampleInstrument } from './sampler.js';
+export { ensureSamples, sampleStatus };
 const KEYS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9 };
 const SCALE = [0, 2, 4, 5, 7, 9, 11];
 export const SCALE_SETS = {
@@ -322,6 +324,7 @@ export function seededRandom(seed) {
 
 export function normalizeSettings(input = {}) {
   const layers = input.instruments || {};
+  const engineVersion = ['1.6.0', '1.7.0', '1.8.0'].includes(input.engineVersion) ? input.engineVersion : undefined;
   return {
     genre: Object.hasOwn(PROFILES, input.genre) ? input.genre : 'lofi',
     mood: Object.hasOwn(PROGRESSIONS, input.mood) ? input.mood : 'warm',
@@ -334,6 +337,7 @@ export function normalizeSettings(input = {}) {
     energyCurve: ['rise', 'peak', 'calm'].includes(input.energyCurve) ? input.energyCurve : 'rise',
     intro: input.intro === false ? false : input.intro === true ? true : 'auto',
     family: ['keys', 'pad', 'pluck', 'lead'].includes(input.family) ? input.family : 'auto',
+    ...(engineVersion ? { engineVersion } : {}),
     instruments: {
       melody: layers.melody !== false,
       chords: layers.chords !== false,
@@ -2845,8 +2849,30 @@ export function compose(input = {}) {
   return composeConcept(input);
 }
 
-function createGraph(context, song, destination, initialVolume = 0.8) {
+/** Playback-time seeded humanization for 1.8.0. Never mutates song.events. */
+export function humanizeEvent(song, event, index = 0) {
+  if (song?.settings?.engineVersion !== '1.8.0') {
+    return { dt: 0, velocity: event.velocity, duration: event.duration };
+  }
+  const seed = (song.settings.seed ?? song.seed ?? 1) >>> 0;
+  const rand = seededRandom(mix(seed, 0x18A0 ^ Math.imul((index + 1) >>> 0, 0x9E3779B1)));
+  const kind = event.instrument;
+  const drum = isDrum(kind);
+  const timeSpan = kind === 'melody' ? 0.01 : kind === 'chords' ? 0.006 : drum ? 0.004 : 0.005;
+  const velSpan = kind === 'melody' ? 0.08 : drum ? 0.08 : 0.07;
+  const rawDt = (rand() * 2 - 1) * timeSpan;
+  const maxTime = Math.max(0, (song.duration || 0) - 0.005);
+  const shifted = clamp(event.time + rawDt, 0, maxTime);
+  const dt = shifted - event.time;
+  const velocity = round(clamp(event.velocity * (1 + (rand() * 2 - 1) * velSpan), 0.05, 0.98));
+  const duration = Math.min(event.duration, Math.max(0.02, (song.duration || event.time + event.duration) - shifted));
+  return { dt, velocity, duration };
+}
+
+function createGraph(context, song, destination, initialVolume = 0.8, samples = null) {
   const active = new Set();
+  const isV18 = song.settings?.engineVersion === '1.8.0';
+  const useSamples = Boolean(isV18 && samples && samples.ready && samples.instruments);
   const genre = song.settings.genre;
   const spacious = genre === 'ambient' || genre === 'cinematic' || genre === 'dawn';
   const emotional = spacious || genre === 'modernrock' || genre === 'ballad' || genre === 'nitelofi';
@@ -2919,7 +2945,6 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
   predelay.delayTime.value = spacious ? 0.032 : genre === 'edm' ? 0.012 : 0.022;
   const convolver = context.createConvolver();
   convolver.normalize = true;
-  const impulse = createImpulseChannels(context.sampleRate, emotional ? 2.2 : genre === 'edm' ? 1.05 : 1.6, emotional ? 1.7 : genre === 'edm' ? 3.5 : 2.4, mix(song.seed, 0x51DE));
   if (song.engine === 'concept') {
     if (genre === 'house') {
       warmth.gain.value = 2.4;
@@ -2957,14 +2982,20 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
       wet.gain.value = 0.06;
     }
   }
-  const impulseBuffer = context.createBuffer(2, impulse[0].length, context.sampleRate);
-  impulse.forEach((channel, index) => impulseBuffer.getChannelData(index).set(channel));
-  convolver.buffer = impulseBuffer;
+  const useRealIr = Boolean(isV18 && samples?.ir);
+  if (useRealIr) {
+    convolver.buffer = samples.ir;
+  } else {
+    const impulse = createImpulseChannels(context.sampleRate, emotional ? 2.2 : genre === 'edm' ? 1.05 : 1.6, emotional ? 1.7 : genre === 'edm' ? 3.5 : 2.4, mix(song.seed, 0x51DE));
+    const impulseBuffer = context.createBuffer(2, impulse[0].length, context.sampleRate);
+    impulse.forEach((channel, index) => impulseBuffer.getChannelData(index).set(channel));
+    convolver.buffer = impulseBuffer;
+  }
   const damp = context.createBiquadFilter();
   damp.type = 'lowpass';
   damp.frequency.value = spacious ? 4800 : 3400;
   const reverbReturn = context.createGain();
-  reverbReturn.gain.value = 0.85;
+  reverbReturn.gain.value = useRealIr ? 0.78 : 0.85;
   filter.connect(reverbSend);
   reverbSend.connect(reverbHighpass);
   reverbHighpass.connect(predelay);
@@ -3356,14 +3387,167 @@ function createGraph(context, song, destination, initialVolume = 0.8) {
     }
   }
 
+  function sampleTonal(event, time, duration) {
+    const kind = event.instrument;
+    const inst = resolveSampleInstrument(genre, timbre, kind, duration);
+    const bank = inst ? samples.instruments[inst] : null;
+    if (!bank || bank.kind !== 'pitched' || !bank.notes?.length) return false;
+    const picked = pickSampleNote(bank.notes, event.midi);
+    const buffer = picked?.note?.buffer;
+    if (!buffer) return false;
+    const rate = picked.playbackRate;
+    const tid = timbre?.id || '';
+    const amp = Math.max(0.0002, (kind === 'bass'
+      ? (genre === 'trap' || genre === 'edm' ? 0.48 : 0.4)
+      : kind === 'chords'
+        ? (inst === 'strings' ? 0.135 : 0.145)
+        : (inst === 'strings' ? 0.3 : 0.34)) * event.velocity);
+    const attack = inst === 'strings' ? Math.min(0.065, Math.max(0.012, duration * 0.22)) : 0.004;
+    const release = inst === 'strings' ? 0.42
+      : inst === 'piano' ? (kind === 'chords' ? (genre === 'house' || genre === 'edm' ? 0.18 : 0.34) : 0.24)
+        : inst === 'guitar' ? (kind === 'chords' ? 0.26 : 0.18)
+          : (genre === 'trap' || genre === 'ballad' ? 0.22 : 0.14);
+    const outGain = context.createGain();
+    outGain.gain.setValueAtTime(amp, time);
+    if (song.engine === 'concept' && genre === 'edm' && kind === 'chords') {
+      const step = song.beatSeconds || 0.5;
+      let cursor = time + Math.min(attack, duration * 0.3);
+      for (let beat = step; beat + 0.05 < duration; beat += step) {
+        const dipAt = Math.min(time + beat + 0.02, time + duration - 0.05);
+        const back = Math.min(time + beat + Math.min(step * 0.42, duration - beat), time + duration);
+        if (dipAt <= cursor + 0.001 || back <= dipAt + 0.015) continue;
+        outGain.gain.exponentialRampToValueAtTime(amp, dipAt);
+        outGain.gain.exponentialRampToValueAtTime(Math.max(0.0002, amp * 0.28), dipAt + 0.012);
+        outGain.gain.exponentialRampToValueAtTime(amp, back);
+        cursor = back;
+      }
+    }
+    const toneFreq = inst === 'bass'
+      ? (genre === 'trap' || genre === 'edm' || genre === 'ambient' || genre === 'dawn' ? 750 : genre === 'citypop' || genre === 'house' || genre === 'modernrock' ? 1800 : 1200)
+      : inst === 'piano' ? (/felt|warm-ep|dark/.test(tid) ? 1900 : /rhodes|keys-warm/.test(tid) ? 2800 : 0)
+        : inst === 'guitar' ? (genre === 'bossa' || /nylon/.test(tid) ? 3200 : 0)
+          : (/warm|dark/.test(tid) ? 2600 : 0);
+    let tone = null;
+    if (toneFreq > 0) {
+      tone = context.createBiquadFilter();
+      tone.type = 'lowpass';
+      tone.frequency.value = toneFreq;
+      tone.Q.value = 0.4;
+      outGain.connect(tone);
+      tone.connect(input);
+    } else {
+      outGain.connect(input);
+    }
+    const sharedNodes = tone ? [outGain, tone] : [outGain];
+    const playable = buffer.duration / rate;
+    const totalPlay = duration + release;
+    if (inst === 'strings' && totalPlay > playable - 0.08 && playable > 0.5) {
+      const xfade = Math.min(0.32, playable * 0.25);
+      const sustainOffset = Math.min(0.45, buffer.duration * 0.18);
+      let cursor = 0;
+      let grain = 0;
+      while (cursor < totalPlay && grain < 8) {
+        const bufOffset = grain === 0 ? 0 : sustainOffset;
+        const avail = (buffer.duration - bufOffset) / rate - 0.04;
+        if (avail <= xfade + 0.05) break;
+        const remain = totalPlay - cursor;
+        const isLast = remain <= avail || grain === 7;
+        const len = Math.min(remain, avail);
+        const gStart = time + cursor;
+        const gEnd = gStart + len;
+        const fadeIn = grain === 0 ? Math.min(attack, len * 0.3) : Math.min(xfade, len * 0.45);
+        const fadeOut = isLast ? Math.min(release, len * 0.5) : Math.min(xfade, len * 0.45);
+        const src = context.createBufferSource();
+        src.buffer = buffer;
+        src.playbackRate.value = rate;
+        const gGain = context.createGain();
+        gGain.gain.setValueAtTime(0.0001, gStart);
+        gGain.gain.linearRampToValueAtTime(1, gStart + Math.max(0.003, fadeIn));
+        gGain.gain.setValueAtTime(1, Math.max(gStart + fadeIn + 0.001, gEnd - fadeOut));
+        gGain.gain.linearRampToValueAtTime(0.0001, gEnd);
+        src.connect(gGain);
+        gGain.connect(outGain);
+        src.start(gStart, bufOffset);
+        track(src, isLast ? [gGain, ...sharedNodes] : [gGain], gEnd + 0.02);
+        if (isLast) break;
+        cursor += len - xfade;
+        grain++;
+      }
+      return true;
+    }
+    const src = context.createBufferSource();
+    src.buffer = buffer;
+    src.playbackRate.value = rate;
+    const env = context.createGain();
+    const fadeInEnd = time + Math.min(attack, Math.max(0.002, duration * 0.3));
+    const relStart = Math.max(fadeInEnd + 0.001, time + duration);
+    env.gain.setValueAtTime(0.0001, time);
+    env.gain.linearRampToValueAtTime(1, fadeInEnd);
+    env.gain.setValueAtTime(1, relStart);
+    env.gain.exponentialRampToValueAtTime(0.0001, time + duration + release);
+    src.connect(env);
+    env.connect(outGain);
+    src.start(time);
+    track(src, [env, ...sharedNodes], Math.min(time + duration + release + 0.03, time + playable + 0.05));
+    return true;
+  }
+
+  function samplePercussion(event, time) {
+    const hits = samples.instruments.drums?.hits;
+    if (!hits) return false;
+    const hitId = event.instrument === 'hat' && event.midi === 46 ? 'open' : event.instrument;
+    const buffer = hits[hitId] || (hitId === 'open' ? hits.hat : null);
+    if (!buffer) return false;
+    const softKit = ['modernrock', 'dawn', 'nitelofi', 'ballad', 'acoustic'].includes(genre);
+    const level = Math.max(0.0002, event.velocity * (hitId === 'kick'
+      ? (genre === 'trap' ? 0.78 : softKit ? 0.52 : 0.68)
+      : hitId === 'snare' ? (softKit ? 0.3 : 0.44)
+        : hitId === 'open' ? 0.22
+          : hitId === 'hat' ? 0.2
+            : hitId === 'clap' ? 0.34 : 0.18));
+    const maxLen = hitId === 'kick' ? (genre === 'cinematic' || genre === 'trap' ? 0.65 : 0.42)
+      : hitId === 'snare' ? 0.38
+        : hitId === 'open' ? 0.36
+          : hitId === 'clap' ? 0.32
+            : hitId === 'shaker' ? 0.22 : 0.18;
+    const len = Math.min(buffer.duration, maxLen);
+    const src = context.createBufferSource();
+    src.buffer = buffer;
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.linearRampToValueAtTime(level, time + 0.002);
+    gain.gain.setValueAtTime(level, time + Math.max(0.015, len * 0.55));
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + Math.max(0.02, len));
+    src.connect(gain);
+    gain.connect(input);
+    src.start(time);
+    track(src, [gain], time + len + 0.02);
+    return true;
+  }
+
   return {
     master,
     scheduleSpace,
-    schedule(event, time, duration = event.duration) {
-      if (isDrum(event.instrument)) percussion(event, time);
-      else if (event.instrument === 'hum') formantPad(event, time, duration);
-      else if (PROFILES[genre].voice === 'band') bandVoice(event, time, duration);
-      else tonal(event, time, duration);
+    schedule(event, time, duration = event.duration, eventIndex = null) {
+      let target = event;
+      let playTime = time;
+      let playDur = duration;
+      if (isV18 && eventIndex != null) {
+        const h = humanizeEvent(song, event, eventIndex);
+        playTime = Math.max(context.currentTime + 0.001, time + h.dt);
+        playDur = Math.min(duration, h.duration);
+        target = { ...event, velocity: h.velocity };
+      }
+      if (isDrum(target.instrument)) {
+        if (useSamples && samplePercussion(target, playTime)) return;
+        percussion(target, playTime);
+      } else if (target.instrument === 'hum') {
+        formantPad(target, playTime, playDur);
+      } else {
+        if (useSamples && sampleTonal(target, playTime, playDur)) return;
+        if (PROFILES[genre].voice === 'band') bandVoice(target, playTime, playDur);
+        else tonal(target, playTime, playDur);
+      }
     },
     startBed(time = 0, offsetSeconds = 0, fadeIn = false) { bed.start(time, offsetSeconds, fadeIn); },
     setAmbience(levels) { bed.setLevels(levels, context.currentTime, false, true); },
@@ -3475,7 +3659,18 @@ export function createPlayer() {
       clearGraph();
       song = nextSong;
       callbacks = handlers;
-      graph = createGraph(context, song, context.destination, volume);
+      let pack = null;
+      if (song.settings?.engineVersion === '1.8.0') {
+        // No graph exists while samples load; keep pause/seek from reading a stale clock.
+        status = offset > 0 ? 'paused' : 'stopped';
+        // A stalled network must not block playback; fall back to synth voices.
+        let timeoutId;
+        const timeout = new Promise(resolve => { timeoutId = setTimeout(() => resolve(null), 8000); });
+        pack = await Promise.race([ensureSamples(context, song).catch(() => null), timeout]);
+        clearTimeout(timeoutId);
+        if (ticket !== generation) return;
+      }
+      graph = createGraph(context, song, context.destination, volume, pack);
       startTime = context.currentTime + 0.045;
       graph.scheduleSpace(startTime - offset);
       graph.startBed(startTime, offset, true);
@@ -3491,10 +3686,11 @@ export function createPlayer() {
         if (status !== 'playing' || ticket !== generation) return;
         const current = position();
         while (nextEvent < song.events.length && song.events[nextEvent].time < current + 0.38) {
-          const event = song.events[nextEvent++];
+          const eventIndex = nextEvent++;
+          const event = song.events[eventIndex];
           // Background tabs can throttle timers; skip stale hits rather than bursting them.
           const time = startTime + event.time - offset;
-          if (time > context.currentTime - 0.08) graph.schedule(event, Math.max(context.currentTime + 0.002, time));
+          if (time > context.currentTime - 0.08) graph.schedule(event, Math.max(context.currentTime + 0.002, time), event.duration, eventIndex);
         }
         report();
         if (current >= song.duration && context.currentTime >= startTime + song.duration - offset + 0.45) {
@@ -3744,13 +3940,18 @@ async function renderToChannels(song, frames, sampleRate = 44100, offsetSeconds 
   if (!OfflineContext) throw new Error('이 브라우저는 WAV 내보내기를 지원하지 않습니다. MIDI로 저장하거나 최신 브라우저를 사용해 주세요.');
   const length = Math.max(1, Math.round(frames));
   const context = new OfflineContext(2, length, sampleRate);
-  const graph = createGraph(context, song, context.destination, 0.85);
+  let pack = null;
+  if (song.settings?.engineVersion === '1.8.0') {
+    pack = await ensureSamples(context, song).catch(() => null);
+  }
+  const graph = createGraph(context, song, context.destination, 0.85, pack);
   graph.scheduleSpace(0.02);
   graph.startBed(0, offsetSeconds, false);
   const seconds = length / sampleRate;
-  for (const event of song.events) {
+  for (let index = 0; index < song.events.length; index++) {
+    const event = song.events[index];
     if (event.time >= seconds) break;
-    graph.schedule(event, event.time + 0.02);
+    graph.schedule(event, event.time + 0.02, event.duration, index);
   }
   const audio = await context.startRendering();
   const left = new Float32Array(audio.length);
