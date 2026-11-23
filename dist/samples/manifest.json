@@ -1,0 +1,187 @@
+{
+  "version": "1.8.0",
+  "sampleRate": 32000,
+  "format": "mp3",
+  "instruments": {
+    "piano": {
+      "notes": [
+        {
+          "midi": 36,
+          "file": "piano/c2.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 42,
+          "file": "piano/fs2.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 48,
+          "file": "piano/c3.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 54,
+          "file": "piano/fs3.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 60,
+          "file": "piano/c4.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 66,
+          "file": "piano/fs4.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 72,
+          "file": "piano/c5.mp3",
+          "bytes": 32876
+        },
+        {
+          "midi": 78,
+          "file": "piano/fs5.mp3",
+          "bytes": 19484
+        },
+        {
+          "midi": 84,
+          "file": "piano/c6.mp3",
+          "bytes": 15164
+        }
+      ]
+    },
+    "guitar": {
+      "notes": [
+        {
+          "midi": 40,
+          "file": "guitar/e2.mp3",
+          "bytes": 32444
+        },
+        {
+          "midi": 45,
+          "file": "guitar/a2.mp3",
+          "bytes": 32444
+        },
+        {
+          "midi": 52,
+          "file": "guitar/e3.mp3",
+          "bytes": 32444
+        },
+        {
+          "midi": 57,
+          "file": "guitar/a3.mp3",
+          "bytes": 28124
+        },
+        {
+          "midi": 64,
+          "file": "guitar/e4.mp3",
+          "bytes": 32444
+        },
+        {
+          "midi": 69,
+          "file": "guitar/a4.mp3",
+          "bytes": 32444
+        },
+        {
+          "midi": 76,
+          "file": "guitar/e5.mp3",
+          "bytes": 15596
+        }
+      ]
+    },
+    "bass": {
+      "notes": [
+        {
+          "midi": 28,
+          "file": "bass/e1.mp3",
+          "bytes": 20924
+        },
+        {
+          "midi": 33,
+          "file": "bass/a1.mp3",
+          "bytes": 20924
+        },
+        {
+          "midi": 36,
+          "file": "bass/c2.mp3",
+          "bytes": 20924
+        },
+        {
+          "midi": 39,
+          "file": "bass/ds2.mp3",
+          "bytes": 20924
+        }
+      ]
+    },
+    "strings": {
+      "notes": [
+        {
+          "midi": 43,
+          "file": "strings/violin-g2.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 48,
+          "file": "strings/cello-c3.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 55,
+          "file": "strings/cello-g3.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 60,
+          "file": "strings/violin-c4.mp3",
+          "bytes": 39356
+        },
+        {
+          "midi": 67,
+          "file": "strings/violin-g4.mp3",
+          "bytes": 39356
+        }
+      ]
+    },
+    "drums": {
+      "hits": [
+        {
+          "id": "kick",
+          "file": "drums/kick.mp3",
+          "bytes": 11924
+        },
+        {
+          "id": "snare",
+          "file": "drums/snare.mp3",
+          "bytes": 5084
+        },
+        {
+          "id": "hat",
+          "file": "drums/hat.mp3",
+          "bytes": 3644
+        },
+        {
+          "id": "open",
+          "file": "drums/hat-open.mp3",
+          "bytes": 16964
+        },
+        {
+          "id": "clap",
+          "file": "drums/clap.mp3",
+          "bytes": 4004
+        },
+        {
+          "id": "shaker",
+          "file": "drums/shaker.mp3",
+          "bytes": 3644
+        }
+      ]
+    }
+  },
+  "ir": {
+    "file": "ir/dixon-studio.mp3",
+    "bytes": 27692,
+    "decode": "b-format-wy"
+  }
+}

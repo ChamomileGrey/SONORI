@@ -8,7 +8,9 @@ const STORAGE = 'sonori.studio.v1';
 const GENRES = {lofi:'Lo-fi',pop:'Pop',rnb:'R&B',ambient:'Ambient',ballad:'Ballad',edm:'EDM',acoustic:'Acoustic',cinematic:'Cinematic',modernrock:'Modern Rock',dawn:'Dawn',nitelofi:'Night',citypop:'City Pop',trap:'Trap',house:'House',bossa:'Bossa Nova',reggaeton:'Reggaeton'};
 const MOODS = {warm:'따뜻한',dreamy:'몽환적인',bright:'경쾌한',melancholy:'아련한'};
 const SCALES = {major:'메이저',minor:'마이너',dorian:'도리안',pentatonic:'펜타토닉'};
-const ENGINE = '1.7.0';
+const ENGINE = '1.8.0';
+const ENGINES = ['1.6.0', '1.7.0', '1.8.0'];
+const validEngine = value => ENGINES.includes(value) ? value : undefined;
 const DEFAULTS = {title:'오후의 작은 쉼표',topic:'창가에 앉아 잠시 쉬어 가는 오후',genre:'lofi',mood:'warm',bpm:84,key:'C',scale:'major',bars:16,seed:20261017,vocal:'female',notes:'',planner:'concept',engineVersion:ENGINE,instruments:{melody:true,chords:true,bass:true,drums:true,hum:false},ambience:{rain:0,vinyl:0,wind:0}};
 const PRESETS = {
   warm:{...DEFAULTS},
@@ -46,7 +48,7 @@ function normalize(value = {}) {
   const valid = (obj, key, fallback) => Object.hasOwn(obj, key) ? key : fallback;
   const energy = [1,2,3,4,5].includes(Number(value.energy)) ? Number(value.energy) : 3;
   const intro = value.intro === true ? true : value.intro === false ? false : 'auto';
-  const engineVersion = value.engineVersion === '1.7.0' || value.engineVersion === '1.6.0' ? value.engineVersion : undefined;
+  const engineVersion = validEngine(value.engineVersion);
   return {title:cleanString(value.title,70),topic:cleanString(value.topic,600),notes:cleanString(value.notes,2000),genre:valid(GENRES,value.genre,'lofi'),mood:valid(MOODS,value.mood,'warm'),bpm:Math.max(60,Math.min(160,Math.round(Number(value.bpm)||84))),key:KEYS.includes(value.key)?value.key:'C',scale:valid(SCALES,value.scale,'major'),bars:BARS.includes(Number(value.bars))?Number(value.bars):16,seed:(Number(value.seed)||20261017)>>>0,vocal:['female','male','duet','instrumental'].includes(value.vocal)?value.vocal:'female',energy,energyCurve:CURVES.includes(value.energyCurve)?value.energyCurve:'rise',family:FAMILIES.includes(value.family)?value.family:'auto',intro,engineVersion,instruments:{melody:value.instruments?.melody!==false,chords:value.instruments?.chords!==false,bass:value.instruments?.bass!==false,drums:value.instruments?.drums!==false,hum:value.instruments?.hum===true},ambience:normalizeAmbience(value.ambience),feelAnchor:feelAnchorOf(value),planner:value.planner==='concept'||value.planner==='legacy'?value.planner:undefined};
 }
 let stored;
@@ -208,7 +210,7 @@ function setProgress(value) {
 }
 function engineInput(value) {
   const planner = value.planner === 'concept' ? 'concept' : 'legacy';
-  const engineVersion = planner === 'concept' && value.engineVersion !== '1.7.0' ? '1.6.0' : value.engineVersion;
+  const engineVersion = planner === 'concept' && !validEngine(value.engineVersion) ? '1.6.0' : value.engineVersion;
   return {...value, planner, engineVersion};
 }
 function renderSong() {
@@ -411,7 +413,7 @@ function download(blob,filename) {
 }
 function filename(ext, suffix='') {const base=(brief.title||'sonori').replace(/[<>:"/\\|?*\u0000-\u001f]/g,'_').slice(0,54);return `${suffix?`${base}-${suffix}`:base}.${ext}`;}
 function projectData() {
-  const engineVersion = settings.engineVersion === '1.7.0' || applied.engineVersion === '1.7.0' ? '1.7.0' : '1.6.0';
+  const engineVersion = validEngine(applied.engineVersion) || validEngine(settings.engineVersion) || '1.6.0';
   return {format:'sonori-project',version:1,engineVersion,settings:clone(settings),applied:clone(applied),customLyrics,take};
 }
 let exportToken=0;
@@ -456,7 +458,7 @@ function exportDialog() {
   $('downloadLoop').onclick=()=>runWav('반복용 음원을 만드는 중이에요.', 'loop', async cancelled=>{
     return renderLoopWav(song, {shouldCancel:cancelled});
   });
-  const longExport=minutes=>$('download'+minutes).onclick=()=>runWav(`${minutes}분 음원을 만드는 중이에요.`, `${minutes}min`, (cancelled, onRatio)=>renderLongformWav(applied, {
+  const longExport=minutes=>$('download'+minutes).onclick=()=>runWav(`${minutes}분 음원을 만드는 중이에요.`, `${minutes}min`, (cancelled, onRatio)=>renderLongformWav(engineInput(applied), {
     minutes,
     shouldCancel:cancelled,
     onProgress:state=>onRatio(state.ratio||0),
@@ -480,13 +482,13 @@ function saveProject() {
 }
 function withEngine(source, fallback) {
   if (!source || typeof source !== 'object') return source;
-  if (source.engineVersion === '1.7.0' || source.engineVersion === '1.6.0') return source;
-  if (fallback === '1.7.0' || fallback === '1.6.0') return {...source, engineVersion: fallback};
+  if (validEngine(source.engineVersion)) return source;
+  if (validEngine(fallback)) return {...source, engineVersion: fallback};
   return source;
 }
 function loadData(data,options={}) {
   player.stop();
-  const marked = data.engineVersion === '1.7.0' || data.engineVersion === '1.6.0' ? data.engineVersion : undefined;
+  const marked = validEngine(data.engineVersion);
   settings=normalize(withEngine(data.settings, marked));
   applied=normalize(withEngine(data.applied||data.settings, marked));
   customLyrics=typeof data.customLyrics==='string'?data.customLyrics.slice(0,16000):null;take=Math.max(1,Math.min(999,Number(data.take)||1));example=false;
@@ -666,7 +668,7 @@ function openProject(project) {
   toast('저장한 스케치를 불러왔어요.');
 }
 function showGuide() {
-  openDialog('취향에서 노래까지','<ol class="guide-steps"><li><b>이야기하며 방향 정하기</b><span>장르 프리셋이나 장면, 분위기, 주제를 고르세요. 장면은 그 장르에 비, 바이닐, 바람 배경음을 더합니다. 새벽 공부는 새벽 피아노, 비 오는 카페는 스윙 로파이, 밤 드라이브는 시티팝, 집중은 여백 앰비언트, 잠들기 전은 하프타임 심야입니다. “함께 곡의 방향 정하기”에서 상담용 내용을 복사해 상의해 보세요.</span></li><li><b>데모를 듣고 취향 찾기</b><span>데모를 만들고 아래 재생 바에서 재생하세요. 허밍은 가사 없는 oo/ah 패드입니다. 배경음 슬라이더는 바로 적용돼요. 변주는 직전 곡과 비슷하면 코드나 그루브가 달라질 때까지 다시 뽑고, 조성과 템포도 장르 안에서 조금 움직입니다. 다른 느낌으로는 템포와 조성을 둔 채 곡 콘셉트만 다시 뽑아요. 에너지는 같은 음의 세기와 겹만 바꿉니다.</span></li><li><b>가사를 다듬고 다음 제작으로</b><span>템플릿 가사를 고치거나 함께 쓴 가사를 붙여 넣으세요. 저장한 스케치는 라이브러리와 플레이리스트로 정리할 수 있어요. 내보내기에서 짧은 WAV, 이어 듣는 반복 WAV, 30분·60분 음원을 받을 수 있어요. 긴 음원은 구간마다 변주를 겹쳐 만듭니다.</span></li></ol><p class="dialog-description">연주는 브라우저의 합성 악기입니다. 배경음도 녹음된 샘플이 아니라 그 자리에서 만들어요. 프로젝트와 플레이리스트는 이 브라우저에 저장됩니다.</p><p class="dialog-description">만든 음악은 유튜브, 방송, 영상(수익이 생기는 영상 포함)에 쓰실 수 있어요. 출처는 Music: SONORI by ChamomileGrey 를 권합니다. 곡을 그대로 음원 라이브러리로 되팔지는 말아 주세요. 이 안내는 법률 자문이 아니에요. 응원은 Ko-fi에서 받을 수 있어요.</p><div class="dialog-actions"><button class="button primary" id="guideDone">좋아요, 시작할게요 →</button></div><p class="dialog-description">© 2026 캐모마일그레이 (ChamomileGrey)</p>');$('guideDone').onclick=closeDialog;
+  openDialog('취향에서 노래까지','<ol class="guide-steps"><li><b>이야기하며 방향 정하기</b><span>장르 프리셋이나 장면, 분위기, 주제를 고르세요. 장면은 그 장르에 비, 바이닐, 바람 배경음을 더합니다. 새벽 공부는 새벽 피아노, 비 오는 카페는 스윙 로파이, 밤 드라이브는 시티팝, 집중은 여백 앰비언트, 잠들기 전은 하프타임 심야입니다. “함께 곡의 방향 정하기”에서 상담용 내용을 복사해 상의해 보세요.</span></li><li><b>데모를 듣고 취향 찾기</b><span>데모를 만들고 아래 재생 바에서 재생하세요. 허밍은 가사 없는 oo/ah 패드입니다. 배경음 슬라이더는 바로 적용돼요. 변주는 직전 곡과 비슷하면 코드나 그루브가 달라질 때까지 다시 뽑고, 조성과 템포도 장르 안에서 조금 움직입니다. 다른 느낌으로는 템포와 조성을 둔 채 곡 콘셉트만 다시 뽑아요. 에너지는 같은 음의 세기와 겹만 바꿉니다.</span></li><li><b>가사를 다듬고 다음 제작으로</b><span>템플릿 가사를 고치거나 함께 쓴 가사를 붙여 넣으세요. 저장한 스케치는 라이브러리와 플레이리스트로 정리할 수 있어요. 내보내기에서 짧은 WAV, 이어 듣는 반복 WAV, 30분·60분 음원을 받을 수 있어요. 긴 음원은 구간마다 변주를 겹쳐 만듭니다.</span></li></ol><p class="dialog-description">연주는 새 스케치에서 같은 주소의 실제 악기 샘플과 공간 울림으로 재생하며, 샘플이 없으면 브라우저 합성 악기로 재생해요. 배경음도 녹음된 샘플이 아니라 그 자리에서 만들어요. 프로젝트와 플레이리스트는 이 브라우저에 저장됩니다.</p><p class="dialog-description">만든 음악은 유튜브, 방송, 영상(수익이 생기는 영상 포함)에 쓰실 수 있어요. 출처는 Music: SONORI by ChamomileGrey 를 권합니다. 곡을 그대로 음원 라이브러리로 되팔지는 말아 주세요. 이 안내는 법률 자문이 아니에요. 응원은 Ko-fi에서 받을 수 있어요.</p><div class="dialog-actions"><button class="button primary" id="guideDone">좋아요, 시작할게요 →</button></div><p class="dialog-description">© 2026 캐모마일그레이 (ChamomileGrey)</p>');$('guideDone').onclick=closeDialog;
 }
 
 $('settingsForm').addEventListener('submit',event=>{event.preventDefault();generate();});

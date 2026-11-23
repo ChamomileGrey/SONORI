@@ -13,11 +13,25 @@ await new Promise((resolve, reject) => {
 });
 
 const read = file => fs.readFile(path.join(root, 'dist', file), 'utf8');
-const [html, css, audioSource, engineSource, brief, presets, library, app, icon] = await Promise.all(['index.html', 'style.css', 'audio.js', 'engine-v16.js', 'brief.js', 'presets.js', 'library.js', 'app.js', 'icon.svg'].map(read));
-const audio = audioSource.replace(/import \{ composeV16 \} from '\.\/engine-v16\.js';\n/, '');
+const [html, css, samplerSource, audioSource, engineSource, brief, presets, library, app, icon] = await Promise.all(['index.html', 'style.css', 'sampler.js', 'audio.js', 'engine-v16.js', 'brief.js', 'presets.js', 'library.js', 'app.js', 'icon.svg'].map(read));
+// Preserve whitespace inside multiline template literals, where it is data.
+const stripIndent = source => {
+  let inTemplate = false;
+  return source.split('\n').map(line => {
+    const result = inTemplate ? line : line.trimStart();
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '`' && (i === 0 || line[i - 1] !== '\\')) inTemplate = !inTemplate;
+    }
+    return result;
+  }).join('\n');
+};
+const sampler = stripIndent(samplerSource.replace(/new URL\('samples\/', import\.meta\.url\)\.href/, 'null'));
+const audio = stripIndent(audioSource.replace(/^import .*;\n/gm, '').replace(/^export \{ ensureSamples, sampleStatus \};\n/m, ''));
+const engine = stripIndent(engineSource);
 const moduleWrap = (source, names) => `const {${names.join(',')}} = (() => {\n${source.replace(/^export /gm, '')}\nreturn {${names.join(',')}};\n})();`;
 const code = [
-  moduleWrap(engineSource, ['composeV16']),
+  moduleWrap(engine, ['composeV16']),
+  moduleWrap(sampler, ['ensureSamples', 'sampleStatus', 'setSampleBase', 'instrumentsForSong', 'pickSampleNote', 'resolveSampleInstrument']),
   moduleWrap(audio, ['compose', 'createPlayer', 'renderWav', 'renderLoopWav', 'renderLongformWav', 'normalizeAmbience', 'createMidi']),
   moduleWrap(brief, ['createBrief', 'formatBrief']),
   moduleWrap(presets, ['GENRE_PRESETS', 'LAYER_HINTS', 'applyPresetToSettings', 'detailForGenre', 'presetById', 'SCENE_PRESETS', 'applySceneToSettings', 'sceneById']),
@@ -36,6 +50,7 @@ function assemble(csp, { pages }) {
     .replace('<script type="module" src="app.js"></script>', script);
   if (!pages) {
     doc = doc.replace(/<link\b[^>]*data-pages="1"[^>]*>\n?/g, '');
+    doc = doc.replace(/<a\b[^>]*data-pages="1"[^>]*>[\s\S]*?<\/a>/g, '');
     doc = doc.replace('<link rel="icon" href="icon.svg" type="image/svg+xml">', `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(icon)}" type="image/svg+xml">`);
   }
   return doc;
@@ -52,5 +67,7 @@ const siteFiles = ['404.html', 'privacy.html', 'robots.txt', 'sitemap.xml'];
 await Promise.all([
   ...distFiles.map(file => fs.copyFile(path.join(root, 'dist', file), path.join(site, file))),
   ...siteFiles.map(file => fs.copyFile(path.join(root, 'site', file), path.join(site, file))),
+  fs.cp(path.join(root, 'dist', 'samples'), path.join(site, 'samples'), { recursive: true }),
+  fs.copyFile(path.join(root, 'LICENSES.md'), path.join(site, 'LICENSES.md')),
 ]);
 console.log(`Built release/SONORI.html (${Buffer.byteLength(standalone).toLocaleString()} bytes) and release/site (${Buffer.byteLength(pagesHtml).toLocaleString()} byte index).`);

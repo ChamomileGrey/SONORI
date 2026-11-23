@@ -1,5 +1,5 @@
-/* Same-origin app shell only. The cache name changes with the release. */
-const CACHE = 'sonori-v1.7.0';
+/* Same-origin app shell and runtime-cached samples. The cache name changes with the release. */
+const CACHE = 'sonori-v1.8.0';
 const ASSETS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   './og.png',
   './privacy.html',
   './404.html',
+  './samples/manifest.json',
 ];
 
 self.addEventListener('install', event => {
@@ -32,12 +33,15 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const cached = await cache.match(event.request);
+    if (cached && url.pathname.includes('/samples/') && url.pathname.endsWith('.mp3')) return cached;
     try {
       const response = await fetch(event.request);
       if (response && response.ok) cache.put(event.request, response.clone());
       return response;
     } catch (error) {
-      return cached || cache.match('./index.html') || cache.match('./404.html');
+      if (cached) return cached;
+      if (url.pathname.includes('/samples/')) return new Response('', { status: 503 });
+      return cache.match('./index.html') || cache.match('./404.html');
     }
   })());
 });
