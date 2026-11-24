@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob: data:; connect-src 'self'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'"><meta name="sonori-sw" content="on"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob: data:; connect-src 'self'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'"><meta name="sonori-sw" content="on"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f4f3ee">
   <meta name="color-scheme" content="light">
   <title>SONORI — 취향을 노래로</title>
@@ -261,7 +261,7 @@ input[type=range]{min-height:44px;height:44px}
         <p id="playlistOrderNote" class="preset-hint" hidden>플레이리스트는 직접 정한 순서로 재생돼요. 검색 중에는 순서를 바꾸지 않아요.</p>
         <div id="sketchGrid" class="sketch-grid" role="list"></div>
         <p id="libraryStatus" class="sr-only" role="status"></p>
-        <div class="library-actions-row"><button type="button" class="button small ghost" id="importJsonBtn">JSON 불러오기</button><input type="file" id="importJson" accept=".json,application/json" hidden><button type="button" class="button small primary" id="saveHere">현재 스케치 저장</button></div>
+        <div class="library-actions-row"><button type="button" class="button small ghost" id="importJsonBtn">JSON 불러오기</button><input type="file" id="importJson" accept=".json,application/json" hidden><button type="button" class="button small ghost" id="chainBtn" data-pages="1">조각 연결</button><button type="button" class="button small primary" id="saveHere">현재 스케치 저장</button></div>
       </div>
     </div>
   </section>
@@ -8658,6 +8658,8 @@ $('deletePlaylistBtn').onclick=()=>{const playlist=playlists.find(item=>item.id=
 $('librarySearch').addEventListener('input',()=>{libraryQuery=$('librarySearch').value;renderLibrary();});
 $('librarySort').addEventListener('change',()=>{librarySort=$('librarySort').value;shuffleOrder=[];persist();renderLibrary();updateTransportState();});
 $('importJsonBtn').onclick=()=>$('importJson').click();
+const chainBtn=$('chainBtn');
+if(chainBtn) chainBtn.onclick=async()=>{try{const mod=await import('./chainer-ui.js');mod.openChainerDialog({openDialog,closeDialog,toast,download});}catch{chainBtn.hidden=true;toast('조각 연결은 공개 사이트나 로컬 서버에서 쓸 수 있어요.');}};
 $('importJson').onchange=async event=>{
   const file=event.target.files?.[0];event.target.value='';if(!file)return;
   try {if(file.size>150000)throw new Error('파일이 너무 큽니다. 150 KB 이하의 프로젝트를 선택해 주세요.');const data=JSON.parse(await file.text());if(data?.format!=='sonori-project'||data.version!==1||!data.settings||typeof data.settings!=='object'||Array.isArray(data.settings))throw new Error('SONORI에서 내보낸 프로젝트 JSON을 선택해 주세요.');playContext='studio';loadData(data,{projectId:null});showView('studio');toast('프로젝트 파일을 불러왔어요.');} catch(error){toast(error?.message||'프로젝트를 불러오지 못했어요.');}

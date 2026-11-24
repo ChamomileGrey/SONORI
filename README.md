@@ -47,6 +47,14 @@
 - 30분·60분 WAV: OfflineAudioContext로 구간을 하나씩 만들고, 시드가 다른 변주를 크로스페이드로 겹침. 진행 표시와 취소. 구간은 WAV 조각으로 이어 붙여 전체를 한 번에 들고 있지 않음
 - 크리에이터 이용 안내: 유튜브·방송·영상(수익이 생기는 영상 포함)에 사용 가능. 크레딧 예는 `Music: SONORI by ChamomileGrey`. 만든 곡 그대로를 음원 라이브러리로 되팔지 말아 달라는 짧은 안내이며, 법률 자문은 아님. 응원은 Ko-fi
 
+## 조각 연결 (로컬 오디오 체이너 · 1.8 추가 도구)
+
+사용자가 직접 가지고 있는 짧은 오디오 조각(예: intro, hook, bridge, break, ending WAV)을 로컬 브라우저나 Node에서 이어 붙여 긴 트랙을 만들 수 있는 `dist/chainer.js` 모듈을 제공합니다. 별도의 외부 음원 라이브러리나 데모 오디오는 포함하지 않습니다.
+
+- **호환성 제한**: 템포 타임스트레치는 **±3% (`0.97–1.03`)** 안에서만 허용하며, 피치 시프트는 필요할 때 **±2 반음** 안에서만 적용합니다. 나란한조(예: `C major` ↔ `A minor`, `F# major` ↔ `D# minor`)는 피치 시프트 없이 호환으로 처리하고, 2반음을 초과하는 조성은 강제 피치 시프트 없이 리듬 연결로만 점수를 낮춰 평가합니다.
+- **이음매 처리 및 품질 측정**: 같은 트랙의 인접 코어는 중복 +3 dB 상승 없이 연속 컷으로 잇고, 그 외 구간은 `mixCrossfade` 기반 다운비트 정렬 동일 파워 크로스페이드로 연결합니다. `seamMetrics`(join/p99, 에너지 연속성, 스펙트럼 변화)와 `wrapClickMetric`(반복 루프 끝–시작 클릭 비율)을 제공합니다.
+- **사용 방법**: 공개 사이트(`release/site/`) 또는 로컬 HTTP 서버에서 **라이브러리 → 조각 연결** 버튼으로 로컬 WAV를 불러와 연결할 수 있습니다(모듈은 지연 로드되며, 500 KB 이하 용량을 지키기 위해 단일 HTML `release/SONORI.html`에는 포함하지 않습니다). 스크립트나 콘솔에서는 `dist/chainer.js`의 `scoreCompatibility`, `planChain`, `chainSegments`, `seamMetrics`, `wrapClickMetric`을 직접 호출할 수 있습니다.
+
 ## 범위와 보관
 
 공개 사이트에서 만든 새 스케치(`engineVersion: "1.8.0"`)는 같은 주소에서 불러오는 소형 실제 악기 샘플(피아노·기타·현악·베이스·드럼)과 실제 스튜디오 임펄스 응답(Dixon Studio Theatre), 시드 기반 미세 휴머니제이션으로 재생합니다. 샘플 출처와 라이선스는 [LICENSES.md](LICENSES.md)에 있습니다.
@@ -106,5 +114,7 @@ Choose one genre and mood — Lo-fi, Pop, R&B, Ambient, Ballad, EDM, Acoustic, C
 All songs and settings stay in this browser. There are no analytics or cookies. On the public site, only this site’s own app files and instrument samples are fetched, and they may be saved on the device so the app can open offline. Songs and settings are never sent. The downloadable HTML file makes no network connections and does not register a service worker. The footer shows v1.8.0, a short what’s-new line, the privacy note, and a Support / 후원 link to the external Ko-fi page. Scene choices (dawn study, rainy café, night drive, focus, bedtime) map onto the now-distinct genre presets — dawn piano, swung lo-fi, city pop, spacious ambient, and half-time night — and add synthesized rain, vinyl crackle, and soft wind, each with its own slider. Export a seamless loop, or a 30- or 60-minute WAV rendered in crossfaded variations with progress and cancel. A short creator note says the music may be used in videos and streams, including monetized ones; attribution such as “Music: SONORI by ChamomileGrey” is appreciated; please don’t resell the raw tracks as a sample library. That note is not legal advice.
 
 Projects and playlists are stored in this browser’s localStorage (up to 30 sketch versions). Sketches saved by version 1.0 stay in the library. Export JSON for any version you want to keep. A full storage quota or private mode shows a notice instead of failing silently, and destructive deletes ask for confirmation.
+
+An additive 1.8 tool (`dist/chainer.js`, lazy-loaded on the Pages site via **Library → 조각 연결** and omitted from the single-file `release/SONORI.html` to keep it under 500 KB) lets you chain your own locally loaded audio segments (`intro`, `hook`, `bridge`, `break`, `ending`) with strict caps (±3% time-stretch, ±2 semitones pitch-shift; relative major/minor compatible at 0 st), downbeat-aligned equal-power crossfades, continuous cuts for same-track adjacent cores, and `seamMetrics` / `wrapClickMetric` (`join/p99`) checks. No third-party music library or demo audio is shipped.
 
 Copyright © 2026 ChamomileGrey. See [LICENSE](LICENSE). Permission requests: chamomilegrey.official@gmail.com. Support: [ko-fi.com/chamomilegrey](https://ko-fi.com/chamomilegrey).

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.8 추가 도구 (조각 연결) — 2026-11-24
+
+사용자가 직접 불러온 짧은 오디오 조각을 이어 긴 트랙으로 만드는 로컬 세그먼트 체이너(`dist/chainer.js`, `dist/chainer-ui.js`). 작곡 엔진 버전(`1.8.0` / `1.7.0` / `1.6.0`)은 그대로 유지합니다.
+
+### 추가
+
+- `dist/chainer.js`: 순수 JS ESM 모듈(외부 의존성 없음, Node·브라우저 공용). `audio.js`의 `mixCrossfade`·`foldLoop`를 재사용해 호환성 점수(`scoreCompatibility`), 순서 계획(`planChain`), 다운비트 정렬 동일 파워 크로스페이드 연결(`chainSegments`), 이음매·루프 클릭 측정(`seamMetrics`, `wrapClickMetric`)을 제공
+- 호환성 상한: 타임스트레치 ±3% (`0.97–1.03`), 피치 시프트 ±2반음(필요 시에만 적용, 나란한조는 0반음 호환, 2반음 초과 비나란한조는 강제 시프트 없이 점수만 감점). 같은 트랙의 인접 코어는 +3 dB 중복 없이 연속 컷 처리
+- `dist/chainer-ui.js` 및 공개 사이트(`release/site/`) 지연 로드 **조각 연결** 버튼: 사용자가 직접 선택한 로컬 WAV 파일에 BPM·조성·역할·코어 구간을 지정하고 연결된 WAV를 저장(외부 음원 라이브러리·번들 데모 없음)
+- `checks/chainer-check.mjs` 검사 추가 및 `npm run check` 연결. 단일 HTML(`release/SONORI.html`)에는 체이너를 인라인하지 않아 500 KB 미만과 `connect-src 'none'`을 유지
+
+### English
+
+Added an optional 1.8 additive tool (`dist/chainer.js` + lazy-loaded `dist/chainer-ui.js`) for chaining user-supplied local audio segments without changing composition engine versions (`1.8.0` / `1.7.0` / `1.6.0`). Core math runs in pure JS (Node and browser), reusing `mixCrossfade` and `foldLoop` from `audio.js`, enforcing ±3% time-stretch and ±2 semitone pitch-shift caps (relative major/minor compatible at 0 st), performing continuous cuts for same-track adjacent cores, aligning downbeats, and reporting `join/p99` seam and wrap-click metrics. The Pages build copies the chainer modules as separate files and lazy-loads them on demand; the single-file `release/SONORI.html` excludes the chainer to remain under 500 KB with `connect-src 'none'`. No third-party music library is shipped.
+
 ## 1.8.0 — 2026-11-23
 
 실제 악기 샘플과 공간 울림, 살짝 인간적인 연주.

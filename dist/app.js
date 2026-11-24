@@ -753,6 +753,8 @@ $('deletePlaylistBtn').onclick=()=>{const playlist=playlists.find(item=>item.id=
 $('librarySearch').addEventListener('input',()=>{libraryQuery=$('librarySearch').value;renderLibrary();});
 $('librarySort').addEventListener('change',()=>{librarySort=$('librarySort').value;shuffleOrder=[];persist();renderLibrary();updateTransportState();});
 $('importJsonBtn').onclick=()=>$('importJson').click();
+const chainBtn=$('chainBtn');
+if(chainBtn) chainBtn.onclick=async()=>{try{const mod=await import('./chainer-ui.js');mod.openChainerDialog({openDialog,closeDialog,toast,download});}catch{chainBtn.hidden=true;toast('조각 연결은 공개 사이트나 로컬 서버에서 쓸 수 있어요.');}};
 $('importJson').onchange=async event=>{
   const file=event.target.files?.[0];event.target.value='';if(!file)return;
   try {if(file.size>150000)throw new Error('파일이 너무 큽니다. 150 KB 이하의 프로젝트를 선택해 주세요.');const data=JSON.parse(await file.text());if(data?.format!=='sonori-project'||data.version!==1||!data.settings||typeof data.settings!=='object'||Array.isArray(data.settings))throw new Error('SONORI에서 내보낸 프로젝트 JSON을 선택해 주세요.');playContext='studio';loadData(data,{projectId:null});showView('studio');toast('프로젝트 파일을 불러왔어요.');} catch(error){toast(error?.message||'프로젝트를 불러오지 못했어요.');}

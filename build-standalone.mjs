@@ -39,7 +39,7 @@ const code = [
   app.replace(/^import .*;\n/gm, ''),
 ].join('\n');
 const strictCsp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src blob: data:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">`;
-const pagesCsp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob: data:; connect-src 'self'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'">`;
+const pagesCsp = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob: data:; connect-src 'self'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; manifest-src 'self'; worker-src 'self'">`;
 const style = css.replace(/^@import[^\r\n]*[\r\n]*/, '');
 const script = `<script>\n(()=>{\n${code.replace(/<\/script/gi, '<\\/script')}\n})();\n</script>`;
 
@@ -51,6 +51,7 @@ function assemble(csp, { pages }) {
   if (!pages) {
     doc = doc.replace(/<link\b[^>]*data-pages="1"[^>]*>\n?/g, '');
     doc = doc.replace(/<a\b[^>]*data-pages="1"[^>]*>[\s\S]*?<\/a>/g, '');
+    doc = doc.replace(/<button\b[^>]*data-pages="1"[^>]*>[\s\S]*?<\/button>/g, '');
     doc = doc.replace('<link rel="icon" href="icon.svg" type="image/svg+xml">', `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(icon)}" type="image/svg+xml">`);
   }
   return doc;
@@ -62,7 +63,7 @@ await fs.writeFile(path.join(output, 'SONORI.html'), standalone);
 await fs.rm(site, { recursive: true, force: true });
 await fs.mkdir(site, { recursive: true });
 await fs.writeFile(path.join(site, 'index.html'), pagesHtml);
-const distFiles = ['manifest.webmanifest', 'sw.js', 'icon.svg', 'favicon-32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'og.png'];
+const distFiles = ['manifest.webmanifest', 'sw.js', 'icon.svg', 'favicon-32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'og.png', 'chainer.js', 'chainer-ui.js', 'audio.js', 'engine-v16.js', 'sampler.js'];
 const siteFiles = ['404.html', 'privacy.html', 'robots.txt', 'sitemap.xml'];
 await Promise.all([
   ...distFiles.map(file => fs.copyFile(path.join(root, 'dist', file), path.join(site, file))),
